@@ -4,6 +4,7 @@
   "private": true,
   "description": "Node.js backend API with Express and TypeScript",
   "dependencies": {
+    "@auth/prisma-adapter": "^2.11.1",
     "@prisma/client": "^7.0.0",
     "@repo/types": "workspace:*",
     "compression": "^1.8.1",

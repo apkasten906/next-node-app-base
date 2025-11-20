@@ -4,15 +4,34 @@
   "private": true,
   "description": "Next.js frontend application",
   "scripts": {
-    "dev": "echo 'Frontend dev server - Next.js app to be implemented'",
-    "build": "echo 'Frontend build - Next.js app to be implemented'",
-    "start": "echo 'Frontend start - Next.js app to be implemented'",
-    "lint": "echo 'Frontend lint - ESLint to be configured'",
-    "typecheck": "echo 'Frontend typecheck - TypeScript to be configured'",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "test": "echo 'Frontend tests - Vitest to be configured'",
     "test:unit": "echo 'Frontend unit tests'",
     "test:integration": "echo 'Frontend integration tests'",
     "test:e2e": "echo 'Frontend E2E tests - Playwright to be configured'",
     "test:contract": "echo 'Frontend contract tests - Pact to be configured'"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.1",
+    "@prisma/client": "^7.0.0",
+    "next": "^16.0.3",
+    "next-auth": "5.0.0-beta.30",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.22",
+    "eslint-config-next": "^16.0.3",
+    "postcss": "^8.5.6",
+    "prisma": "^7.0.0",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3"
   }
 }
