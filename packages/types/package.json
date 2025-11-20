@@ -6,7 +6,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "echo 'Types package - TypeScript to be configured'",
-    "typecheck": "echo 'Types typecheck - TypeScript to be configured'"
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc --watch"
   }
 }

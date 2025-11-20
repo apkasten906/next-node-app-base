@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "Node.js backend API with Express and TypeScript",
+  "dependencies": {
+    "@repo/types": "workspace:*"
+  },
   "scripts": {
     "dev": "echo 'Backend dev server - Express app to be implemented'",
     "build": "echo 'Backend build - TypeScript to be configured'",
