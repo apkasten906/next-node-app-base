@@ -1,0 +1,18 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Next.js frontend application",
+  "scripts": {
+    "dev": "echo 'Frontend dev server - Next.js app to be implemented'",
+    "build": "echo 'Frontend build - Next.js app to be implemented'",
+    "start": "echo 'Frontend start - Next.js app to be implemented'",
+    "lint": "echo 'Frontend lint - ESLint to be configured'",
+    "typecheck": "echo 'Frontend typecheck - TypeScript to be configured'",
+    "test": "echo 'Frontend tests - Vitest to be configured'",
+    "test:unit": "echo 'Frontend unit tests'",
+    "test:integration": "echo 'Frontend integration tests'",
+    "test:e2e": "echo 'Frontend E2E tests - Playwright to be configured'",
+    "test:contract": "echo 'Frontend contract tests - Pact to be configured'"
+  }
+}

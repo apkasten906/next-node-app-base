@@ -1,0 +1,12 @@
+{
+  "name": "@repo/constants",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared constants and enums",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "echo 'Constants package - TypeScript to be configured'",
+    "typecheck": "echo 'Constants typecheck - TypeScript to be configured'"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "prisma.prisma",
+    "ms-azuretools.vscode-docker",
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github",
+    "ms-vscode.vscode-typescript-next",
+    "orta.vscode-jest",
+    "firsttris.vscode-jest-runner",
+    "usernamehw.errorlens",
+    "christian-kohler.path-intellisense",
+    "christian-kohler.npm-intellisense",
+    "streetsidesoftware.code-spell-checker",
+    "redhat.vscode-yaml",
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+    "redhat.vscode-xml",
+    "ms-vscode-remote.remote-containers"
+  ]
+}
