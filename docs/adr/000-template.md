@@ -36,10 +36,12 @@ What becomes easier or more difficult to do because of this change?
 ### Alternative 1: [Name]
 
 **Pros:**
+
 - Pro 1
 - Pro 2
 
 **Cons:**
+
 - Con 1
 - Con 2
 
@@ -48,10 +50,12 @@ What becomes easier or more difficult to do because of this change?
 ### Alternative 2: [Name]
 
 **Pros:**
+
 - Pro 1
 - Pro 2
 
 **Cons:**
+
 - Con 1
 - Con 2
 

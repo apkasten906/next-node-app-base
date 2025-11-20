@@ -76,12 +76,14 @@ tsc && node dist/index.js
 ### Alternative 1: Node.js 18 LTS with ts-node
 
 **Pros:**
+
 - Stable and widely adopted
 - Long-term support (LTS)
 - Well-tested in production
 - Broader ecosystem compatibility
 
 **Cons:**
+
 - Requires ts-node or tsx as additional dependency
 - Slower development feedback loop
 - More complex build configuration
@@ -92,12 +94,14 @@ tsc && node dist/index.js
 ### Alternative 2: Node.js 22 LTS with tsx
 
 **Pros:**
+
 - LTS support
 - Mature and stable
 - Good TypeScript tooling with tsx
 - Proven production track record
 
 **Cons:**
+
 - No native TypeScript support
 - Still requires external transpilation
 - Misses latest Node.js 25 features
@@ -108,12 +112,14 @@ tsc && node dist/index.js
 ### Alternative 3: Bun Runtime
 
 **Pros:**
+
 - Native TypeScript support
 - Extremely fast runtime
 - Built-in package manager
 - Modern development experience
 
 **Cons:**
+
 - Different runtime than Node.js
 - Smaller ecosystem
 - Less production adoption
@@ -127,12 +133,14 @@ tsc && node dist/index.js
 For teams not ready for Node.js 25:
 
 1. **Phase 1**: Use tsx in development with Node.js 22
+
    ```bash
    pnpm add -D tsx
    "dev": "tsx watch src/index.ts"
    ```
 
 2. **Phase 2**: Upgrade to Node.js 25 when comfortable
+
    ```bash
    nvm install 25
    nvm use 25

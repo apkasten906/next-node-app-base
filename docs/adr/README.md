@@ -18,8 +18,8 @@ Each ADR follows this structure:
 
 ## Index
 
-| ADR | Title | Status | Date |
-|-----|-------|--------|------|
+| ADR                                          | Title                                        | Status   | Date       |
+| -------------------------------------------- | -------------------------------------------- | -------- | ---------- |
 | [001](./001-node-js-25-native-typescript.md) | Use Node.js 25 for Native TypeScript Support | Accepted | 2025-11-20 |
 
 ## Creating a New ADR
