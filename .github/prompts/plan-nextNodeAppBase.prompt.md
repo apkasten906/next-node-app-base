@@ -5,36 +5,47 @@ Create a production-ready base repository for rapidly starting new web applicati
 ## Steps
 
 ### 1. Initialize monorepo foundation
+
 Set up Turborepo with pnpm workspaces, create `apps/frontend` (Next.js) and `apps/backend` (Node.js/Express) directories, configure shared TypeScript configs, ESLint with OWASP security rules, Prettier, Husky git hooks, and commitlint for conventional commits
 
 ### 2. Establish project governance and security framework
+
 Implement OWASP-compliant security standards, create security governance documentation, set up DI pattern for security library abstraction (authentication, authorization, encryption), configure OWASP Dependency-Check in CI pipeline, establish security review process, and create threat modeling documentation
 
 ### 3. Build backend architecture
+
 Implement SOLID-compliant layers (controllers, services, repositories, entities) with TSyringe DI container, integrate Prisma with PostgreSQL schema including read replica configuration for horizontal read scaling, add Winston/Morgan/Sentry logging, configure Swagger/OpenAPI documentation with HATEOAS, set up Zod environment validation with separate configs per environment, implement header-based API versioning, configure multi-level caching strategy (in-memory L1, Redis L2, CDN L3), and implement webhook management system with delivery queue and retry logic
 
 ### 4. Configure authentication and authorization
+
 Implement OAuth 2.0 + OpenID Connect (OIDC) with DI pattern for security provider abstraction, integrate Passport.js with pluggable strategies, add NextAuth.js for frontend, implement JWT handling with refresh tokens, create RBAC and permission-based authorization middleware, and add security audit logging
 
 ### 5. Configure frontend application
+
 Initialize Next.js 14+ with App Router, create shared packages (`types`, `utils`, `constants`, `config`) for frontend-backend type safety, integrate Sentry error tracking, establish API client with HATEOAS support, add proper error boundaries, set up i18n with next-i18next for multilingual support (en, es, fr, de initially)
 
 ### 6. Establish testing infrastructure
+
 Configure Vitest for unit tests in both apps with coverage reporting, set up Cucumber with example feature files and step definitions, integrate Playwright for E2E tests with Page Object Model pattern, add OWASP ZAP for security testing integration, and create test utilities for each testing type
 
 ### 7. Implement infrastructure services
+
 Integrate Redis for caching/sessions with DI abstraction, set up Bull/BullMQ for message queuing and background jobs, implement WebSocket support with Socket.io and authentication, create health check endpoints for all services, and configure graceful shutdown handling
 
 ### 8. Implement file storage and advanced features
+
 Add Multer for file uploads with DI storage adapter pattern (local/S3/Azure/GCP), implement feature flag system, configure cloud storage adapters with environment-based selection, add OWASP file upload security validations, and create comprehensive documentation
 
 ### 9. Integrate Istio service mesh
+
 Install Istio in Kubernetes cluster, configure mTLS for service-to-service communication, set up VirtualServices for header-based API versioning and traffic management, create DestinationRules for circuit breakers and retry policies, implement AuthorizationPolicies for network-level security, configure distributed tracing with Jaeger, and set up Kiali for service mesh visualization
 
 ### 10. Implement additional service abstractions
+
 Add notification service with DI (email, SMS, push notifications), implement search service abstraction (Elasticsearch, Algolia, MeiliSearch), create event bus interface (Redis Pub/Sub, RabbitMQ, Kafka), add payment gateway abstraction (Stripe, PayPal), implement analytics service (Mixpanel, Segment), and configure secrets management (HashiCorp Vault, AWS Secrets Manager)
 
 ### 11. Implement DevOps and production infrastructure
+
 Create multi-stage Dockerfiles with security scanning, set up docker-compose.yml for local development, configure Kubernetes manifests for all services, set up GitHub Actions workflows for CI/CD (lint, test, build, E2E, security scans), implement APM integration (Datadog, New Relic), configure log aggregation (ELK Stack, Loki), add load testing with k6, implement database backup and recovery strategies, and create comprehensive monitoring and alerting
 
 ## Technology Decisions (Confirmed)
@@ -57,6 +68,7 @@ Create multi-stage Dockerfiles with security scanning, set up docker-compose.yml
 For OAuth 2.0 + OpenID Connect implementation, I recommend:
 
 **Option A: Auth0 (Recommended for Speed)**
+
 - Managed service, fastest to implement
 - Excellent Next.js/Node.js SDKs
 - Built-in RBAC and MFA
@@ -65,6 +77,7 @@ For OAuth 2.0 + OpenID Connect implementation, I recommend:
 - **Cons**: Paid service (free tier available), vendor lock-in risk
 
 **Option B: Keycloak (Recommended for Control)**
+
 - Self-hosted, open-source
 - Full OIDC/OAuth2 compliance
 - Highly customizable
@@ -73,6 +86,7 @@ For OAuth 2.0 + OpenID Connect implementation, I recommend:
 - **Cons**: Requires hosting/maintenance, steeper learning curve
 
 **Option C: Passport.js with Custom OIDC**
+
 - Build custom with passport-oauth2 strategy
 - DI pattern for swappable providers
 - Complete flexibility
@@ -83,57 +97,58 @@ For OAuth 2.0 + OpenID Connect implementation, I recommend:
 
 ## Technology Stack Summary
 
-| Category | Technology | Rationale |
-|----------|-----------|-----------|  
-| **Monorepo** | Turborepo | Best Next.js integration, simple, fast |
-| **Package Manager** | pnpm | Fast, efficient, workspace support ✅ |
-| **Service Mesh** | Istio | mTLS, traffic management, observability ✅ |
-| **Orchestration** | Kubernetes | Production container orchestration ✅ |
-| **DI Library** | TSyringe | Clean API, TypeScript-first, lightweight |
-| **Node.js Framework** | Express | Mature, flexible, great middleware ecosystem |
-| **Authentication** | OAuth 2.0 + OIDC (Passport.js) | Industry standard, OWASP recommended ✅ |
-| **Authorization** | RBAC + ABAC | Flexible, scalable permissions |
-| **Validation** | Zod | Type-safe, composable, great DX |
-| **ORM** | Prisma | Type-safe, migrations, great DX |
-| **Caching** | Redis | Session storage, caching, job queues ✅ |
-| **Message Queue** | Bull/BullMQ | Async task processing, scheduled jobs ✅ |
-| **Event Bus** | Redis Pub/Sub / RabbitMQ / Kafka | Decoupled event-driven architecture ✅ |
-| **WebSockets** | Socket.io | Real-time bidirectional communication ✅ |
-| **Notifications** | DI Pattern (SendGrid/Twilio/FCM) | Email, SMS, push notifications ✅ |
-| **Search** | DI Pattern (Elasticsearch/Algolia) | Full-text search capabilities ✅ |
-| **Payments** | DI Pattern (Stripe/PayPal) | Payment processing abstraction ✅ |
-| **Analytics** | DI Pattern (Mixpanel/Segment) | User analytics and tracking ✅ |
-| **Database Read Replicas** | Prisma + PostgreSQL | Horizontal read scaling ✅ |
-| **Webhook Management** | Custom with DI Pattern | Third-party integrations ✅ |
-| **Multi-Level Caching** | In-Memory + Redis + CDN | Layered performance optimization ✅ |
-| **Deployment Strategies** | Istio Traffic Management | Blue-Green, Canary, A/B testing ✅ |
-| **Testing** | Vitest + Cucumber + Playwright | Modern, fast, comprehensive |
-| **Contract Testing** | Pact | Consumer-driven contract testing ✅ |
-| **API Mocking** | Mock Service Worker (MSW) | API mocking for testing and development ✅ |
-| **Load Testing** | k6 | Performance and stress testing ✅ |
-| **Security Testing** | OWASP ZAP | Automated security scanning ✅ |
-| **Linting** | ESLint + OWASP rules | Industry standard with security focus |
-| **Git Hooks** | Husky + lint-staged | Enforce quality pre-commit |
-| **Env Validation** | Zod + dotenv | Type-safe environment variables |
-| **Secrets** | Vault / AWS Secrets Manager | Secure secrets management ✅ |
-| **API Design** | HATEOAS + OpenAPI 3.0 | Hypermedia-driven, self-documenting ✅ |
-| **API Versioning** | Header-based + Istio Routing | Clean URLs, HATEOAS compatible ✅ |
-| **Distributed Tracing** | Istio + Jaeger | Request tracing across services ✅ |
-| **Metrics** | Prometheus + Grafana | Time-series metrics and dashboards ✅ |
-| **Logging** | ELK Stack / Loki + Grafana | Centralized log aggregation ✅ |
-| **APM** | Datadog / New Relic | Application performance monitoring ✅ |
-| **Container** | Docker + Docker Compose | Consistent dev/prod environments |
-| **CI/CD** | GitHub Actions | Native GitHub integration |
-| **Error Tracking** | Sentry | Best-in-class error monitoring |
-| **File Upload** | Multer + DI Storage Pattern | Secure file handling, provider-agnostic ✅ |
-| **i18n** | next-i18next | Internationalization support ✅ |
-| **Feature Flags** | Custom with DI | Gradual rollouts, A/B testing |
-| **Dev Containers** | VSCode devcontainer.json | Consistent development environment ✅ |
-| **Security Governance** | OWASP Standards | Industry best practices ✅ |## OWASP Security Governance
+| Category                   | Technology                         | Rationale                                    |
+| -------------------------- | ---------------------------------- | -------------------------------------------- | ---------------------------- |
+| **Monorepo**               | Turborepo                          | Best Next.js integration, simple, fast       |
+| **Package Manager**        | pnpm                               | Fast, efficient, workspace support ✅        |
+| **Service Mesh**           | Istio                              | mTLS, traffic management, observability ✅   |
+| **Orchestration**          | Kubernetes                         | Production container orchestration ✅        |
+| **DI Library**             | TSyringe                           | Clean API, TypeScript-first, lightweight     |
+| **Node.js Framework**      | Express                            | Mature, flexible, great middleware ecosystem |
+| **Authentication**         | OAuth 2.0 + OIDC (Passport.js)     | Industry standard, OWASP recommended ✅      |
+| **Authorization**          | RBAC + ABAC                        | Flexible, scalable permissions               |
+| **Validation**             | Zod                                | Type-safe, composable, great DX              |
+| **ORM**                    | Prisma                             | Type-safe, migrations, great DX              |
+| **Caching**                | Redis                              | Session storage, caching, job queues ✅      |
+| **Message Queue**          | Bull/BullMQ                        | Async task processing, scheduled jobs ✅     |
+| **Event Bus**              | Redis Pub/Sub / RabbitMQ / Kafka   | Decoupled event-driven architecture ✅       |
+| **WebSockets**             | Socket.io                          | Real-time bidirectional communication ✅     |
+| **Notifications**          | DI Pattern (SendGrid/Twilio/FCM)   | Email, SMS, push notifications ✅            |
+| **Search**                 | DI Pattern (Elasticsearch/Algolia) | Full-text search capabilities ✅             |
+| **Payments**               | DI Pattern (Stripe/PayPal)         | Payment processing abstraction ✅            |
+| **Analytics**              | DI Pattern (Mixpanel/Segment)      | User analytics and tracking ✅               |
+| **Database Read Replicas** | Prisma + PostgreSQL                | Horizontal read scaling ✅                   |
+| **Webhook Management**     | Custom with DI Pattern             | Third-party integrations ✅                  |
+| **Multi-Level Caching**    | In-Memory + Redis + CDN            | Layered performance optimization ✅          |
+| **Deployment Strategies**  | Istio Traffic Management           | Blue-Green, Canary, A/B testing ✅           |
+| **Testing**                | Vitest + Cucumber + Playwright     | Modern, fast, comprehensive                  |
+| **Contract Testing**       | Pact                               | Consumer-driven contract testing ✅          |
+| **API Mocking**            | Mock Service Worker (MSW)          | API mocking for testing and development ✅   |
+| **Load Testing**           | k6                                 | Performance and stress testing ✅            |
+| **Security Testing**       | OWASP ZAP                          | Automated security scanning ✅               |
+| **Linting**                | ESLint + OWASP rules               | Industry standard with security focus        |
+| **Git Hooks**              | Husky + lint-staged                | Enforce quality pre-commit                   |
+| **Env Validation**         | Zod + dotenv                       | Type-safe environment variables              |
+| **Secrets**                | Vault / AWS Secrets Manager        | Secure secrets management ✅                 |
+| **API Design**             | HATEOAS + OpenAPI 3.0              | Hypermedia-driven, self-documenting ✅       |
+| **API Versioning**         | Header-based + Istio Routing       | Clean URLs, HATEOAS compatible ✅            |
+| **Distributed Tracing**    | Istio + Jaeger                     | Request tracing across services ✅           |
+| **Metrics**                | Prometheus + Grafana               | Time-series metrics and dashboards ✅        |
+| **Logging**                | ELK Stack / Loki + Grafana         | Centralized log aggregation ✅               |
+| **APM**                    | Datadog / New Relic                | Application performance monitoring ✅        |
+| **Container**              | Docker + Docker Compose            | Consistent dev/prod environments             |
+| **CI/CD**                  | GitHub Actions                     | Native GitHub integration                    |
+| **Error Tracking**         | Sentry                             | Best-in-class error monitoring               |
+| **File Upload**            | Multer + DI Storage Pattern        | Secure file handling, provider-agnostic ✅   |
+| **i18n**                   | next-i18next                       | Internationalization support ✅              |
+| **Feature Flags**          | Custom with DI                     | Gradual rollouts, A/B testing                |
+| **Dev Containers**         | VSCode devcontainer.json           | Consistent development environment ✅        |
+| **Security Governance**    | OWASP Standards                    | Industry best practices ✅                   | ## OWASP Security Governance |
 
 ### Security Standards & Compliance
 
 **OWASP Top 10 Coverage**:
+
 1. **Broken Access Control** - RBAC/ABAC implementation, authorization middleware
 2. **Cryptographic Failures** - Encryption at rest/transit, secure key management
 3. **Injection** - Parameterized queries (Prisma), input validation (Zod)
@@ -146,6 +161,7 @@ For OAuth 2.0 + OpenID Connect implementation, I recommend:
 10. **SSRF** - URL validation, allow-list approach
 
 **Security Practices**:
+
 - Regular dependency audits (npm audit, Snyk, OWASP Dependency-Check)
 - Static Application Security Testing (SAST) in CI
 - Dynamic Application Security Testing (DAST) with OWASP ZAP
@@ -156,6 +172,7 @@ For OAuth 2.0 + OpenID Connect implementation, I recommend:
 - Incident response procedures
 
 **DI Pattern for Security Libraries**:
+
 ```typescript
 // Security abstraction interfaces
 interface IAuthenticationProvider {
@@ -231,34 +248,54 @@ interface ICacheService {
 
 // Implementations injected via TSyringe
 @injectable()
-class OAuth2AuthProvider implements IAuthenticationProvider { /* ... */ }
+class OAuth2AuthProvider implements IAuthenticationProvider {
+  /* ... */
+}
 
 @injectable()
-class LocalStorageProvider implements IStorageProvider { /* ... */ }
+class LocalStorageProvider implements IStorageProvider {
+  /* ... */
+}
 
 @injectable()
-class S3StorageProvider implements IStorageProvider { /* ... */ }
+class S3StorageProvider implements IStorageProvider {
+  /* ... */
+}
 
 @injectable()
-class SendGridNotificationService implements INotificationService { /* ... */ }
+class SendGridNotificationService implements INotificationService {
+  /* ... */
+}
 
 @injectable()
-class ElasticsearchService implements ISearchService { /* ... */ }
+class ElasticsearchService implements ISearchService {
+  /* ... */
+}
 
 @injectable()
-class RedisEventBus implements IEventBus { /* ... */ }
+class RedisEventBus implements IEventBus {
+  /* ... */
+}
 
 @injectable()
-class StripePaymentService implements IPaymentService { /* ... */ }
+class StripePaymentService implements IPaymentService {
+  /* ... */
+}
 
 @injectable()
-class MixpanelAnalyticsService implements IAnalyticsService { /* ... */ }
+class MixpanelAnalyticsService implements IAnalyticsService {
+  /* ... */
+}
 
 @injectable()
-class VaultSecretsManager implements ISecretsManager { /* ... */ }
+class VaultSecretsManager implements ISecretsManager {
+  /* ... */
+}
 
 @injectable()
-class WebhookService implements IWebhookService { /* ... */ }
+class WebhookService implements IWebhookService {
+  /* ... */
+}
 
 @injectable()
 class MultiLevelCacheService implements ICacheService {
@@ -608,6 +645,7 @@ next-node-app-base/
 ## HATEOAS API Design with Istio
 
 ### Header-Based Versioning (Istio VirtualService Routing)
+
 ```http
 GET /api/users/123
 Accept-version: 1.0.0
@@ -615,6 +653,7 @@ Authorization: Bearer <token>
 ```
 
 **Istio VirtualService routes based on Accept-version header:**
+
 ```yaml
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
@@ -622,23 +661,24 @@ metadata:
   name: backend-api
 spec:
   hosts:
-  - backend-api
+    - backend-api
   http:
-  - match:
-    - headers:
-        accept-version:
-          exact: "2.0.0"
-    route:
-    - destination:
-        host: backend-api
-        subset: v2
-  - route:  # Default to v1
-    - destination:
-        host: backend-api
-        subset: v1
+    - match:
+        - headers:
+            accept-version:
+              exact: '2.0.0'
+      route:
+        - destination:
+            host: backend-api
+            subset: v2
+    - route: # Default to v1
+        - destination:
+            host: backend-api
+            subset: v1
 ```
 
 ### HATEOAS Response Format
+
 ```json
 {
   "data": {
@@ -858,53 +898,57 @@ spec:
 ### Security & Authentication (OWASP Compliant + Istio)
 
 17. **Authentication & Authorization**
-   - OAuth 2.0 + OpenID Connect (OIDC)
-   - Passport.js with pluggable strategies
-   - NextAuth.js for frontend
-   - JWT handling (access + refresh tokens)
-   - Token rotation and revocation
-   - Istio RequestAuthentication for JWT validation at gateway
-   - Role-based access control (RBAC)
-   - Attribute-based access control (ABAC)
-   - Multi-factor authentication (MFA) support
-   - Secure password hashing (argon2)
-   - Account lockout policies
-   - Session management
-   - Security audit logging
+
+- OAuth 2.0 + OpenID Connect (OIDC)
+- Passport.js with pluggable strategies
+- NextAuth.js for frontend
+- JWT handling (access + refresh tokens)
+- Token rotation and revocation
+- Istio RequestAuthentication for JWT validation at gateway
+- Role-based access control (RBAC)
+- Attribute-based access control (ABAC)
+- Multi-factor authentication (MFA) support
+- Secure password hashing (argon2)
+- Account lockout policies
+- Session management
+- Security audit logging
 
 18. **API Security (OWASP + Istio)**
-   - Istio AuthorizationPolicy for service-level security
-   - Rate limiting: Istio (coarse-grained) + App (fine-grained with Redis)
-   - CORS configuration with environment whitelisting
-   - Helmet.js security headers
-   - CSRF protection
-   - Input validation and sanitization (Zod)
-   - SQL injection prevention (Prisma)
-   - XSS protection
-   - Request size limits
-   - HPP (HTTP Parameter Pollution) prevention
-   - Content type validation
-   - Istio mTLS for service-to-service communication
+
+- Istio AuthorizationPolicy for service-level security
+- Rate limiting: Istio (coarse-grained) + App (fine-grained with Redis)
+- CORS configuration with environment whitelisting
+- Helmet.js security headers
+- CSRF protection
+- Input validation and sanitization (Zod)
+- SQL injection prevention (Prisma)
+- XSS protection
+- Request size limits
+- HPP (HTTP Parameter Pollution) prevention
+- Content type validation
+- Istio mTLS for service-to-service communication
 
 19. **Security Headers (OWASP + Istio)**
-   - Content Security Policy (CSP)
-   - HTTP Strict Transport Security (HSTS)
-   - X-Frame-Options (Clickjacking protection)
-   - X-Content-Type-Options (MIME sniffing prevention)
-   - Referrer-Policy
-   - Permissions-Policy
-   - X-XSS-Protection
-   - Strict-Transport-Security
-   - Configured via Helmet.js + Istio EnvoyFilter
+
+- Content Security Policy (CSP)
+- HTTP Strict Transport Security (HSTS)
+- X-Frame-Options (Clickjacking protection)
+- X-Content-Type-Options (MIME sniffing prevention)
+- Referrer-Policy
+- Permissions-Policy
+- X-XSS-Protection
+- Strict-Transport-Security
+- Configured via Helmet.js + Istio EnvoyFilter
 
 20. **Encryption & Data Protection**
-   - DI pattern for encryption service
-   - Data encryption at rest
-   - Encryption in transit (TLS 1.3 + Istio mTLS)
-   - Secure key management via Vault
-   - Field-level encryption for sensitive data
-   - PII data handling
-   - GDPR compliance considerations
+
+- DI pattern for encryption service
+- Data encryption at rest
+- Encryption in transit (TLS 1.3 + Istio mTLS)
+- Secure key management via Vault
+- Field-level encryption for sensitive data
+- PII data handling
+- GDPR compliance considerations
 
 ### API Design & Documentation
 
@@ -1249,6 +1293,7 @@ spec:
 ## Implementation Phases
 
 ### Phase 1: Foundation & Governance
+
 - Initialize monorepo with Turborepo
 - Set up pnpm workspaces
 - Create frontend and backend apps
@@ -1270,6 +1315,7 @@ spec:
   - Add environment variables for development
 
 ### Phase 2: Security Framework
+
 - Implement DI container (TSyringe)
 - Create security abstraction interfaces (auth, encryption, storage, notifications, search, events, payments, analytics, secrets)
 - Implement OAuth 2.0/OIDC with Passport.js
@@ -1282,6 +1328,7 @@ spec:
 - Set up secrets management (Vault or cloud provider)
 
 ### Phase 3: Backend Core
+
 - Initialize Express server
 - Configure Prisma with PostgreSQL
   - Set up primary database for writes
@@ -1313,6 +1360,7 @@ spec:
   - Delivery status tracking
 
 ### Phase 4: Istio Service Mesh Integration
+
 - Configure Istio PeerAuthentication (STRICT mTLS)
 - Create Istio Gateway for ingress
 - Set up VirtualServices for header-based API versioning
@@ -1325,6 +1373,7 @@ spec:
 - Create fault injection policies for chaos testing
 
 ### Phase 5: Infrastructure Services
+
 - Integrate Redis for caching and sessions
 - Set up Bull/BullMQ for message queuing
 - Implement background job processors
@@ -1335,6 +1384,7 @@ spec:
 - Configure Redis Cluster for production
 
 ### Phase 6: Additional Service Abstractions
+
 - Implement notification service abstraction (email, SMS, push)
   - SendGrid/SES for email
   - Twilio for SMS
@@ -1354,6 +1404,7 @@ spec:
 - Configure secrets rotation and audit logging
 
 ### Phase 7: API Design
+
 - Implement header-based versioning (simplified with Istio routing)
 - Add HATEOAS response structure
 - Configure Swagger/OpenAPI documentation
@@ -1365,6 +1416,7 @@ spec:
 - Remove custom retry/timeout logic (use Istio)
 
 ### Phase 8: File Storage & i18n
+
 - Implement storage abstraction interface
 - Create local storage provider
 - Create S3 storage provider
@@ -1377,6 +1429,7 @@ spec:
 - Add language detection and switching
 
 ### Phase 9: Frontend Core
+
 - Initialize Next.js with App Router
 - Configure shared packages (types, utils, constants, config)
 - Set up API client with HATEOAS support
@@ -1391,6 +1444,7 @@ spec:
 - Configure MSW for browser and Node.js environments
 
 ### Phase 10: Observability Stack
+
 - Configure Prometheus for metrics collection
   - Istio service mesh metrics
   - Application business metrics
@@ -1418,6 +1472,7 @@ spec:
 - Set up Kiali for service mesh observability
 
 ### Phase 11: Testing Infrastructure
+
 - Configure Vitest for unit tests in both apps
 - Set up Cucumber with BDD scenarios
 - Configure Playwright for E2E tests with Page Object Model
@@ -1443,6 +1498,7 @@ spec:
   - Add MSW to Playwright tests for isolated E2E testing
 
 ### Phase 12: Kubernetes & DevOps
+
 - Create Kubernetes base manifests
   - Namespace configurations
   - Deployments for frontend, backend
@@ -1467,6 +1523,7 @@ spec:
 - Implement database backup and recovery strategies
 
 ### Phase 13: Documentation & Polish
+
 - Create comprehensive README files (root, apps, packages)
 - Write Architecture Decision Records (ADRs)
   - Istio service mesh adoption
@@ -1488,6 +1545,7 @@ spec:
 ## Security Review Checklist
 
 ### Authentication & Authorization
+
 - [ ] OAuth 2.0/OIDC properly configured with refresh token rotation
 - [ ] NextAuth.js integrated with backend OAuth provider
 - [ ] JWT signing with strong algorithms (RS256 or ES256)
@@ -1502,6 +1560,7 @@ spec:
 - [ ] Password complexity requirements enforced
 
 ### Istio Service Mesh Security
+
 - [ ] Istio PeerAuthentication set to STRICT mTLS mode
 - [ ] Automatic mTLS certificate rotation configured
 - [ ] AuthorizationPolicy configured with default-deny
@@ -1516,6 +1575,7 @@ spec:
 - [ ] Kiali dashboard authentication enforced
 
 ### Input Validation & Data Protection
+
 - [ ] All user input validated with Zod schemas
 - [ ] SQL injection prevented (Prisma parameterized queries)
 - [ ] XSS prevention with CSP headers
@@ -1528,6 +1588,7 @@ spec:
 - [ ] No sensitive data in logs or error messages
 
 ### API Security
+
 - [ ] Helmet.js configured with all security headers
 - [ ] CORS properly restricted to allowed origins
 - [ ] Rate limiting implemented (Redis + Istio)
@@ -1540,6 +1601,7 @@ spec:
 - [ ] Error messages don't leak stack traces or sensitive information
 
 ### Infrastructure Security
+
 - [ ] PostgreSQL access restricted to backend only
 - [ ] Redis authentication enabled
 - [ ] Redis commands restricted (no FLUSHALL, FLUSHDB, KEYS in production)
@@ -1554,6 +1616,7 @@ spec:
 - [ ] Read-only root filesystem where possible
 
 ### Database & Data Layer Security
+
 - [ ] Read replica access restricted appropriately
 - [ ] Connection strings for replicas secured in secrets manager
 - [ ] Replica lag monitoring and alerting configured
@@ -1566,6 +1629,7 @@ spec:
 - [ ] Multi-level cache invalidation tested
 
 ### Webhook Security
+
 - [ ] Webhook endpoints require HTTPS only
 - [ ] HMAC signature verification enforced
 - [ ] Webhook secrets stored securely in secrets manager
@@ -1578,6 +1642,7 @@ spec:
 - [ ] Webhook logs don't contain sensitive payload data
 
 ### Deployment Security
+
 - [ ] Blue-green switch requires approval in production
 - [ ] Canary deployments have automatic rollback on high error rates
 - [ ] Database migrations tested in blue-green scenario
@@ -1588,6 +1653,7 @@ spec:
 - [ ] A/B test segments don't leak user data
 
 ### Dependency & Supply Chain Security
+
 - [ ] OWASP Dependency-Check integrated in CI/CD
 - [ ] Snyk or similar tool scanning dependencies
 - [ ] Automated dependency updates with Dependabot/Renovate
@@ -1598,6 +1664,7 @@ spec:
 - [ ] Software Bill of Materials (SBOM) generated
 
 ### Observability & Incident Response
+
 - [ ] Security audit logging implemented
 - [ ] Correlation IDs for request tracing (Istio trace headers)
 - [ ] Distributed tracing with Jaeger configured
@@ -1610,6 +1677,7 @@ spec:
 - [ ] Vulnerability disclosure policy published
 
 ### Testing & Validation
+
 - [ ] OWASP ZAP automated scans in CI/CD
 - [ ] Security unit tests for authentication/authorization
 - [ ] Penetration testing conducted
@@ -1625,6 +1693,7 @@ spec:
 - [ ] Contract tests validate authorization headers and RBAC
 
 ### Database & Data Layer Security
+
 - [ ] Read replica access restricted appropriately
 - [ ] Connection strings for replicas secured in secrets manager
 - [ ] Replica lag monitoring and alerting configured
@@ -1637,6 +1706,7 @@ spec:
 - [ ] Multi-level cache invalidation tested
 
 ### Webhook Security
+
 - [ ] Webhook endpoints require HTTPS only
 - [ ] HMAC signature verification enforced
 - [ ] Webhook secrets stored securely in secrets manager
@@ -1649,6 +1719,7 @@ spec:
 - [ ] Webhook logs don't contain sensitive payload data
 
 ### Deployment Security
+
 - [ ] Blue-green switch requires approval in production
 - [ ] Canary deployments have automatic rollback on high error rates
 - [ ] Database migrations tested in blue-green scenario
@@ -1659,6 +1730,7 @@ spec:
 - [ ] A/B test segments don't leak user data
 
 ### Compliance & Documentation
+
 - [ ] OWASP Top 10 risks addressed
 - [ ] OWASP ASVS compliance documented
 - [ ] Data classification policy defined

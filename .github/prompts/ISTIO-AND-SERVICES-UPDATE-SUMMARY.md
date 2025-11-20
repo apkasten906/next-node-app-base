@@ -189,20 +189,17 @@
 ## 📋 Recommended Next Steps
 
 1. **Complete Observability Section** (features 22-28)
-
    - Copy existing logging/error tracking content
    - Add new APM, distributed tracing, metrics content
    - Renumber all subsequent sections
 
 2. **Rewrite Implementation Phases**
-
    - Follow the outline above
    - Add Istio-specific phases
    - Add new service abstraction phase
    - Update existing phases to remove Istio-redundant code
 
 3. **Update Security Review Checklist**
-
    - Add Istio-specific items
    - Add new service security items
 

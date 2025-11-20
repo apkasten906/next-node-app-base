@@ -8,7 +8,7 @@ Your Next.js + Node.js monorepo base template is now set up and ready for develo
 
 - ✅ pnpm package manager (v8.15.0)
 - ✅ Turborepo monorepo configuration
-- ✅ Workspace structure (apps/frontend, apps/backend, packages/*)
+- ✅ Workspace structure (apps/frontend, apps/backend, packages/\*)
 - ✅ Git hooks with Husky
 - ✅ Conventional commits with Commitlint
 - ✅ Code formatting with Prettier
@@ -64,30 +64,35 @@ pnpm clean                  # Clean all build artifacts
 Follow the comprehensive plan in `.github/prompts/plan-nextNodeAppBase.prompt.md` to implement:
 
 ### Phase 1: Foundation (Start Here)
+
 1. **Set up TypeScript configurations** for apps and packages
 2. **Configure ESLint** with OWASP security rules
 3. **Initialize Git repository** and make first commit
 4. **Set up Dev Container** for consistent development environment
 
 ### Phase 2: Backend Core
+
 1. **Initialize Express server** with TypeScript
 2. **Set up Prisma** with PostgreSQL
 3. **Implement authentication** with OAuth 2.0/OIDC
 4. **Add security middleware** (Helmet, CORS, etc.)
 
 ### Phase 3: Frontend Core
+
 1. **Initialize Next.js 14+** with App Router
 2. **Set up NextAuth.js** for authentication
 3. **Configure Tailwind CSS** for styling
 4. **Implement i18n** with next-i18next
 
 ### Phase 4: Infrastructure
+
 1. **Set up Docker Compose** for local development
 2. **Configure Kubernetes** manifests
 3. **Install Istio** service mesh
 4. **Set up CI/CD** with GitHub Actions
 
 ### Phase 5: Testing
+
 1. **Configure Vitest** for unit tests
 2. **Set up Playwright** for E2E tests
 3. **Integrate Pact** for contract testing
@@ -127,6 +132,7 @@ pnpm dev
 ## Verification
 
 Your setup is working if:
+
 - ✅ `pnpm --version` returns a version number
 - ✅ `pnpm dev` runs without errors (currently shows placeholder messages)
 - ✅ Git hooks are installed in `.husky/`

@@ -21,10 +21,7 @@ module.exports = {
   rules: {
     // TypeScript
     '@typescript-eslint/no-explicit-any': 'error',
-    '@typescript-eslint/explicit-function-return-type': [
-      'warn',
-      { allowExpressions: true },
-    ],
+    '@typescript-eslint/explicit-function-return-type': ['warn', { allowExpressions: true }],
     '@typescript-eslint/no-unused-vars': [
       'error',
       { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
@@ -51,14 +48,7 @@ module.exports = {
     'import/order': [
       'error',
       {
-        groups: [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index',
-        ],
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
         'newlines-between': 'always',
         alphabetize: { order: 'asc', caseInsensitive: true },
       },
@@ -70,12 +60,5 @@ module.exports = {
     'prefer-const': 'error',
     'no-var': 'error',
   },
-  ignorePatterns: [
-    'node_modules/',
-    'dist/',
-    'build/',
-    '.next/',
-    '.turbo/',
-    'coverage/',
-  ],
+  ignorePatterns: ['node_modules/', 'dist/', 'build/', '.next/', '.turbo/', 'coverage/'],
 };

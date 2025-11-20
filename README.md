@@ -5,6 +5,7 @@ A production-ready base repository for rapidly starting new web applications wit
 ## 🌟 Features
 
 ### Core Stack
+
 - **Monorepo**: Turborepo with pnpm workspaces
 - **Frontend**: Next.js 14+ with App Router, TypeScript, Tailwind CSS
 - **Backend**: Node.js with Express, TypeScript, Prisma ORM
@@ -13,6 +14,7 @@ A production-ready base repository for rapidly starting new web applications wit
 - **Service Mesh**: Istio for mTLS, traffic management, and observability
 
 ### Security & Authentication (OWASP Compliant)
+
 - OAuth 2.0 + OpenID Connect (OIDC) via Passport.js
 - NextAuth.js for frontend authentication
 - RBAC/ABAC authorization
@@ -21,6 +23,7 @@ A production-ready base repository for rapidly starting new web applications wit
 - OWASP security governance and standards
 
 ### Infrastructure & Services
+
 - **Message Queue**: Bull/BullMQ for background jobs
 - **WebSockets**: Socket.io for real-time communication
 - **File Storage**: DI pattern supporting Local/S3/Azure/GCP
@@ -32,6 +35,7 @@ A production-ready base repository for rapidly starting new web applications wit
 - **Webhooks**: Complete webhook management system
 
 ### Testing & Quality
+
 - **Unit Tests**: Vitest with coverage reporting
 - **BDD Tests**: Cucumber with Gherkin syntax
 - **E2E Tests**: Playwright with Page Object Model
@@ -41,6 +45,7 @@ A production-ready base repository for rapidly starting new web applications wit
 - **Load Tests**: k6 for performance testing
 
 ### Observability
+
 - **Distributed Tracing**: Istio + Jaeger
 - **Metrics**: Prometheus + Grafana
 - **Logging**: ELK Stack or Loki + Grafana
@@ -49,6 +54,7 @@ A production-ready base repository for rapidly starting new web applications wit
 - **Error Tracking**: Sentry
 
 ### DevOps & Deployment
+
 - **Containers**: Docker with multi-stage builds
 - **Orchestration**: Kubernetes with Istio service mesh
 - **CI/CD**: GitHub Actions (lint, test, security scan, deploy)
@@ -57,6 +63,7 @@ A production-ready base repository for rapidly starting new web applications wit
 - **Local Development**: Docker Compose
 
 ### Internationalization
+
 - Multi-language support (en, es, fr, de) with next-i18next
 - RTL language support
 - Localized date/time/number/currency formatting
@@ -64,12 +71,14 @@ A production-ready base repository for rapidly starting new web applications wit
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+ (recommended: use `.nvmrc`)
 - pnpm 8+
 - Docker & Docker Compose
 - VSCode (recommended for Dev Containers)
 
 ### Option 1: Dev Container (Recommended)
+
 1. Install [VSCode](https://code.visualstudio.com/) and [Docker](https://www.docker.com/)
 2. Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 3. Clone the repository
@@ -78,6 +87,7 @@ A production-ready base repository for rapidly starting new web applications wit
 6. Start developing! 🎉
 
 ### Option 2: Local Setup
+
 ```bash
 # Clone the repository
 git clone <repository-url>

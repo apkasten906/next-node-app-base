@@ -107,4 +107,4 @@ This security policy may be updated from time to time. Please check back regular
 
 ---
 
-*Last updated: 2025-11-20*
+_Last updated: 2025-11-20_
