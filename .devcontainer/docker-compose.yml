@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
@@ -24,7 +24,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - "5432:5432"
 
   redis:
     image: redis:7-alpine
@@ -33,7 +33,7 @@ services:
     volumes:
       - redis-data:/data
     ports:
-      - '6379:6379'
+      - "6379:6379"
 
 volumes:
   postgres-data:
