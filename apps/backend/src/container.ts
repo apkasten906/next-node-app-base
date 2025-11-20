@@ -2,9 +2,9 @@ import 'reflect-metadata';
 import { container } from 'tsyringe';
 
 // Register authentication services
-import { JwtService } from './services/auth/jwt.service';
-import { EncryptionService } from './services/auth/encryption.service';
 import { AuthorizationService } from './services/auth/authorization.service';
+import { EncryptionService } from './services/auth/encryption.service';
+import { JwtService } from './services/auth/jwt.service';
 
 // Register audit service
 import { AuditLogService } from './services/audit/audit-log.service';

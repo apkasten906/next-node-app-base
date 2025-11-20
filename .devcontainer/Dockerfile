@@ -1,4 +1,4 @@
-FROM node:18-bullseye
+FROM node:25-bookworm
 
 # Install additional tools
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \

@@ -72,7 +72,7 @@ A production-ready base repository for rapidly starting new web applications wit
 
 ### Prerequisites
 
-- Node.js 18+ (recommended: use `.nvmrc`)
+- Node.js 25+ (for native TypeScript support - use `.nvmrc`)
 - pnpm 8+
 - Docker & Docker Compose
 - VSCode (recommended for Dev Containers)
