@@ -4,18 +4,38 @@
   "private": true,
   "description": "Node.js backend API with Express and TypeScript",
   "dependencies": {
-    "@repo/types": "workspace:*"
+    "@prisma/client": "^7.0.0",
+    "@repo/types": "workspace:*",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "ioredis": "^5.8.2",
+    "morgan": "^1.10.1",
+    "next-auth": "5.0.0-beta.30",
+    "winston": "^3.18.3"
   },
   "scripts": {
-    "dev": "echo 'Backend dev server - Express app to be implemented'",
+    "dev": "node --experimental-strip-types --env-file=.env src/index.ts",
     "build": "echo 'Backend build - TypeScript to be configured'",
-    "start": "echo 'Backend start - Node.js server to be implemented'",
+    "start": "node --experimental-strip-types --env-file=.env src/index.ts",
     "lint": "echo 'Backend lint - ESLint to be configured'",
     "typecheck": "echo 'Backend typecheck - TypeScript to be configured'",
     "test": "echo 'Backend tests - Vitest to be configured'",
     "test:unit": "echo 'Backend unit tests'",
     "test:integration": "echo 'Backend integration tests'",
     "test:contract": "echo 'Backend contract tests - Pact to be configured'",
-    "test:security": "echo 'Backend security tests - OWASP ZAP to be configured'"
+    "test:security": "echo 'Backend security tests - OWASP ZAP to be configured'",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/morgan": "^1.9.10",
+    "prisma": "^7.0.0"
   }
 }

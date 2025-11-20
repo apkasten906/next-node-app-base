@@ -145,12 +145,14 @@ Your setup is working if:
 This project uses Node.js 25 for native TypeScript execution. See [ADR-001](docs/adr/001-node-js-25-native-typescript.md) for details.
 
 **Development:**
+
 ```bash
 # Run TypeScript files natively
 node --experimental-strip-types src/index.ts
 ```
 
 **Production:**
+
 ```bash
 # Still transpile for optimization
 pnpm build

@@ -40,17 +40,11 @@ export class AuthenticationService {
     @inject('AuditLogService') private auditLogService: AuditLogService
   ) {}
 
-  async authenticateLocal(
-    username: string,
-    password: string
-  ): Promise<User | null> {
+  async authenticateLocal(username: string, password: string): Promise<User | null> {
     const user = await this.findUserByUsername(username);
     if (!user) return null;
 
-    const isValid = await this.encryptionService.compareHash(
-      password,
-      user.passwordHash
-    );
+    const isValid = await this.encryptionService.compareHash(password, user.passwordHash);
     if (!isValid) return null;
 
     await this.auditLogService.log({
@@ -63,10 +57,7 @@ export class AuthenticationService {
     return user;
   }
 
-  async authenticateOAuth(
-    provider: string,
-    profile: OAuthProfile
-  ): Promise<User> {
+  async authenticateOAuth(provider: string, profile: OAuthProfile): Promise<User> {
     // Find or create user from OAuth profile
     let user = await this.findUserByOAuthId(provider, profile.id);
 
@@ -324,13 +315,9 @@ app.get(
 );
 
 // Protected route example
-app.get(
-  '/api/me',
-  passport.authenticate('jwt', { session: false }),
-  (req, res) => {
-    res.json({ user: req.user });
-  }
-);
+app.get('/api/me', passport.authenticate('jwt', { session: false }), (req, res) => {
+  res.json({ user: req.user });
+});
 ```
 
 ## Consequences
@@ -526,10 +513,7 @@ describe('AuthenticationService', () => {
   it('should authenticate valid credentials', async () => {
     mockEncryptionService.compareHash.mockResolvedValue(true);
 
-    const user = await authService.authenticateLocal(
-      'test@example.com',
-      'password123'
-    );
+    const user = await authService.authenticateLocal('test@example.com', 'password123');
 
     expect(user).toBeDefined();
     expect(user?.email).toBe('test@example.com');
@@ -538,10 +522,7 @@ describe('AuthenticationService', () => {
   it('should reject invalid credentials', async () => {
     mockEncryptionService.compareHash.mockResolvedValue(false);
 
-    const user = await authService.authenticateLocal(
-      'test@example.com',
-      'wrongpassword'
-    );
+    const user = await authService.authenticateLocal('test@example.com', 'wrongpassword');
 
     expect(user).toBeNull();
   });
@@ -585,14 +566,12 @@ describe('Auth Endpoints', () => {
 ## Future Enhancements
 
 1. **Multi-Factor Authentication (MFA)**
-
    - TOTP (Time-based One-Time Password)
    - SMS verification
    - Email verification
    - Biometric authentication
 
 2. **Additional OAuth Providers**
-
    - Microsoft Azure AD
    - LinkedIn
    - Twitter
