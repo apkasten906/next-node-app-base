@@ -1,5 +1,11 @@
 # Implementation Progress
 
+## Architecture Decisions
+
+Key architectural decisions are documented in [Architecture Decision Records (ADRs)](docs/adr/):
+
+- [ADR-001: Node.js 25 for Native TypeScript Support](docs/adr/001-node-js-25-native-typescript.md) - Adopted Node.js 25 for native TypeScript execution
+
 ## Completed Phases
 
 ### ✅ Phase 1: Foundation & Governance

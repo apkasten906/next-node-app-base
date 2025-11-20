@@ -72,7 +72,7 @@ A production-ready base repository for rapidly starting new web applications wit
 
 ### Prerequisites
 
-- Node.js 25+ (for native TypeScript support - use `.nvmrc`)
+- Node.js 25+ (for native TypeScript support - see [ADR-001](docs/adr/001-node-js-25-native-typescript.md))
 - pnpm 8+
 - Docker & Docker Compose
 - VSCode (recommended for Dev Containers)
@@ -190,6 +190,8 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 Comprehensive documentation is available in the [docs/](docs/) directory:
 
+- **Architecture Decision Records (ADRs)**: [docs/adr/](docs/adr/)
+  - [ADR-001: Node.js 25 for Native TypeScript](docs/adr/001-node-js-25-native-typescript.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [Security Architecture](docs/architecture/security-architecture.md)
 - [Service Mesh (Istio)](docs/architecture/service-mesh.md)

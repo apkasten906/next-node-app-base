@@ -6,6 +6,7 @@ Your Next.js + Node.js monorepo base template is now set up and ready for develo
 
 ## What's Been Set Up
 
+- ✅ Node.js 25 for native TypeScript support ([ADR-001](docs/adr/001-node-js-25-native-typescript.md))
 - ✅ pnpm package manager (v8.15.0)
 - ✅ Turborepo monorepo configuration
 - ✅ Workspace structure (apps/frontend, apps/backend, packages/\*)
@@ -133,10 +134,28 @@ pnpm dev
 
 Your setup is working if:
 
+- ✅ `node --version` returns v25.x.x or higher
 - ✅ `pnpm --version` returns a version number
 - ✅ `pnpm dev` runs without errors (currently shows placeholder messages)
 - ✅ Git hooks are installed in `.husky/`
 - ✅ All workspace packages are linked
+
+## Node.js 25 Native TypeScript
+
+This project uses Node.js 25 for native TypeScript execution. See [ADR-001](docs/adr/001-node-js-25-native-typescript.md) for details.
+
+**Development:**
+```bash
+# Run TypeScript files natively
+node --experimental-strip-types src/index.ts
+```
+
+**Production:**
+```bash
+# Still transpile for optimization
+pnpm build
+pnpm start
+```
 
 ---
 
