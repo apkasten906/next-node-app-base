@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+.next/
+.turbo/
+
+# Testing
+coverage/
+test-results/
+
+# Misc
+*.log
+.DS_Store
