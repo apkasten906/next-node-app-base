@@ -1,14 +1,14 @@
-import { injectable } from 'tsyringe';
 import {
-  INotificationService,
-  IEmailProvider,
-  ISmsProvider,
-  IPushNotificationProvider,
   EmailOptions,
-  SmsOptions,
-  PushNotificationOptions,
+  IEmailProvider,
+  INotificationService,
+  IPushNotificationProvider,
+  ISmsProvider,
   NotificationResult,
+  PushNotificationOptions,
+  SmsOptions,
 } from '@repo/types';
+import { injectable } from 'tsyringe';
 import { LoggerService } from '../logger.service';
 
 /**
@@ -67,13 +67,19 @@ export class NotificationService implements INotificationService {
 
   async sendPushNotification(options: PushNotificationOptions): Promise<NotificationResult> {
     try {
-      this.logger.info('Sending push notification', { userId: options.userId, title: options.title });
+      this.logger.info('Sending push notification', {
+        userId: options.userId,
+        title: options.title,
+      });
       const result = await this.pushProvider.send(options);
 
       if (result.success) {
         this.logger.info('Push notification sent successfully', { messageId: result.messageId });
       } else {
-        this.logger.error('Push notification send failed', new Error(result.error || 'Unknown error'));
+        this.logger.error(
+          'Push notification send failed',
+          new Error(result.error || 'Unknown error')
+        );
       }
 
       return result;

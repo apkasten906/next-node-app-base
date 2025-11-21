@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 export interface ApiVersionMiddlewareOptions {
   defaultVersion?: string;
@@ -11,11 +11,7 @@ export interface ApiVersionMiddlewareOptions {
  * Version format: application/vnd.api+json; version=1.0
  */
 export function apiVersionMiddleware(options: ApiVersionMiddlewareOptions = {}) {
-  const {
-    defaultVersion = '1.0',
-    supportedVersions = ['1.0'],
-    header = 'accept',
-  } = options;
+  const { defaultVersion = '1.0', supportedVersions = ['1.0'], header = 'accept' } = options;
 
   return (req: Request, res: Response, next: NextFunction) => {
     let version = defaultVersion;

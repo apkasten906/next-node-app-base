@@ -1,5 +1,9 @@
+import {
+  IPushNotificationProvider,
+  NotificationResult,
+  PushNotificationOptions,
+} from '@repo/types';
 import { injectable } from 'tsyringe';
-import { IPushNotificationProvider, PushNotificationOptions, NotificationResult } from '@repo/types';
 import { LoggerService } from '../logger.service';
 
 /**
@@ -29,7 +33,7 @@ export class FcmPushProvider implements IPushNotificationProvider {
       // Firebase Admin SDK implementation
       // Note: Install firebase-admin package when ready to use
       // const admin = require('firebase-admin');
-      
+
       // if (!admin.apps.length) {
       //   admin.initializeApp({
       //     credential: admin.credential.cert(JSON.parse(this.serviceAccountKey)),
@@ -104,10 +108,10 @@ export class FcmPushProvider implements IPushNotificationProvider {
 /**
  * Installation instructions:
  * pnpm add firebase-admin
- * 
+ *
  * Environment variables:
  * FIREBASE_PROJECT_ID=your_project_id
  * FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account","project_id":"...","private_key":"..."}'
- * 
+ *
  * Note: The service account key should be a JSON string of your Firebase service account credentials
  */

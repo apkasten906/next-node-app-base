@@ -1,5 +1,5 @@
-import swaggerJSDoc from 'swagger-jsdoc';
 import { Express } from 'express';
+import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
 const swaggerDefinition = {
@@ -48,7 +48,7 @@ const swaggerDefinition = {
             scopes: {
               'read:users': 'Read user information',
               'write:users': 'Modify user information',
-              'admin': 'Administrative access',
+              admin: 'Administrative access',
             },
           },
         },

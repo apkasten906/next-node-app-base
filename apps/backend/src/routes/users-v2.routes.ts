@@ -1,14 +1,13 @@
-import { Router, type Request, type Response, type NextFunction } from 'express';
+import { Router, type NextFunction, type Request, type Response } from 'express';
 import { container } from 'tsyringe';
-import { DatabaseService } from '../services/database.service';
 import { AuthorizationService } from '../services/auth/authorization.service';
-import { AuditLogService } from '../services/audit/audit-log.service';
-import { createResourceLinks, createCollectionLinks } from '../utils/hateoas';
+import { DatabaseService } from '../services/database.service';
+import { createCollectionLinks, createResourceLinks } from '../utils/hateoas';
 import {
+  filtersToPrismaWhere,
   getPaginationParams,
   getSkipTake,
   parseFilters,
-  filtersToPrismaWhere,
   parseSorting,
   sortToPrismaOrderBy,
 } from '../utils/query-helpers';
@@ -89,7 +88,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const where = filtersToPrismaWhere(filters);
 
     // Build Prisma orderBy clause
-    const orderBy = sortToPrismaOrderBy(sorting.length > 0 ? sorting : [{ field: 'createdAt', order: 'desc' }]);
+    const orderBy = sortToPrismaOrderBy(
+      sorting.length > 0 ? sorting : [{ field: 'createdAt', order: 'desc' }]
+    );
 
     // Fetch users with pagination
     const [users, total] = await Promise.all([

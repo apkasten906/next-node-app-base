@@ -137,11 +137,13 @@ console.log(`Notification service healthy: ${isHealthy}`);
 ### Email Providers
 
 #### Console Email Provider (Development)
+
 - Logs emails to console instead of sending
 - No configuration required
 - Useful for development and testing
 
 #### SendGrid Email Provider (Production)
+
 - Professional email delivery service
 - Requires SendGrid API key
 - Supports attachments, HTML emails, CC/BCC
@@ -150,10 +152,12 @@ console.log(`Notification service healthy: ${isHealthy}`);
 ### SMS Providers
 
 #### Console SMS Provider (Development)
+
 - Logs SMS to console instead of sending
 - No configuration required
 
 #### Twilio SMS Provider (Production)
+
 - Industry-standard SMS delivery
 - Requires Twilio account credentials
 - Installation: `pnpm add twilio`
@@ -161,10 +165,12 @@ console.log(`Notification service healthy: ${isHealthy}`);
 ### Push Notification Providers
 
 #### Console Push Provider (Development)
+
 - Logs push notifications to console
 - No configuration required
 
 #### Firebase Cloud Messaging Provider (Production)
+
 - Google's push notification service
 - Supports iOS and Android
 - Requires Firebase project and service account

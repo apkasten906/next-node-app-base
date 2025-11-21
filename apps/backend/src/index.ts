@@ -6,6 +6,10 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import 'reflect-metadata';
 import { container } from 'tsyringe';
+import { setupSwagger } from './config/swagger';
+import { apiVersionMiddleware } from './middleware/api-version.middleware';
+import filesRouter from './routes/files.routes';
+import { usersRouter } from './routes/users-v2.routes';
 import { AuditLogService } from './services/audit/audit-log.service';
 import { AuthorizationService } from './services/auth/authorization.service';
 import { EncryptionService } from './services/auth/encryption.service';
@@ -14,9 +18,8 @@ import { CacheService } from './services/cache.service';
 import { DatabaseService } from './services/database.service';
 import { LoggerService } from './services/logger.service';
 import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
-import { setupSwagger } from './config/swagger';
-import { apiVersionMiddleware } from './middleware/api-version.middleware';
-import { usersRouter } from './routes/users-v2.routes';
+import { registerNotificationProviders } from './services/notification/notification-provider.factory';
+import { registerStorageProvider } from './services/storage/storage-provider.factory';
 
 /**
  * Express application setup with DI container
@@ -73,11 +76,14 @@ export class App {
     );
 
     // API versioning middleware (for /api routes)
-    this.app.use('/api', apiVersionMiddleware({
-      defaultVersion: '1.0',
-      supportedVersions: ['1.0'],
-      header: 'accept',
-    }));
+    this.app.use(
+      '/api',
+      apiVersionMiddleware({
+        defaultVersion: '1.0',
+        supportedVersions: ['1.0'],
+        header: 'accept',
+      })
+    );
 
     // Correlation ID middleware
     this.app.use((req: Request, res: Response, next: NextFunction) => {
@@ -146,6 +152,7 @@ export class App {
 
     // Register API routes
     this.app.use('/api/users', usersRouter);
+    this.app.use('/api/files', filesRouter);
 
     // Additional API routes would be added here
   }
@@ -222,6 +229,10 @@ container.registerSingleton('EncryptionService', EncryptionService);
 container.registerSingleton('AuthorizationService', AuthorizationService);
 container.registerSingleton('AuditLogService', AuditLogService);
 container.registerSingleton('SecretsManager', EnvironmentSecretsManager);
+
+// Register notification and storage providers based on environment
+registerNotificationProviders();
+registerStorageProvider();
 
 // Create and start app
 const app = new App();

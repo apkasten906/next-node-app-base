@@ -1,5 +1,5 @@
+import { ISmsProvider, NotificationResult, SmsOptions } from '@repo/types';
 import { injectable } from 'tsyringe';
-import { ISmsProvider, SmsOptions, NotificationResult } from '@repo/types';
 import { LoggerService } from '../logger.service';
 
 /**
@@ -69,7 +69,7 @@ export class TwilioSmsProvider implements ISmsProvider {
 /**
  * Installation instructions:
  * pnpm add twilio
- * 
+ *
  * Environment variables:
  * TWILIO_ACCOUNT_SID=your_account_sid
  * TWILIO_AUTH_TOKEN=your_auth_token

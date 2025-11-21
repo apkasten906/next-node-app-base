@@ -1,5 +1,9 @@
+import {
+  IPushNotificationProvider,
+  NotificationResult,
+  PushNotificationOptions,
+} from '@repo/types';
 import { injectable } from 'tsyringe';
-import { IPushNotificationProvider, PushNotificationOptions, NotificationResult } from '@repo/types';
 import { LoggerService } from '../logger.service';
 
 /**

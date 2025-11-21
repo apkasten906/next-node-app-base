@@ -1,11 +1,11 @@
+import { IEmailProvider, IPushNotificationProvider, ISmsProvider } from '@repo/types';
 import { container } from 'tsyringe';
-import { IEmailProvider, ISmsProvider, IPushNotificationProvider } from '@repo/types';
 import { ConsoleEmailProvider } from './providers/console-email.provider';
-import { ConsoleSmsProvider } from './providers/console-sms.provider';
 import { ConsolePushProvider } from './providers/console-push.provider';
+import { ConsoleSmsProvider } from './providers/console-sms.provider';
+import { FcmPushProvider } from './providers/fcm-push.provider';
 import { SendGridEmailProvider } from './providers/sendgrid-email.provider';
 import { TwilioSmsProvider } from './providers/twilio-sms.provider';
-import { FcmPushProvider } from './providers/fcm-push.provider';
 
 /**
  * Provider configuration based on environment
@@ -45,11 +45,17 @@ export class NotificationProviderFactory {
     switch (pushProvider.toLowerCase()) {
       case 'fcm':
       case 'firebase':
-        container.registerSingleton<IPushNotificationProvider>('IPushNotificationProvider', FcmPushProvider);
+        container.registerSingleton<IPushNotificationProvider>(
+          'IPushNotificationProvider',
+          FcmPushProvider
+        );
         break;
       case 'console':
       default:
-        container.registerSingleton<IPushNotificationProvider>('IPushNotificationProvider', ConsolePushProvider);
+        container.registerSingleton<IPushNotificationProvider>(
+          'IPushNotificationProvider',
+          ConsolePushProvider
+        );
         break;
     }
 
@@ -60,23 +66,30 @@ export class NotificationProviderFactory {
 }
 
 /**
+ * Helper function to register notification providers
+ */
+export function registerNotificationProviders(): void {
+  NotificationProviderFactory.registerProviders();
+}
+
+/**
  * Environment variables for provider selection:
- * 
+ *
  * EMAIL_PROVIDER=console|sendgrid
  * SMS_PROVIDER=console|twilio
  * PUSH_PROVIDER=console|fcm|firebase
- * 
+ *
  * Provider-specific credentials:
- * 
+ *
  * SendGrid:
  * - SENDGRID_API_KEY
  * - SENDGRID_FROM_EMAIL
- * 
+ *
  * Twilio:
  * - TWILIO_ACCOUNT_SID
  * - TWILIO_AUTH_TOKEN
  * - TWILIO_PHONE_NUMBER
- * 
+ *
  * Firebase Cloud Messaging:
  * - FIREBASE_PROJECT_ID
  * - FIREBASE_SERVICE_ACCOUNT_KEY

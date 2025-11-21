@@ -1,5 +1,5 @@
+import { EmailOptions, IEmailProvider, NotificationResult } from '@repo/types';
 import { injectable } from 'tsyringe';
-import { IEmailProvider, EmailOptions, NotificationResult } from '@repo/types';
 import { LoggerService } from '../logger.service';
 
 /**
@@ -77,7 +77,7 @@ export class SendGridEmailProvider implements IEmailProvider {
 /**
  * Installation instructions:
  * pnpm add @sendgrid/mail
- * 
+ *
  * Environment variables:
  * SENDGRID_API_KEY=your_sendgrid_api_key
  * SENDGRID_FROM_EMAIL=noreply@yourdomain.com

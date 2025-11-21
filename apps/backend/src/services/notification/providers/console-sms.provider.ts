@@ -1,5 +1,5 @@
+import { ISmsProvider, NotificationResult, SmsOptions } from '@repo/types';
 import { injectable } from 'tsyringe';
-import { ISmsProvider, SmsOptions, NotificationResult } from '@repo/types';
 import { LoggerService } from '../logger.service';
 
 /**

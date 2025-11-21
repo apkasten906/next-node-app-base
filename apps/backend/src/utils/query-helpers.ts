@@ -85,7 +85,17 @@ export function getSkipTake(page: number, pageSize: number): { skip: number; tak
  */
 export interface FilterParams {
   field: string;
-  operator: 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'contains' | 'startsWith' | 'endsWith';
+  operator:
+    | 'eq'
+    | 'ne'
+    | 'gt'
+    | 'gte'
+    | 'lt'
+    | 'lte'
+    | 'in'
+    | 'contains'
+    | 'startsWith'
+    | 'endsWith';
   value: any;
 }
 
@@ -121,7 +131,18 @@ export function parseFilters(query: any): FilterParams[] {
 }
 
 function isValidOperator(op: string): boolean {
-  return ['eq', 'ne', 'gt', 'gte', 'lt', 'lte', 'in', 'contains', 'startsWith', 'endsWith'].includes(op);
+  return [
+    'eq',
+    'ne',
+    'gt',
+    'gte',
+    'lt',
+    'lte',
+    'in',
+    'contains',
+    'startsWith',
+    'endsWith',
+  ].includes(op);
 }
 
 /**
