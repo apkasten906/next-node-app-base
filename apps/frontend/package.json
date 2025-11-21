@@ -12,7 +12,11 @@
     "test": "echo 'Frontend tests - Vitest to be configured'",
     "test:unit": "echo 'Frontend unit tests'",
     "test:integration": "echo 'Frontend integration tests'",
-    "test:e2e": "echo 'Frontend E2E tests - Playwright to be configured'",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
     "test:contract": "echo 'Frontend contract tests - Pact to be configured'"
   },
   "dependencies": {
@@ -26,13 +30,17 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.6",
     "@types/react-dom": "^19.2.3",
+    "@types/supertest": "^6.0.3",
     "autoprefixer": "^10.4.22",
     "eslint-config-next": "^16.0.3",
+    "playwright": "^1.56.1",
     "postcss": "^8.5.6",
     "prisma": "^7.0.0",
+    "supertest": "^7.1.4",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3"
   }

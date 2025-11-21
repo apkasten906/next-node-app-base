@@ -22,9 +22,12 @@
     "start": "node --experimental-strip-types --env-file=.env src/index.ts",
     "lint": "echo 'Backend lint - ESLint to be configured'",
     "typecheck": "echo 'Backend typecheck - TypeScript to be configured'",
-    "test": "echo 'Backend tests - Vitest to be configured'",
-    "test:unit": "echo 'Backend unit tests'",
-    "test:integration": "echo 'Backend integration tests'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run --grep unit",
+    "test:integration": "vitest run --grep integration",
     "test:contract": "echo 'Backend contract tests - Pact to be configured'",
     "test:security": "echo 'Backend security tests - OWASP ZAP to be configured'",
     "db:generate": "prisma generate",
@@ -33,10 +36,16 @@
     "db:studio": "prisma studio"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/morgan": "^1.9.10",
-    "prisma": "^7.0.0"
+    "@types/supertest": "^6.0.3",
+    "@vitest/ui": "^4.0.12",
+    "c8": "^10.1.3",
+    "prisma": "^7.0.0",
+    "supertest": "^7.1.4",
+    "vitest": "^4.0.12"
   }
 }
