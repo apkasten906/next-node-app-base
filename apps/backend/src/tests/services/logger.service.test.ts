@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { container } from 'tsyringe';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { LoggerService } from '../../services/logger.service';
 
 describe('LoggerService', () => {
@@ -14,34 +14,34 @@ describe('LoggerService', () => {
   describe('logging methods', () => {
     it('should log debug messages', () => {
       const spy = vi.spyOn(loggerService.getLogger(), 'debug');
-      
+
       loggerService.debug('Debug message', { context: 'test' });
-      
+
       expect(spy).toHaveBeenCalledWith('Debug message', { context: 'test' });
     });
 
     it('should log info messages', () => {
       const spy = vi.spyOn(loggerService.getLogger(), 'info');
-      
+
       loggerService.info('Info message', { userId: '123' });
-      
+
       expect(spy).toHaveBeenCalledWith('Info message', { userId: '123' });
     });
 
     it('should log warning messages', () => {
       const spy = vi.spyOn(loggerService.getLogger(), 'warn');
-      
+
       loggerService.warn('Warning message', { code: 'WARN_001' });
-      
+
       expect(spy).toHaveBeenCalledWith('Warning message', { code: 'WARN_001' });
     });
 
     it('should log error messages with error object', () => {
       const spy = vi.spyOn(loggerService.getLogger(), 'error');
       const error = new Error('Test error');
-      
+
       loggerService.error('Error occurred', error, { context: 'test' });
-      
+
       expect(spy).toHaveBeenCalled();
       const callArgs = spy.mock.calls[0];
       expect(callArgs?.[0]).toBe('Error occurred');
@@ -61,10 +61,10 @@ describe('LoggerService', () => {
     it('should include correlation ID in child logger', () => {
       const correlationId = 'correlation-123';
       const childLogger = loggerService.child(correlationId);
-      
+
       const spy = vi.spyOn(childLogger, 'info');
       childLogger.info('Test message');
-      
+
       expect(spy).toHaveBeenCalled();
     });
   });

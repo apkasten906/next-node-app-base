@@ -110,9 +110,7 @@ import { app } from '../../app';
 
 describe('API Integration', () => {
   it('should return 200', async () => {
-    const response = await request(app)
-      .get('/api/endpoint')
-      .expect(200);
+    const response = await request(app).get('/api/endpoint').expect(200);
 
     expect(response.body).toHaveProperty('data');
   });
@@ -179,7 +177,7 @@ test.describe('Feature Name', () => {
 
     const element = page.getByRole('button', { name: 'Click Me' });
     await expect(element).toBeVisible();
-    
+
     await element.click();
     await expect(page).toHaveURL('/new-page');
   });
@@ -198,6 +196,7 @@ pnpm test:coverage
 ```
 
 Coverage reports are available in:
+
 - **Console**: Text summary
 - **JSON**: `coverage/coverage-final.json`
 - **HTML**: `coverage/index.html` (open in browser)
@@ -228,10 +227,10 @@ jobs:
         with:
           node-version: '25'
           cache: 'pnpm'
-      
+
       - run: pnpm install
       - run: pnpm --filter backend test:coverage
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -246,11 +245,11 @@ jobs:
         with:
           node-version: '25'
           cache: 'pnpm'
-      
+
       - run: pnpm install
       - run: npx playwright install --with-deps
       - run: pnpm --filter frontend test:e2e
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v3
@@ -285,26 +284,31 @@ Playwright uses `baseURL: 'http://localhost:3000'` and auto-starts the dev serve
 ### Common Issues
 
 **1. Tests fail with module not found**
+
 - Check import paths are correct (relative paths from test file)
 - Ensure `tsconfig.json` paths are configured
 - Verify `vitest.config.ts` has correct path aliases
 
 **2. Database tests fail**
+
 - Ensure PostgreSQL is running
 - Database connection string is correct in `.env.test`
 - Run `pnpm prisma:generate` to update Prisma Client
 
 **3. Redis tests fail**
+
 - Ensure Redis server is running
 - Check Redis connection settings
 - Use separate DB for tests (e.g., `REDIS_DB=1`)
 
 **4. E2E tests timeout**
+
 - Increase timeout in `playwright.config.ts`
 - Check if dev server is starting correctly
 - Verify baseURL is accessible
 
 **5. Coverage reports empty**
+
 - Ensure test files are in correct directories
 - Check `vitest.config.ts` coverage exclude patterns
 - Run tests with `--coverage` flag explicitly

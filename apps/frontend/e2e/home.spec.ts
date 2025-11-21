@@ -1,11 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Home Page', () => {
   test('should display the home page', async ({ page }) => {
     await page.goto('/');
 
     await expect(page).toHaveTitle(/Next Node App Base/);
-    
+
     const heading = page.getByRole('heading', { name: 'Next Node App Base' });
     await expect(heading).toBeVisible();
   });

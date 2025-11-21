@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import Redis from 'ioredis';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 describe('Redis Integration Tests', () => {
   let redis: Redis;

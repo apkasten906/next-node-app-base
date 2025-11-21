@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import { container } from 'tsyringe';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { EncryptionService } from '../../services/auth/encryption.service';
 
 describe('EncryptionService', () => {
@@ -43,7 +43,7 @@ describe('EncryptionService', () => {
       const hash2 = await encryptionService.hash(password);
 
       expect(hash1).not.toBe(hash2);
-      
+
       // Both should still verify
       expect(await encryptionService.compareHash(password, hash1)).toBe(true);
       expect(await encryptionService.compareHash(password, hash2)).toBe(true);
@@ -87,7 +87,7 @@ describe('EncryptionService', () => {
       const encrypted2 = encryptionService.encrypt(data);
 
       expect(encrypted1).not.toBe(encrypted2);
-      
+
       // Both should decrypt to same value
       expect(encryptionService.decrypt(encrypted1)).toBe(data);
       expect(encryptionService.decrypt(encrypted2)).toBe(data);
@@ -118,7 +118,7 @@ describe('EncryptionService', () => {
 
     it('should generate token of specified length', () => {
       const token = encryptionService.generateRandomToken(64);
-      
+
       // Hex encoding: 64 bytes = 128 characters
       expect(token.length).toBe(128);
     });

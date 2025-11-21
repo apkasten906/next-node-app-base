@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { EncryptionService } from '../../services/auth/encryption.service';
 
 describe('Database Integration Tests', () => {

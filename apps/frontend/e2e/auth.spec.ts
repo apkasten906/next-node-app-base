@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Authentication Flow', () => {
   test('should show sign in page with OAuth providers', async ({ page }) => {
@@ -21,7 +21,7 @@ test.describe('Authentication Flow', () => {
     // This test assumes you have a way to mock authentication
     // For now, it just checks the redirect flow structure
     await page.goto('/auth/signin');
-    
+
     // If authenticated, should see home page elements
     // This would need proper session mocking in a real test
     await expect(page).toHaveURL(/\/(auth\/signin)?/);
@@ -35,7 +35,7 @@ test.describe('Authentication Flow', () => {
     const currentUrl = page.url();
     const isSignInPage = currentUrl.includes('/auth/signin');
     const isUnauthorizedPage = currentUrl.includes('/unauthorized');
-    
+
     expect(isSignInPage || isUnauthorizedPage).toBeTruthy();
   });
 

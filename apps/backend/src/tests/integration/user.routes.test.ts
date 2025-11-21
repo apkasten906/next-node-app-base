@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import request from 'supertest';
 import express, { Express } from 'express';
+import request from 'supertest';
 import { container } from 'tsyringe';
-import { userRouter } from '../../routes/user.routes';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthMiddleware } from '../../middleware/auth.middleware';
+import { userRouter } from '../../routes/user.routes';
 import { UserService } from '../../services/user/user.service';
 
 describe('User Routes Integration Tests', () => {
@@ -60,9 +60,7 @@ describe('User Routes Integration Tests', () => {
 
       vi.mocked(mockUserService.findById).mockResolvedValue(mockUser);
 
-      const response = await request(app)
-        .get('/api/users/user-123')
-        .expect(200);
+      const response = await request(app).get('/api/users/user-123').expect(200);
 
       expect(response.body).toMatchObject({
         id: 'user-123',
@@ -74,17 +72,13 @@ describe('User Routes Integration Tests', () => {
     it('should return 404 when user not found', async () => {
       vi.mocked(mockUserService.findById).mockResolvedValue(null);
 
-      await request(app)
-        .get('/api/users/nonexistent')
-        .expect(404);
+      await request(app).get('/api/users/nonexistent').expect(404);
     });
 
     it('should return 500 on service error', async () => {
       vi.mocked(mockUserService.findById).mockRejectedValue(new Error('Database error'));
 
-      await request(app)
-        .get('/api/users/user-123')
-        .expect(500);
+      await request(app).get('/api/users/user-123').expect(500);
     });
   });
 
@@ -106,10 +100,7 @@ describe('User Routes Integration Tests', () => {
 
       vi.mocked(mockUserService.createUser).mockResolvedValue(createdUser);
 
-      const response = await request(app)
-        .post('/api/users')
-        .send(newUser)
-        .expect(201);
+      const response = await request(app).post('/api/users').send(newUser).expect(201);
 
       expect(response.body).toMatchObject({
         id: 'new-user-id',
@@ -124,16 +115,11 @@ describe('User Routes Integration Tests', () => {
         // Missing required fields
       };
 
-      await request(app)
-        .post('/api/users')
-        .send(invalidUser)
-        .expect(400);
+      await request(app).post('/api/users').send(invalidUser).expect(400);
     });
 
     it('should return 409 when email already exists', async () => {
-      vi.mocked(mockUserService.createUser).mockRejectedValue(
-        new Error('Email already exists')
-      );
+      vi.mocked(mockUserService.createUser).mockRejectedValue(new Error('Email already exists'));
 
       const newUser = {
         email: 'existing@example.com',
@@ -141,10 +127,7 @@ describe('User Routes Integration Tests', () => {
         password: 'password123',
       };
 
-      await request(app)
-        .post('/api/users')
-        .send(newUser)
-        .expect(500); // Should be 409 in actual implementation
+      await request(app).post('/api/users').send(newUser).expect(500); // Should be 409 in actual implementation
     });
   });
 
@@ -165,10 +148,7 @@ describe('User Routes Integration Tests', () => {
 
       vi.mocked(mockUserService.updateUser).mockResolvedValue(updatedUser);
 
-      const response = await request(app)
-        .put('/api/users/user-123')
-        .send(updateData)
-        .expect(200);
+      const response = await request(app).put('/api/users/user-123').send(updateData).expect(200);
 
       expect(response.body.name).toBe('Updated Name');
     });
@@ -176,10 +156,7 @@ describe('User Routes Integration Tests', () => {
     it('should return 404 when updating nonexistent user', async () => {
       vi.mocked(mockUserService.updateUser).mockResolvedValue(null);
 
-      await request(app)
-        .put('/api/users/nonexistent')
-        .send({ name: 'New Name' })
-        .expect(404);
+      await request(app).put('/api/users/nonexistent').send({ name: 'New Name' }).expect(404);
     });
   });
 
@@ -187,17 +164,13 @@ describe('User Routes Integration Tests', () => {
     it('should delete user', async () => {
       vi.mocked(mockUserService.deleteUser).mockResolvedValue(true);
 
-      await request(app)
-        .delete('/api/users/user-123')
-        .expect(204);
+      await request(app).delete('/api/users/user-123').expect(204);
     });
 
     it('should return 404 when deleting nonexistent user', async () => {
       vi.mocked(mockUserService.deleteUser).mockResolvedValue(false);
 
-      await request(app)
-        .delete('/api/users/nonexistent')
-        .expect(404);
+      await request(app).delete('/api/users/nonexistent').expect(404);
     });
   });
 
@@ -257,10 +230,7 @@ describe('User Routes Integration Tests', () => {
         pageSize: 10,
       });
 
-      const response = await request(app)
-        .get('/api/users')
-        .query({ role: 'ADMIN' })
-        .expect(200);
+      const response = await request(app).get('/api/users').query({ role: 'ADMIN' }).expect(200);
 
       expect(response.body.users[0].role).toBe('ADMIN');
     });

@@ -14,6 +14,9 @@ import { CacheService } from './services/cache.service';
 import { DatabaseService } from './services/database.service';
 import { LoggerService } from './services/logger.service';
 import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
+import { setupSwagger } from './config/swagger';
+import { apiVersionMiddleware } from './middleware/api-version.middleware';
+import { usersRouter } from './routes/users-v2.routes';
 
 /**
  * Express application setup with DI container
@@ -69,6 +72,13 @@ export class App {
       })
     );
 
+    // API versioning middleware (for /api routes)
+    this.app.use('/api', apiVersionMiddleware({
+      defaultVersion: '1.0',
+      supportedVersions: ['1.0'],
+      header: 'accept',
+    }));
+
     // Correlation ID middleware
     this.app.use((req: Request, res: Response, next: NextFunction) => {
       const correlationId = (req.headers['x-correlation-id'] as string) || crypto.randomUUID();
@@ -82,6 +92,9 @@ export class App {
    * Initialize routes
    */
   private initializeRoutes(): void {
+    // Swagger documentation
+    setupSwagger(this.app);
+
     // Health check endpoint
     this.app.get('/health', async (_req: Request, res: Response) => {
       const health = {
@@ -126,12 +139,15 @@ export class App {
           health: '/health',
           ready: '/ready',
           users: '/api/users',
+          documentation: '/api-docs',
         },
       });
     });
 
+    // Register API routes
+    this.app.use('/api/users', usersRouter);
+
     // Additional API routes would be added here
-    // Example: this.app.use('/api/users', usersRouter);
   }
 
   /**

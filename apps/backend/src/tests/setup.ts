@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { container } from 'tsyringe';
+import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
 // Reset DI container before each test
 beforeEach(() => {

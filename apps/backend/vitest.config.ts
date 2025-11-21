@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config';
 import path from 'path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -9,13 +9,7 @@ export default defineConfig({
     coverage: {
       provider: 'c8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'src/tests/',
-        '**/*.test.ts',
-        '**/*.spec.ts',
-        'dist/',
-      ],
+      exclude: ['node_modules/', 'src/tests/', '**/*.test.ts', '**/*.spec.ts', 'dist/'],
     },
     include: ['src/**/*.{test,spec}.ts'],
     exclude: ['node_modules', 'dist'],

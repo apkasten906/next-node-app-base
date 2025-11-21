@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Dashboard Page - Unauthenticated', () => {
   test('should redirect to sign in when accessing dashboard without auth', async ({ page }) => {
@@ -126,7 +126,7 @@ test.describe('Dashboard - User Actions', () => {
 
     // Look for sign out button
     const signOutButton = page.getByRole('button', { name: /Sign Out/i });
-    
+
     if (await signOutButton.isVisible()) {
       await signOutButton.click();
 
