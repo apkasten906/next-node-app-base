@@ -9,7 +9,8 @@ import { singleton } from 'tsyringe';
 export class DatabaseService extends PrismaClient {
   constructor() {
     super({
-      log: process.env['NODE_ENV'] === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+      log:
+        process.env['NODE_ENV'] === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
       errorFormat: 'pretty',
       datasourceUrl: process.env['DATABASE_URL'],
     });

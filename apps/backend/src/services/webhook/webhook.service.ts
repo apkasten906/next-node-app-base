@@ -1,7 +1,7 @@
 import crypto from 'crypto';
-import { singleton, inject } from 'tsyringe';
-import { LoggerService } from '../logger.service';
+import { inject, singleton } from 'tsyringe';
 import { CacheService } from '../cache.service';
+import { LoggerService } from '../logger.service';
 
 /**
  * Webhook event interface
@@ -150,10 +150,7 @@ export class WebhookService {
    */
   verifySignature(payload: string, signature: string, secret: string): boolean {
     const expectedSignature = this.generateSignature(payload, secret);
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    );
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
   }
 
   /**

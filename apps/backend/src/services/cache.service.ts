@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import { singleton, inject } from 'tsyringe';
+import { inject, singleton } from 'tsyringe';
 import { LoggerService } from './logger.service';
 
 /**

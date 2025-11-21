@@ -1,5 +1,5 @@
-import winston from 'winston';
 import { singleton } from 'tsyringe';
+import winston from 'winston';
 
 /**
  * Structured logging service with Winston
@@ -57,12 +57,8 @@ export class LoggerService {
             ]
           : []),
       ],
-      exceptionHandlers: [
-        new winston.transports.File({ filename: 'logs/exceptions.log' }),
-      ],
-      rejectionHandlers: [
-        new winston.transports.File({ filename: 'logs/rejections.log' }),
-      ],
+      exceptionHandlers: [new winston.transports.File({ filename: 'logs/exceptions.log' })],
+      rejectionHandlers: [new winston.transports.File({ filename: 'logs/rejections.log' })],
     });
   }
 

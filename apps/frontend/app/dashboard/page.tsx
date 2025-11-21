@@ -1,6 +1,5 @@
-import { auth } from '@/auth';
+import { auth, signOut } from '@/auth';
 import { redirect } from 'next/navigation';
-import { signOut } from '@/auth';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -51,9 +50,7 @@ export default async function DashboardPage() {
           <h2 className="text-3xl font-bold text-gray-900">
             Welcome back, {session.user.name?.split(' ')[0]}!
           </h2>
-          <p className="mt-2 text-gray-600">
-            Here's what's happening with your account today.
-          </p>
+          <p className="mt-2 text-gray-600">Here's what's happening with your account today.</p>
         </div>
 
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { auth } from '@/auth';
+import Link from 'next/link';
 
 export default async function HomePage() {
   const session = await auth();
@@ -33,9 +33,7 @@ export default async function HomePage() {
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           <div className="p-6 border rounded-lg">
             <h2 className="text-2xl font-semibold mb-2">Turborepo</h2>
-            <p className="text-gray-600">
-              Monorepo build system with remote caching
-            </p>
+            <p className="text-gray-600">Monorepo build system with remote caching</p>
           </div>
           <div className="p-6 border rounded-lg">
             <h2 className="text-2xl font-semibold mb-2">Next.js 15</h2>

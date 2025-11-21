@@ -1,18 +1,18 @@
-import 'reflect-metadata';
-import 'dotenv/config';
-import express, { type Express, type Request, type Response, type NextFunction } from 'express';
-import cors from 'cors';
 import compression from 'compression';
+import cors from 'cors';
+import 'dotenv/config';
+import express, { type Express, type NextFunction, type Request, type Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import 'reflect-metadata';
 import { container } from 'tsyringe';
+import { AuditLogService } from './services/audit/audit-log.service';
+import { AuthorizationService } from './services/auth/authorization.service';
+import { EncryptionService } from './services/auth/encryption.service';
+import { JwtService } from './services/auth/jwt.service';
+import { CacheService } from './services/cache.service';
 import { DatabaseService } from './services/database.service';
 import { LoggerService } from './services/logger.service';
-import { CacheService } from './services/cache.service';
-import { JwtService } from './services/auth/jwt.service';
-import { EncryptionService } from './services/auth/encryption.service';
-import { AuthorizationService } from './services/auth/authorization.service';
-import { AuditLogService } from './services/audit/audit-log.service';
 import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
 
 /**
@@ -117,7 +117,7 @@ export class App {
       }
     });
 
-    // API routes will be added here
+    // API info endpoint
     this.app.get('/api', (_req: Request, res: Response) => {
       res.json({
         message: 'Next-Node-App-Base API',
@@ -125,9 +125,13 @@ export class App {
         endpoints: {
           health: '/health',
           ready: '/ready',
+          users: '/api/users',
         },
       });
     });
+
+    // Additional API routes would be added here
+    // Example: this.app.use('/api/users', usersRouter);
   }
 
   /**

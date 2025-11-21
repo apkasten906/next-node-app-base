@@ -18,6 +18,8 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
     "@prisma/client": "^7.0.0",
+    "@tanstack/react-query": "^5.90.10",
+    "@tanstack/react-query-devtools": "^5.90.2",
     "next": "^16.0.3",
     "next-auth": "5.0.0-beta.30",
     "react": "^19.2.0",
