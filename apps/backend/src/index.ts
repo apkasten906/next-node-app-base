@@ -17,8 +17,8 @@ import { JwtService } from './services/auth/jwt.service';
 import { CacheService } from './services/cache.service';
 import { DatabaseService } from './services/database.service';
 import { LoggerService } from './services/logger.service';
-import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
 import { registerNotificationProviders } from './services/notification/notification-provider.factory';
+import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
 import { registerStorageProvider } from './services/storage/storage-provider.factory';
 
 /**

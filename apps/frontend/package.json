@@ -24,12 +24,17 @@
     "@prisma/client": "^7.0.0",
     "@tanstack/react-query": "^5.90.10",
     "@tanstack/react-query-devtools": "^5.90.2",
+    "i18next": "^25.6.3",
     "next": "^16.0.3",
     "next-auth": "5.0.0-beta.30",
+    "next-i18next": "^15.4.2",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-i18next": "^16.3.5"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^12.2.0",
+    "@cucumber/pretty-formatter": "^2.4.1",
     "@playwright/test": "^1.56.1",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.6",

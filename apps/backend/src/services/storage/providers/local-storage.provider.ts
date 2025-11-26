@@ -1,16 +1,16 @@
+import {
+  DeleteOptions,
+  DownloadOptions,
+  FileMetadata,
+  IStorageProvider,
+  ListOptions,
+  UploadOptions,
+} from '@repo/types';
+import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
 import { injectable } from 'tsyringe';
-import {
-  IStorageProvider,
-  FileMetadata,
-  UploadOptions,
-  DownloadOptions,
-  DeleteOptions,
-  ListOptions,
-} from '@repo/types';
-import { LoggerService } from '../logger.service';
-import crypto from 'crypto';
+import { LoggerService } from '../../logger.service';
 
 /**
  * Local filesystem storage provider
@@ -32,7 +32,10 @@ export class LocalStorageProvider implements IStorageProvider {
     });
   }
 
-  async upload(file: Buffer | NodeJS.ReadableStream, options: UploadOptions): Promise<FileMetadata> {
+  async upload(
+    file: Buffer | NodeJS.ReadableStream,
+    options: UploadOptions
+  ): Promise<FileMetadata> {
     try {
       const filename = options.filename || this.generateFilename(options.contentType);
       const folder = options.folder || 'default';
@@ -88,7 +91,7 @@ export class LocalStorageProvider implements IStorageProvider {
     return Promise.all(files.map((f) => this.upload(f.data, f.options)));
   }
 
-  async download(filePath: string, options?: DownloadOptions): Promise<Buffer> {
+  async download(filePath: string, _options?: DownloadOptions): Promise<Buffer> {
     try {
       const fullPath = path.join(this.basePath, filePath);
       const buffer = await fs.readFile(fullPath);
@@ -102,13 +105,13 @@ export class LocalStorageProvider implements IStorageProvider {
     }
   }
 
-  async getSignedUrl(filePath: string, options?: DownloadOptions): Promise<string> {
+  async getSignedUrl(filePath: string, _options?: DownloadOptions): Promise<string> {
     // For local storage, return the direct URL
     // In production, this could return a signed URL with expiration
     return `${this.baseUrl}/${filePath}`;
   }
 
-  async delete(filePath: string, options?: DeleteOptions): Promise<boolean> {
+  async delete(filePath: string, _options?: DeleteOptions): Promise<boolean> {
     try {
       const fullPath = path.join(this.basePath, filePath);
       await fs.unlink(fullPath);
@@ -126,7 +129,7 @@ export class LocalStorageProvider implements IStorageProvider {
     return Promise.all(paths.map((p) => this.delete(p, options)));
   }
 
-  async exists(filePath: string, options?: DeleteOptions): Promise<boolean> {
+  async exists(filePath: string, _options?: DeleteOptions): Promise<boolean> {
     try {
       const fullPath = path.join(this.basePath, filePath);
       await fs.access(fullPath);
@@ -160,7 +163,7 @@ export class LocalStorageProvider implements IStorageProvider {
     }
   }
 
-  async getMetadata(filePath: string, options?: DeleteOptions): Promise<FileMetadata> {
+  async getMetadata(filePath: string, _options?: DeleteOptions): Promise<FileMetadata> {
     try {
       const fullPath = path.join(this.basePath, filePath);
       const stats = await fs.stat(fullPath);
@@ -180,7 +183,11 @@ export class LocalStorageProvider implements IStorageProvider {
     }
   }
 
-  async copy(sourcePath: string, destinationPath: string, options?: DeleteOptions): Promise<FileMetadata> {
+  async copy(
+    sourcePath: string,
+    destinationPath: string,
+    _options?: DeleteOptions
+  ): Promise<FileMetadata> {
     try {
       const sourceFullPath = path.join(this.basePath, sourcePath);
       const destFullPath = path.join(this.basePath, destinationPath);
@@ -199,7 +206,11 @@ export class LocalStorageProvider implements IStorageProvider {
     }
   }
 
-  async move(sourcePath: string, destinationPath: string, options?: DeleteOptions): Promise<FileMetadata> {
+  async move(
+    sourcePath: string,
+    destinationPath: string,
+    _options?: DeleteOptions
+  ): Promise<FileMetadata> {
     try {
       const sourceFullPath = path.join(this.basePath, sourcePath);
       const destFullPath = path.join(this.basePath, destinationPath);

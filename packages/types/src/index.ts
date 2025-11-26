@@ -3,10 +3,33 @@ export * from './interfaces/authentication';
 export * from './interfaces/cache';
 export * from './interfaces/encryption';
 export * from './interfaces/event-bus';
-export * from './interfaces/notification';
+// Re-export most from interfaces/notification except NotificationResult
+export {
+  BulkNotification,
+  BulkNotificationResult,
+  EmailAttachment,
+  EmailParams,
+  INotificationService,
+  NotificationProvider,
+  NotificationStatus,
+  PushParams,
+  SMSParams,
+} from './interfaces/notification';
 export * from './interfaces/payment';
 export * from './interfaces/search';
 export * from './interfaces/secrets';
-export * from './interfaces/storage';
+// export * from './interfaces/storage'; // Conflicts with storage.types.ts
 export * from './interfaces/webhook';
 export * from './types/common';
+// Export comprehensive storage types
+export * from './storage.types';
+// Export notification provider interfaces and types
+export {
+  EmailOptions,
+  IEmailProvider,
+  IPushNotificationProvider,
+  ISmsProvider,
+  NotificationResult,
+  PushNotificationOptions,
+  SmsOptions,
+} from './notification.types';

@@ -13,7 +13,7 @@ export interface ApiVersionMiddlewareOptions {
 export function apiVersionMiddleware(options: ApiVersionMiddlewareOptions = {}) {
   const { defaultVersion = '1.0', supportedVersions = ['1.0'], header = 'accept' } = options;
 
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     let version = defaultVersion;
 
     const acceptHeader = req.get(header);
@@ -27,11 +27,12 @@ export function apiVersionMiddleware(options: ApiVersionMiddlewareOptions = {}) 
 
     // Check if version is supported
     if (!supportedVersions.includes(version)) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Unsupported API version',
         message: `API version ${version} is not supported. Supported versions: ${supportedVersions.join(', ')}`,
         supportedVersions,
       });
+      return;
     }
 
     // Attach version to request object
@@ -48,16 +49,17 @@ export function apiVersionMiddleware(options: ApiVersionMiddlewareOptions = {}) 
  * Helper to check if request is for a specific version or higher
  */
 export function requireVersion(minVersion: string) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const currentVersion = (req as any).apiVersion || '1.0';
 
     if (compareVersions(currentVersion, minVersion) < 0) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'API version too old',
         message: `This endpoint requires API version ${minVersion} or higher`,
         currentVersion,
         requiredVersion: minVersion,
       });
+      return;
     }
 
     next();

@@ -16,8 +16,9 @@ export class EnvironmentSecretsManager implements ISecretsManager {
   /**
    * Get secret value
    */
-  async getSecret(key: string, version?: string): Promise<string> {
+  async getSecret(key: string, _version?: string): Promise<string> {
     // In production: fetch from Vault/AWS Secrets Manager/Azure Key Vault
+    // The version parameter would be used for versioned secret systems
     const secret = this.secrets.get(key);
 
     if (!secret) {

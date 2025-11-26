@@ -1,20 +1,20 @@
 import {
+  BlobSASPermissions,
   BlobServiceClient,
-  StorageSharedKeyCredential,
   ContainerClient,
-  BlockBlobClient,
+  StorageSharedKeyCredential,
 } from '@azure/storage-blob';
-import { injectable } from 'tsyringe';
 import {
-  IStorageProvider,
-  FileMetadata,
-  UploadOptions,
-  DownloadOptions,
   DeleteOptions,
+  DownloadOptions,
+  FileMetadata,
+  IStorageProvider,
   ListOptions,
+  UploadOptions,
 } from '@repo/types';
-import { LoggerService } from '../logger.service';
 import crypto from 'crypto';
+import { injectable } from 'tsyringe';
+import { LoggerService } from '../../logger.service';
 
 /**
  * Azure Blob Storage provider
@@ -44,7 +44,10 @@ export class AzureBlobStorageProvider implements IStorageProvider {
     }
   }
 
-  async upload(file: Buffer | NodeJS.ReadableStream, options: UploadOptions): Promise<FileMetadata> {
+  async upload(
+    file: Buffer | NodeJS.ReadableStream,
+    options: UploadOptions
+  ): Promise<FileMetadata> {
     try {
       const filename = options.filename || this.generateFilename(options.contentType);
       const folder = options.folder || 'default';
@@ -61,16 +64,16 @@ export class AzureBlobStorageProvider implements IStorageProvider {
 
       const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-      let uploadResult;
       if (Buffer.isBuffer(file)) {
-        uploadResult = await blockBlobClient.upload(file, file.length, {
+        await blockBlobClient.upload(file, file.length, {
           blobHTTPHeaders: {
             blobContentType: options.contentType || 'application/octet-stream',
           },
           metadata: options.metadata,
         });
       } else {
-        uploadResult = await blockBlobClient.uploadStream(file, undefined, undefined, {
+        // @ts-ignore - Stream type mismatch between web and node streams
+        await blockBlobClient.uploadStream(file, undefined, undefined, {
           blobHTTPHeaders: {
             blobContentType: options.contentType || 'application/octet-stream',
           },
@@ -156,7 +159,7 @@ export class AzureBlobStorageProvider implements IStorageProvider {
 
       // Generate SAS token
       const sasToken = await blockBlobClient.generateSasUrl({
-        permissions: 'r', // read only
+        permissions: BlobSASPermissions.parse('r'), // read only
         expiresOn: expiryDate,
       });
 
@@ -265,7 +268,11 @@ export class AzureBlobStorageProvider implements IStorageProvider {
     }
   }
 
-  async copy(sourcePath: string, destinationPath: string, options?: DeleteOptions): Promise<FileMetadata> {
+  async copy(
+    sourcePath: string,
+    destinationPath: string,
+    options?: DeleteOptions
+  ): Promise<FileMetadata> {
     try {
       const containerName = options?.bucket || this.defaultContainer;
       const containerClient = this.blobServiceClient.getContainerClient(containerName);
@@ -288,7 +295,11 @@ export class AzureBlobStorageProvider implements IStorageProvider {
     }
   }
 
-  async move(sourcePath: string, destinationPath: string, options?: DeleteOptions): Promise<FileMetadata> {
+  async move(
+    sourcePath: string,
+    destinationPath: string,
+    options?: DeleteOptions
+  ): Promise<FileMetadata> {
     try {
       const metadata = await this.copy(sourcePath, destinationPath, options);
       await this.delete(sourcePath, options);

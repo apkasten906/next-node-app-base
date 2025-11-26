@@ -44,17 +44,20 @@ The File Storage Service provides a unified abstraction layer for storing and ma
 ### Environment Variables
 
 #### Provider Selection
+
 ```bash
 STORAGE_PROVIDER=local|s3|azure|gcp  # Default: local
 ```
 
 #### Local Storage
+
 ```bash
 STORAGE_PATH=/path/to/uploads        # Default: ./uploads
 STORAGE_BASE_URL=http://localhost:3001/uploads
 ```
 
 #### AWS S3
+
 ```bash
 AWS_REGION=us-east-1
 AWS_ACCESS_KEY_ID=your-access-key
@@ -63,6 +66,7 @@ AWS_S3_BUCKET=your-bucket-name
 ```
 
 #### Azure Blob Storage
+
 ```bash
 AZURE_STORAGE_ACCOUNT_NAME=your-account
 AZURE_STORAGE_ACCOUNT_KEY=your-key
@@ -70,6 +74,7 @@ AZURE_STORAGE_CONTAINER=uploads      # Default: uploads
 ```
 
 #### Google Cloud Storage
+
 ```bash
 GCP_PROJECT_ID=your-project-id
 GCP_KEY_FILE=/path/to/service-account-key.json
@@ -158,21 +163,16 @@ const files = await storageService.list({
 
 ```typescript
 // Copy
-const metadata = await storageService.copy(
-  'source/file.pdf',
-  'destination/file.pdf'
-);
+const metadata = await storageService.copy('source/file.pdf', 'destination/file.pdf');
 
 // Move
-const metadata = await storageService.move(
-  'source/file.pdf',
-  'destination/file.pdf'
-);
+const metadata = await storageService.move('source/file.pdf', 'destination/file.pdf');
 ```
 
 ## API Endpoints
 
 ### Upload Single File
+
 ```http
 POST /api/files/upload
 Authorization: Bearer <token>
@@ -183,6 +183,7 @@ folder: "documents"
 ```
 
 ### Upload Multiple Files
+
 ```http
 POST /api/files/upload/multiple
 Authorization: Bearer <token>
@@ -193,6 +194,7 @@ folder: "documents"
 ```
 
 ### Upload Image
+
 ```http
 POST /api/files/upload/image
 Authorization: Bearer <token>
@@ -202,6 +204,7 @@ file: <binary>
 ```
 
 ### Upload Document
+
 ```http
 POST /api/files/upload/document
 Authorization: Bearer <token>
@@ -211,30 +214,35 @@ file: <binary>
 ```
 
 ### Get File URL
+
 ```http
 GET /api/files/{path}?download=false
 Authorization: Bearer <token>
 ```
 
 ### Download File
+
 ```http
 GET /api/files/{path}?download=true
 Authorization: Bearer <token>
 ```
 
 ### Delete File
+
 ```http
 DELETE /api/files/{path}
 Authorization: Bearer <token>
 ```
 
 ### List Files
+
 ```http
 GET /api/files/list?folder=documents&maxResults=50
 Authorization: Bearer <token>
 ```
 
 ### Health Check
+
 ```http
 GET /api/files/health
 ```
@@ -265,11 +273,11 @@ router.post('/upload/video', uploadVideo.single('file'), handler);
 
 ```typescript
 MAX_FILE_SIZE = {
-  IMAGE: 5 * 1024 * 1024,      // 5MB
-  VIDEO: 100 * 1024 * 1024,    // 100MB
-  DOCUMENT: 10 * 1024 * 1024,  // 10MB
-  DEFAULT: 5 * 1024 * 1024,    // 5MB
-}
+  IMAGE: 5 * 1024 * 1024, // 5MB
+  VIDEO: 100 * 1024 * 1024, // 100MB
+  DOCUMENT: 10 * 1024 * 1024, // 10MB
+  DEFAULT: 5 * 1024 * 1024, // 5MB
+};
 ```
 
 ### Allowed MIME Types
@@ -277,9 +285,13 @@ MAX_FILE_SIZE = {
 ```typescript
 ALLOWED_MIME_TYPES = {
   IMAGES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-  DOCUMENTS: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+  DOCUMENTS: [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ],
   VIDEOS: ['video/mp4', 'video/mpeg', 'video/quicktime'],
-}
+};
 ```
 
 ### Security Features
@@ -296,15 +308,15 @@ ALLOWED_MIME_TYPES = {
 
 ```typescript
 interface FileMetadata {
-  filename: string;          // Generated filename
-  originalName: string;      // Original filename
-  mimeType: string;         // MIME type
-  size: number;             // Size in bytes
-  path: string;             // Path in storage
-  url: string;              // Access URL
-  uploadedAt: Date;         // Upload timestamp
-  bucket?: string;          // Storage bucket (cloud only)
-  key?: string;             // Storage key (cloud only)
+  filename: string; // Generated filename
+  originalName: string; // Original filename
+  mimeType: string; // MIME type
+  size: number; // Size in bytes
+  path: string; // Path in storage
+  url: string; // Access URL
+  uploadedAt: Date; // Upload timestamp
+  bucket?: string; // Storage bucket (cloud only)
+  key?: string; // Storage key (cloud only)
 }
 ```
 
@@ -312,14 +324,14 @@ interface FileMetadata {
 
 ```typescript
 interface UploadOptions {
-  filename?: string;              // Target filename
-  contentType?: string;           // MIME type
-  folder?: string;                // Target folder
-  bucket?: string;                // Storage bucket
-  makePublic?: boolean;           // Public access
+  filename?: string; // Target filename
+  contentType?: string; // MIME type
+  folder?: string; // Target folder
+  bucket?: string; // Storage bucket
+  makePublic?: boolean; // Public access
   metadata?: Record<string, string>;
-  maxSize?: number;               // Size limit in bytes
-  allowedMimeTypes?: string[];    // Allowed types
+  maxSize?: number; // Size limit in bytes
+  allowedMimeTypes?: string[]; // Allowed types
 }
 ```
 
@@ -395,6 +407,7 @@ describe('StorageService', () => {
 ### From Local to S3
 
 1. Set environment variables:
+
 ```bash
 STORAGE_PROVIDER=s3
 AWS_REGION=us-east-1
@@ -410,6 +423,7 @@ AWS_S3_BUCKET=your-bucket
 ### From S3 to Azure
 
 1. Update environment variables:
+
 ```bash
 STORAGE_PROVIDER=azure
 AZURE_STORAGE_ACCOUNT_NAME=your-account
@@ -424,20 +438,24 @@ AZURE_STORAGE_CONTAINER=uploads
 ## Troubleshooting
 
 ### Local Storage Issues
+
 - Ensure `STORAGE_PATH` directory exists and is writable
 - Check filesystem permissions
 
 ### S3 Issues
+
 - Verify AWS credentials are correct
 - Check S3 bucket policy and CORS settings
 - Ensure IAM user has necessary permissions (s3:PutObject, s3:GetObject, etc.)
 
 ### Azure Issues
+
 - Verify storage account name and key
 - Check container exists
 - Ensure network access is allowed
 
 ### GCP Issues
+
 - Verify service account key file path
 - Check GCS bucket permissions
 - Ensure service account has Storage Admin role

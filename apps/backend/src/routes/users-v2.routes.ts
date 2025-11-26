@@ -62,6 +62,7 @@ const router = Router();
  *       403:
  *         $ref: '#/components/responses/ForbiddenError'
  */
+// @ts-expect-error TS7030 - TypeScript doesn't recognize res.json() and next() as terminal statements
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const db = container.resolve(DatabaseService);
@@ -73,13 +74,13 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const hasPermission = await authz.checkPermission(userId, 'users', 'read');
+    const hasPermission = await authz.hasPermission(userId, 'users:read');
     if (!hasPermission) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
     // Parse query parameters
-    const { page, pageSize, sort, order } = getPaginationParams(req);
+    const { page, pageSize, sort } = getPaginationParams(req);
     const filters = parseFilters(req.query);
     const sorting = parseSorting(sort);
     const { skip, take } = getSkipTake(page, pageSize);
@@ -176,16 +177,18 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 
     const userId = (req as any).user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
-    const hasPermission = await authz.checkPermission(userId, 'users', 'read');
+    const hasPermission = await authz.hasPermission(userId, 'users:read');
     if (!hasPermission) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     const user = await db.user.findUnique({
-      where: { id: req.params.id },
+      where: { id: req.params['id'] },
       select: {
         id: true,
         email: true,
@@ -198,10 +201,11 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     });
 
     if (!user) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'Not Found',
         message: 'User not found',
       });
+      return;
     }
 
     // Build HATEOAS response

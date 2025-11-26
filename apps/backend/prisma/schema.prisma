@@ -3,11 +3,15 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
+  // Prisma 7: Output to .prisma/client within the pnpm virtual store
+  // Imports from @prisma/client are automatically forwarded to .prisma/client
+  output   = "../../../node_modules/.pnpm/@prisma+client@7.0.1_prisma@7.0.1_typescript@5.9.3/node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
+  // Prisma 7: URL configured in prisma.config.ts
+  // At runtime, connection is passed via adapter in database.service.ts
 }
 
 // User model with authentication and profile data
@@ -21,17 +25,17 @@ model User {
   role          UserRole  @default(USER)
 
   // OAuth connections
-  accounts      Account[]
-  sessions      Session[]
+  accounts Account[]
+  sessions Session[]
 
   // Audit trail
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lastLoginAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
 
   // Additional profile data
-  profile       Profile?
-  auditLogs     AuditLog[]
+  profile   Profile?
+  auditLogs AuditLog[]
 
   @@index([email])
   @@map("users")
@@ -83,17 +87,17 @@ model VerificationToken {
 
 // Extended user profile
 model Profile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  bio         String?  @db.Text
-  company     String?
-  location    String?
-  website     String?
-  twitter     String?
-  github      String?
-  linkedin    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  bio       String?  @db.Text
+  company   String?
+  location  String?
+  website   String?
+  twitter   String?
+  github    String?
+  linkedin  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -102,16 +106,16 @@ model Profile {
 
 // Audit log for security events
 model AuditLog {
-  id          String   @id @default(cuid())
-  userId      String?
-  action      String
-  resource    String
-  resourceId  String?
-  status      String
-  ipAddress   String?
-  userAgent   String?
-  metadata    Json?
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  resource   String
+  resourceId String?
+  status     String
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 

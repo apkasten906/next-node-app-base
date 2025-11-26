@@ -1,7 +1,7 @@
-import multer, { FileFilterCallback } from 'multer';
-import { Request } from 'express';
-import path from 'path';
 import crypto from 'crypto';
+import { Request } from 'express';
+import multer, { FileFilterCallback } from 'multer';
+import path from 'path';
 
 /**
  * Multer configuration for file uploads with security validations
@@ -18,7 +18,11 @@ export const MAX_FILE_SIZE = {
 // Allowed MIME types
 export const ALLOWED_MIME_TYPES = {
   IMAGES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-  DOCUMENTS: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+  DOCUMENTS: [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ],
   VIDEOS: ['video/mp4', 'video/mpeg', 'video/quicktime'],
   ALL: [
     'image/jpeg',
@@ -69,13 +73,11 @@ export function generateUniqueFilename(originalname: string): string {
  * Create a file filter function for Multer
  */
 export function createFileFilter(allowedMimeTypes: string[]) {
-  return (req: Request, file: Express.Multer.File, callback: FileFilterCallback) => {
+  return (_req: Request, file: Express.Multer.File, callback: FileFilterCallback) => {
     // Check MIME type
     if (!allowedMimeTypes.includes(file.mimetype)) {
       return callback(
-        new Error(
-          `Invalid file type. Allowed types: ${allowedMimeTypes.join(', ')}`
-        ) as any,
+        new Error(`Invalid file type. Allowed types: ${allowedMimeTypes.join(', ')}`) as any,
         false
       );
     }
@@ -98,9 +100,7 @@ export function createFileFilter(allowedMimeTypes: string[]) {
     const allowedExtensions = validExtensions[file.mimetype];
     if (allowedExtensions && !allowedExtensions.includes(ext)) {
       return callback(
-        new Error(
-          `File extension ${ext} does not match MIME type ${file.mimetype}`
-        ) as any,
+        new Error(`File extension ${ext} does not match MIME type ${file.mimetype}`) as any,
         false
       );
     }
@@ -139,7 +139,7 @@ export function configureMulterDisk(options?: {
   return multer({
     storage: multer.diskStorage({
       destination: options?.destination || 'uploads/',
-      filename: (req, file, callback) => {
+      filename: (_req, file, callback) => {
         const uniqueFilename = generateUniqueFilename(file.originalname);
         callback(null, uniqueFilename);
       },

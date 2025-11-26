@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "ts-node": {
+    "transpileOnly": true,
+    "files": true,
+    "compilerOptions": {
+      "module": "commonjs",
+      "moduleResolution": "node"
+    }
+  },
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "types": ["node", "vitest/globals"]
+  }
+}

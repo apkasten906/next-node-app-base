@@ -4,7 +4,7 @@ import {
   PushNotificationOptions,
 } from '@repo/types';
 import { injectable } from 'tsyringe';
-import { LoggerService } from '../logger.service';
+import { LoggerService } from '../../logger.service';
 
 /**
  * Firebase Cloud Messaging (FCM) push notification provider
@@ -44,6 +44,7 @@ export class FcmPushProvider implements IPushNotificationProvider {
       // Get user's FCM token from database (would need to be stored during login)
       // const fcmToken = await this.getUserFcmToken(options.userId);
 
+      // @ts-ignore - Used when firebase-admin is installed
       const message = {
         notification: {
           title: options.title,
@@ -98,6 +99,7 @@ export class FcmPushProvider implements IPushNotificationProvider {
   }
 
   // Helper method to retrieve user's FCM token from database
+  // @ts-ignore - Placeholder for future implementation
   private async getUserFcmToken(userId: string): Promise<string> {
     // TODO: Implement database lookup for user's FCM token
     // This would typically be stored when the user logs in from their device

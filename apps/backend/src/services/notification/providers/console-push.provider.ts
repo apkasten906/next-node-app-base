@@ -4,7 +4,7 @@ import {
   PushNotificationOptions,
 } from '@repo/types';
 import { injectable } from 'tsyringe';
-import { LoggerService } from '../logger.service';
+import { LoggerService } from '../../logger.service';
 
 /**
  * Console push notification provider for development

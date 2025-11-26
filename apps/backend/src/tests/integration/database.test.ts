@@ -1,19 +1,24 @@
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { EncryptionService } from '../../services/auth/encryption.service';
 
 describe('Database Integration Tests', () => {
   let prisma: PrismaClient;
   let encryptionService: EncryptionService;
+  let pool: Pool;
 
   beforeAll(() => {
-    // Initialize Prisma client for testing
+    // Prisma 7: Initialize with adapter pattern
+    const connectionString =
+      process.env['DATABASE_URL'] ||
+      'postgresql://postgres:postgres@localhost:5432/nextnode?schema=public';
+    pool = new Pool({ connectionString });
+    const adapter = new PrismaPg(pool);
+
     prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL || 'postgresql://localhost:5432/test_db',
-        },
-      },
+      adapter,
     });
 
     encryptionService = new EncryptionService();
@@ -22,6 +27,7 @@ describe('Database Integration Tests', () => {
   afterAll(async () => {
     // Clean up and disconnect
     await prisma.$disconnect();
+    await pool.end();
   });
 
   beforeEach(async () => {
@@ -43,7 +49,7 @@ describe('Database Integration Tests', () => {
         data: {
           email: 'test-user@example.com',
           name: 'Test User',
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           role: 'USER',
         },
       });
@@ -62,7 +68,7 @@ describe('Database Integration Tests', () => {
         data: {
           email: 'test-find@example.com',
           name: 'Find Test',
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           role: 'USER',
         },
       });
@@ -84,7 +90,7 @@ describe('Database Integration Tests', () => {
         data: {
           email: 'test-update@example.com',
           name: 'Update Test',
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           role: 'USER',
         },
       });
@@ -109,7 +115,7 @@ describe('Database Integration Tests', () => {
         data: {
           email: 'test-delete@example.com',
           name: 'Delete Test',
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           role: 'USER',
         },
       });
@@ -136,7 +142,7 @@ describe('Database Integration Tests', () => {
         data: {
           email: 'test-unique@example.com',
           name: 'Unique Test',
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           role: 'USER',
         },
       });
@@ -146,7 +152,7 @@ describe('Database Integration Tests', () => {
           data: {
             email: 'test-unique@example.com',
             name: 'Duplicate',
-            password: hashedPassword,
+            passwordHash: hashedPassword,
             role: 'USER',
           },
         })
@@ -164,19 +170,19 @@ describe('Database Integration Tests', () => {
           {
             email: 'test-query-1@example.com',
             name: 'Query User 1',
-            password: hashedPassword,
+            passwordHash: hashedPassword,
             role: 'USER',
           },
           {
             email: 'test-query-2@example.com',
             name: 'Query User 2',
-            password: hashedPassword,
+            passwordHash: hashedPassword,
             role: 'USER',
           },
           {
             email: 'test-query-admin@example.com',
             name: 'Query Admin',
-            password: hashedPassword,
+            passwordHash: hashedPassword,
             role: 'ADMIN',
           },
         ],
@@ -257,7 +263,7 @@ describe('Database Integration Tests', () => {
             data: {
               email: 'test-transaction@example.com',
               name: 'Transaction Test',
-              password: hashedPassword,
+              passwordHash: hashedPassword,
               role: 'USER',
             },
           });
@@ -286,7 +292,7 @@ describe('Database Integration Tests', () => {
           data: {
             email: 'test-commit@example.com',
             name: 'Commit Test',
-            password: hashedPassword,
+            passwordHash: hashedPassword,
             role: 'USER',
           },
         });
@@ -303,3 +309,4 @@ describe('Database Integration Tests', () => {
     });
   });
 });
+

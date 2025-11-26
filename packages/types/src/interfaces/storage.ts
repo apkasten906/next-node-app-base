@@ -51,10 +51,16 @@ export interface UploadFile {
 }
 
 export interface UploadOptions {
+  filename?: string;
+  folder?: string;
+  bucket?: string;
   contentType?: string;
   metadata?: Record<string, string>;
   public?: boolean;
+  makePublic?: boolean; // Alias for 'public'
   encryption?: boolean;
+  maxSize?: number;
+  allowedMimeTypes?: string[];
 }
 
 export interface UploadResult {
@@ -79,6 +85,9 @@ export interface StorageFile {
 }
 
 export interface ListOptions {
+  folder?: string;
+  bucket?: string;
+  prefix?: string;
   maxResults?: number;
   pageToken?: string;
   recursive?: boolean;

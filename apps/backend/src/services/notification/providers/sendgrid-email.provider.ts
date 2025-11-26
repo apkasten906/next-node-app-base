@@ -1,6 +1,6 @@
 import { EmailOptions, IEmailProvider, NotificationResult } from '@repo/types';
 import { injectable } from 'tsyringe';
-import { LoggerService } from '../logger.service';
+import { LoggerService } from '../../logger.service';
 
 /**
  * SendGrid email provider
@@ -31,6 +31,7 @@ export class SendGridEmailProvider implements IEmailProvider {
       // const sgMail = require('@sendgrid/mail');
       // sgMail.setApiKey(this.apiKey);
 
+      // @ts-ignore - Used when @sendgrid/mail is installed
       const message = {
         to: options.to,
         from: options.from || this.fromEmail,

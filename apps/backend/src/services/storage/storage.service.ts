@@ -1,13 +1,13 @@
-import { injectable, inject } from 'tsyringe';
 import {
-  IStorageService,
-  IStorageProvider,
-  FileMetadata,
-  UploadOptions,
-  DownloadOptions,
   DeleteOptions,
+  DownloadOptions,
+  FileMetadata,
+  IStorageProvider,
+  IStorageService,
   ListOptions,
+  UploadOptions,
 } from '@repo/types';
+import { inject, injectable } from 'tsyringe';
 import { LoggerService } from '../logger.service';
 
 /**
@@ -23,7 +23,10 @@ export class StorageService implements IStorageService {
     this.logger.info('Storage service initialized', { provider: this.provider.providerName });
   }
 
-  async upload(file: Buffer | NodeJS.ReadableStream, options: UploadOptions): Promise<FileMetadata> {
+  async upload(
+    file: Buffer | NodeJS.ReadableStream,
+    options: UploadOptions
+  ): Promise<FileMetadata> {
     this.logger.debug('Uploading file', { filename: options.filename, folder: options.folder });
 
     // Validate MIME type if allowed types are specified
@@ -79,12 +82,20 @@ export class StorageService implements IStorageService {
     return this.provider.getMetadata(filePath, options);
   }
 
-  async copy(sourcePath: string, destinationPath: string, options?: DeleteOptions): Promise<FileMetadata> {
+  async copy(
+    sourcePath: string,
+    destinationPath: string,
+    options?: DeleteOptions
+  ): Promise<FileMetadata> {
     this.logger.debug('Copying file', { from: sourcePath, to: destinationPath });
     return this.provider.copy(sourcePath, destinationPath, options);
   }
 
-  async move(sourcePath: string, destinationPath: string, options?: DeleteOptions): Promise<FileMetadata> {
+  async move(
+    sourcePath: string,
+    destinationPath: string,
+    options?: DeleteOptions
+  ): Promise<FileMetadata> {
     this.logger.debug('Moving file', { from: sourcePath, to: destinationPath });
     return this.provider.move(sourcePath, destinationPath, options);
   }

@@ -1,6 +1,6 @@
 import { ISmsProvider, NotificationResult, SmsOptions } from '@repo/types';
 import { injectable } from 'tsyringe';
-import { LoggerService } from '../logger.service';
+import { LoggerService } from '../../logger.service';
 
 /**
  * Twilio SMS provider

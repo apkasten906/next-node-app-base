@@ -54,7 +54,9 @@ export interface IStorageService {
   /**
    * Upload multiple files
    */
-  uploadMultiple(files: Array<{ data: Buffer | NodeJS.ReadableStream; options: UploadOptions }>): Promise<FileMetadata[]>;
+  uploadMultiple(
+    files: Array<{ data: Buffer | NodeJS.ReadableStream; options: UploadOptions }>
+  ): Promise<FileMetadata[]>;
 
   /**
    * Download a file

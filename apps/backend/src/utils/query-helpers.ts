@@ -9,14 +9,14 @@ export const paginationSchema = z.object({
     .string()
     .optional()
     .default('1')
-    .transform((val) => parseInt(val, 10))
-    .refine((val) => val > 0, { message: 'Page must be greater than 0' }),
+    .transform((val: string) => parseInt(val, 10))
+    .refine((val: number) => val > 0, { message: 'Page must be greater than 0' }),
   pageSize: z
     .string()
     .optional()
     .default('10')
-    .transform((val) => parseInt(val, 10))
-    .refine((val) => val > 0 && val <= 100, {
+    .transform((val: string) => parseInt(val, 10))
+    .refine((val: number) => val > 0 && val <= 100, {
       message: 'Page size must be between 1 and 100',
     }),
   sort: z.string().optional(),
@@ -211,7 +211,7 @@ export function parseSorting(sortQuery?: string): SortParams[] {
   return sortQuery.split(',').map((sortItem) => {
     const [field, order = 'asc'] = sortItem.split(':');
     return {
-      field: field.trim(),
+      field: field?.trim() || '',
       order: (order.toLowerCase() === 'desc' ? 'desc' : 'asc') as 'asc' | 'desc',
     };
   });
@@ -225,7 +225,7 @@ export function sortToPrismaOrderBy(sorts: SortParams[]): any {
     return undefined;
   }
 
-  if (sorts.length === 1) {
+  if (sorts.length === 1 && sorts[0]) {
     return { [sorts[0].field]: sorts[0].order };
   }
 

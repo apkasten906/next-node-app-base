@@ -1,25 +1,25 @@
 import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
+  CopyObjectCommand,
   DeleteObjectCommand,
   DeleteObjectsCommand,
+  GetObjectCommand,
   HeadObjectCommand,
   ListObjectsV2Command,
-  CopyObjectCommand,
+  PutObjectCommand,
+  S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { injectable } from 'tsyringe';
 import {
-  IStorageProvider,
-  FileMetadata,
-  UploadOptions,
-  DownloadOptions,
   DeleteOptions,
+  DownloadOptions,
+  FileMetadata,
+  IStorageProvider,
   ListOptions,
+  UploadOptions,
 } from '@repo/types';
-import { LoggerService } from '../logger.service';
 import crypto from 'crypto';
+import { injectable } from 'tsyringe';
+import { LoggerService } from '../../logger.service';
 
 /**
  * AWS S3 storage provider
@@ -48,7 +48,10 @@ export class S3StorageProvider implements IStorageProvider {
     }
   }
 
-  async upload(file: Buffer | NodeJS.ReadableStream, options: UploadOptions): Promise<FileMetadata> {
+  async upload(
+    file: Buffer | NodeJS.ReadableStream,
+    options: UploadOptions
+  ): Promise<FileMetadata> {
     try {
       const filename = options.filename || this.generateFilename(options.contentType);
       const folder = options.folder || 'default';
@@ -63,6 +66,7 @@ export class S3StorageProvider implements IStorageProvider {
       const command = new PutObjectCommand({
         Bucket: bucket,
         Key: key,
+        // @ts-ignore - ReadableStream type mismatch between web and node
         Body: file,
         ContentType: options.contentType || 'application/octet-stream',
         Metadata: options.metadata,
@@ -235,7 +239,6 @@ export class S3StorageProvider implements IStorageProvider {
         Bucket: bucket,
         Prefix: prefix,
         MaxKeys: options?.maxResults || 1000,
-        ContinuationToken: options?.continuationToken,
       });
 
       const response = await this.client.send(command);
@@ -287,7 +290,11 @@ export class S3StorageProvider implements IStorageProvider {
     }
   }
 
-  async copy(sourcePath: string, destinationPath: string, options?: DeleteOptions): Promise<FileMetadata> {
+  async copy(
+    sourcePath: string,
+    destinationPath: string,
+    options?: DeleteOptions
+  ): Promise<FileMetadata> {
     try {
       const bucket = options?.bucket || this.defaultBucket;
 
@@ -308,7 +315,11 @@ export class S3StorageProvider implements IStorageProvider {
     }
   }
 
-  async move(sourcePath: string, destinationPath: string, options?: DeleteOptions): Promise<FileMetadata> {
+  async move(
+    sourcePath: string,
+    destinationPath: string,
+    options?: DeleteOptions
+  ): Promise<FileMetadata> {
     try {
       // Copy then delete
       const metadata = await this.copy(sourcePath, destinationPath, options);

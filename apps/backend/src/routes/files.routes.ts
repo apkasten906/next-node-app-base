@@ -1,8 +1,8 @@
-import { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import { container } from 'tsyringe';
+import { upload, uploadDocument, uploadImage } from '../config/multer';
+import { authenticate } from '../middleware/auth.middleware';
 import { StorageService } from '../services/storage/storage.service';
-import { upload, uploadImage, uploadDocument, uploadVideo } from '../config/multer';
-import { authenticateJWT } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -72,26 +72,32 @@ const router = Router();
  *       413:
  *         description: File too large
  */
-router.post('/upload', authenticateJWT, upload.single('file'), async (req: Request, res: Response) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file provided' });
+router.post(
+  '/upload',
+  authenticate,
+  upload.single('file'),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: 'No file provided' });
+        return;
+      }
+
+      const storageService = container.resolve(StorageService);
+      const folder = (req.body.folder as string) || 'uploads';
+
+      const metadata = await storageService.upload(req.file.buffer, {
+        filename: req.file.originalname,
+        contentType: req.file.mimetype,
+        folder,
+      });
+
+      res.json(metadata);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
     }
-
-    const storageService = container.resolve(StorageService);
-    const folder = (req.body.folder as string) || 'uploads';
-
-    const metadata = await storageService.upload(req.file.buffer, {
-      filename: req.file.originalname,
-      contentType: req.file.mimetype,
-      folder,
-    });
-
-    res.json(metadata);
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
   }
-});
+);
 
 /**
  * @swagger
@@ -130,31 +136,37 @@ router.post('/upload', authenticateJWT, upload.single('file'), async (req: Reque
  *       401:
  *         description: Unauthorized
  */
-router.post('/upload/multiple', authenticateJWT, upload.array('files', 10), async (req: Request, res: Response) => {
-  try {
-    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
-      return res.status(400).json({ error: 'No files provided' });
+router.post(
+  '/upload/multiple',
+  authenticate,
+  upload.array('files', 10),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+        res.status(400).json({ error: 'No files provided' });
+        return;
+      }
+
+      const storageService = container.resolve(StorageService);
+      const folder = (req.body.folder as string) || 'uploads';
+
+      const filesData = req.files.map((file) => ({
+        data: file.buffer,
+        options: {
+          filename: file.originalname,
+          contentType: file.mimetype,
+          folder,
+        },
+      }));
+
+      const metadata = await storageService.uploadMultiple(filesData);
+
+      res.json(metadata);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
     }
-
-    const storageService = container.resolve(StorageService);
-    const folder = (req.body.folder as string) || 'uploads';
-
-    const filesData = req.files.map((file) => ({
-      data: file.buffer,
-      options: {
-        filename: file.originalname,
-        contentType: file.mimetype,
-        folder,
-      },
-    }));
-
-    const metadata = await storageService.uploadMultiple(filesData);
-
-    res.json(metadata);
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
   }
-});
+);
 
 /**
  * @swagger
@@ -182,25 +194,31 @@ router.post('/upload/multiple', authenticateJWT, upload.array('files', 10), asyn
  *       401:
  *         description: Unauthorized
  */
-router.post('/upload/image', authenticateJWT, uploadImage.single('file'), async (req: Request, res: Response) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file provided' });
+router.post(
+  '/upload/image',
+  authenticate,
+  uploadImage.single('file'),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: 'No file provided' });
+        return;
+      }
+
+      const storageService = container.resolve(StorageService);
+
+      const metadata = await storageService.upload(req.file.buffer, {
+        filename: req.file.originalname,
+        contentType: req.file.mimetype,
+        folder: 'images',
+      });
+
+      res.json(metadata);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
     }
-
-    const storageService = container.resolve(StorageService);
-
-    const metadata = await storageService.upload(req.file.buffer, {
-      filename: req.file.originalname,
-      contentType: req.file.mimetype,
-      folder: 'images',
-    });
-
-    res.json(metadata);
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
   }
-});
+);
 
 /**
  * @swagger
@@ -228,25 +246,31 @@ router.post('/upload/image', authenticateJWT, uploadImage.single('file'), async 
  *       401:
  *         description: Unauthorized
  */
-router.post('/upload/document', authenticateJWT, uploadDocument.single('file'), async (req: Request, res: Response) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file provided' });
+router.post(
+  '/upload/document',
+  authenticate,
+  uploadDocument.single('file'),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: 'No file provided' });
+        return;
+      }
+
+      const storageService = container.resolve(StorageService);
+
+      const metadata = await storageService.upload(req.file.buffer, {
+        filename: req.file.originalname,
+        contentType: req.file.mimetype,
+        folder: 'documents',
+      });
+
+      res.json(metadata);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
     }
-
-    const storageService = container.resolve(StorageService);
-
-    const metadata = await storageService.upload(req.file.buffer, {
-      filename: req.file.originalname,
-      contentType: req.file.mimetype,
-      folder: 'documents',
-    });
-
-    res.json(metadata);
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
   }
-});
+);
 
 /**
  * @swagger
@@ -276,17 +300,18 @@ router.post('/upload/document', authenticateJWT, uploadDocument.single('file'), 
  *       401:
  *         description: Unauthorized
  */
-router.get('/:path(*)', authenticateJWT, async (req: Request, res: Response) => {
+router.get('/file/:filename', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
-    const filePath = req.params.path;
-    const shouldDownload = req.query.download === 'true';
+    const filePath = req.params['filename'] || '';
+    const shouldDownload = req.query['download'] === 'true';
 
     const storageService = container.resolve(StorageService);
 
     // Check if file exists
     const exists = await storageService.exists(filePath);
     if (!exists) {
-      return res.status(404).json({ error: 'File not found' });
+      res.status(404).json({ error: 'File not found' });
+      return;
     }
 
     if (shouldDownload) {
@@ -330,22 +355,26 @@ router.get('/:path(*)', authenticateJWT, async (req: Request, res: Response) => 
  *       401:
  *         description: Unauthorized
  */
-router.delete('/:path(*)', authenticateJWT, async (req: Request, res: Response) => {
-  try {
-    const filePath = req.params.path;
-    const storageService = container.resolve(StorageService);
+router.delete(
+  '/file/:filename',
+  authenticate,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const filePath = req.params['filename'] || '';
+      const storageService = container.resolve(StorageService);
 
-    const success = await storageService.delete(filePath);
+      const success = await storageService.delete(filePath);
 
-    if (success) {
-      res.json({ message: 'File deleted successfully' });
-    } else {
-      res.status(404).json({ error: 'File not found or could not be deleted' });
+      if (success) {
+        res.json({ message: 'File deleted successfully' });
+      } else {
+        res.status(404).json({ error: 'File not found or could not be deleted' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
     }
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
   }
-});
+);
 
 /**
  * @swagger
@@ -383,14 +412,16 @@ router.delete('/:path(*)', authenticateJWT, async (req: Request, res: Response) 
  *       401:
  *         description: Unauthorized
  */
-router.get('/list', authenticateJWT, async (req: Request, res: Response) => {
+router.get('/list', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const storageService = container.resolve(StorageService);
 
     const files = await storageService.list({
-      folder: req.query.folder as string,
-      prefix: req.query.prefix as string,
-      maxResults: req.query.maxResults ? parseInt(req.query.maxResults as string, 10) : undefined,
+      folder: req.query['folder'] as string,
+      prefix: req.query['prefix'] as string,
+      maxResults: req.query['maxResults']
+        ? parseInt(req.query['maxResults'] as string, 10)
+        : undefined,
     });
 
     res.json(files);
@@ -411,7 +442,7 @@ router.get('/list', authenticateJWT, async (req: Request, res: Response) => {
  *       503:
  *         description: Storage is unhealthy
  */
-router.get('/health', async (req: Request, res: Response) => {
+router.get('/health', async (_req: Request, res: Response): Promise<void> => {
   try {
     const storageService = container.resolve(StorageService);
     const isHealthy = await storageService.healthCheck();

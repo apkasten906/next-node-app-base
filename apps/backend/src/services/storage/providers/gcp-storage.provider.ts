@@ -1,15 +1,15 @@
-import { Storage, Bucket, File } from '@google-cloud/storage';
-import { injectable } from 'tsyringe';
+import { Storage } from '@google-cloud/storage';
 import {
-  IStorageProvider,
-  FileMetadata,
-  UploadOptions,
-  DownloadOptions,
   DeleteOptions,
+  DownloadOptions,
+  FileMetadata,
+  IStorageProvider,
   ListOptions,
+  UploadOptions,
 } from '@repo/types';
-import { LoggerService } from '../logger.service';
 import crypto from 'crypto';
+import { injectable } from 'tsyringe';
+import { LoggerService } from '../../logger.service';
 
 /**
  * Google Cloud Storage provider
@@ -41,7 +41,10 @@ export class GcpStorageProvider implements IStorageProvider {
     }
   }
 
-  async upload(file: Buffer | NodeJS.ReadableStream, options: UploadOptions): Promise<FileMetadata> {
+  async upload(
+    file: Buffer | NodeJS.ReadableStream,
+    options: UploadOptions
+  ): Promise<FileMetadata> {
     try {
       const filename = options.filename || this.generateFilename(options.contentType);
       const folder = options.folder || 'default';
@@ -92,7 +95,7 @@ export class GcpStorageProvider implements IStorageProvider {
         filename,
         originalName: options.filename || filename,
         mimeType: metadata.contentType || 'application/octet-stream',
-        size: parseInt(metadata.size || '0', 10),
+        size: parseInt(String(metadata.size || '0'), 10),
         path: blobName,
         url,
         uploadedAt: new Date(metadata.timeCreated || Date.now()),
@@ -218,7 +221,7 @@ export class GcpStorageProvider implements IStorageProvider {
             filename: file.name.split('/').pop() || '',
             originalName: file.name.split('/').pop() || '',
             mimeType: metadata.contentType || 'application/octet-stream',
-            size: parseInt(metadata.size || '0', 10),
+            size: parseInt(String(metadata.size || '0'), 10),
             path: file.name,
             url: `https://storage.googleapis.com/${bucketName}/${file.name}`,
             uploadedAt: new Date(metadata.timeCreated || Date.now()),
@@ -247,7 +250,7 @@ export class GcpStorageProvider implements IStorageProvider {
         filename: filePath.split('/').pop() || '',
         originalName: filePath.split('/').pop() || '',
         mimeType: metadata.contentType || 'application/octet-stream',
-        size: parseInt(metadata.size || '0', 10),
+        size: parseInt(String(metadata.size || '0'), 10),
         path: filePath,
         url: `https://storage.googleapis.com/${bucketName}/${filePath}`,
         uploadedAt: new Date(metadata.timeCreated || Date.now()),
@@ -260,7 +263,11 @@ export class GcpStorageProvider implements IStorageProvider {
     }
   }
 
-  async copy(sourcePath: string, destinationPath: string, options?: DeleteOptions): Promise<FileMetadata> {
+  async copy(
+    sourcePath: string,
+    destinationPath: string,
+    options?: DeleteOptions
+  ): Promise<FileMetadata> {
     try {
       const bucketName = options?.bucket || this.defaultBucket;
       const bucket = this.storage.bucket(bucketName);
@@ -282,7 +289,11 @@ export class GcpStorageProvider implements IStorageProvider {
     }
   }
 
-  async move(sourcePath: string, destinationPath: string, options?: DeleteOptions): Promise<FileMetadata> {
+  async move(
+    sourcePath: string,
+    destinationPath: string,
+    options?: DeleteOptions
+  ): Promise<FileMetadata> {
     try {
       const bucketName = options?.bucket || this.defaultBucket;
       const bucket = this.storage.bucket(bucketName);
