@@ -2,32 +2,110 @@ import Redis from 'ioredis';
 import { inject, singleton } from 'tsyringe';
 import { LoggerService } from './logger.service';
 
+// Minimal in-memory mock implementing the Redis subset used in tests
+class MockRedis {
+  private store = new Map<string, string>();
+
+  async get(key: string) {
+    return this.store.get(key) ?? null;
+  }
+
+  async set(key: string, value: string) {
+    this.store.set(key, value);
+    return 'OK';
+  }
+
+  async setex(key: string, _ttl: number, value: string) {
+    this.store.set(key, value);
+    // TTL ignored for mock
+    return 'OK';
+  }
+
+  async del(key: string) {
+    return this.store.delete(key) ? 1 : 0;
+  }
+
+  async exists(key: string) {
+    return this.store.has(key) ? 1 : 0;
+  }
+
+  async expire(_key: string, _ttl: number) {
+    return 1;
+  }
+
+  async mget(...keys: string[]) {
+    return keys.map((k) => this.store.get(k) ?? null);
+  }
+
+  async flushdb() {
+    this.store.clear();
+    return 'OK';
+  }
+
+  async ping() {
+    return 'PONG';
+  }
+
+  async quit() {
+    return 'OK';
+  }
+
+  // Event handlers compatibility stubs
+  on() {
+    // no-op for mock
+  }
+}
+
 /**
  * Redis caching service with DI
  * Implements cache-aside pattern
  */
 @singleton()
 export class CacheService {
-  private client: Redis;
+  private client: any;
 
   constructor(@inject(LoggerService) private logger: LoggerService) {
-    this.client = new Redis(process.env['REDIS_URL'] || 'redis://localhost:6379', {
+    const disableExternal =
+      process.env['TEST_EXTERNAL_SERVICES'] === 'false' || process.env['REDIS_MOCK'] === 'true';
+
+    if (disableExternal) {
+      // Use in-memory mock to avoid long reconnect loops in tests
+      this.client = new MockRedis();
+      this.logger.info('Using MockRedis for tests');
+      return;
+    }
+
+    // Default Redis options
+    const defaultOptions: any = {
       retryStrategy: (times: number) => {
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
       maxRetriesPerRequest: 3,
-    });
+      enableOfflineQueue: true,
+      connectTimeout: 10000,
+    };
 
-    this.client.on('connect', () => {
+    // Shorten retries / disable offline queue during test runs to fail fast
+    if (process.env['NODE_ENV'] === 'test') {
+      defaultOptions.maxRetriesPerRequest = 1;
+      defaultOptions.retryStrategy = () => null; // stop retrying
+      defaultOptions.enableOfflineQueue = false;
+      defaultOptions.connectTimeout = 1000;
+    }
+
+    this.client = new Redis(process.env['REDIS_URL'] || 'redis://localhost:6379', defaultOptions);
+
+    // Attach event handlers only if using real Redis
+    (this.client as Redis).on('connect', () => {
       this.logger.info('Redis client connected');
     });
 
-    this.client.on('error', (err: Error) => {
+    (this.client as Redis).on('error', (err: Error) => {
       this.logger.error('Redis client error', err);
     });
 
-    this.client.on('reconnecting', () => {
+    (this.client as Redis).on('reconnecting', () => {
       this.logger.warn('Redis client reconnecting');
     });
   }
@@ -109,7 +187,7 @@ export class CacheService {
   async mget<T>(keys: string[]): Promise<Array<T | null>> {
     try {
       const values = await this.client.mget(...keys);
-      return values.map((v) => (v ? (JSON.parse(v) as T) : null));
+      return values.map((v: string | null) => (v ? (JSON.parse(v) as T) : null));
     } catch (error) {
       this.logger.error(`Cache mget error for keys: ${keys.join(', ')}`, error as Error);
       return keys.map(() => null);
@@ -151,7 +229,7 @@ export class CacheService {
   /**
    * Get Redis client instance
    */
-  getClient(): Redis {
+  getClient(): any {
     return this.client;
   }
 }
