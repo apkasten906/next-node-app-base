@@ -12,7 +12,7 @@ import {
   sortToPrismaOrderBy,
 } from '../utils/query-helpers';
 
-const router = Router();
+const router: import('express').Router = Router();
 
 /**
  * @swagger

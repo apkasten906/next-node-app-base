@@ -4,7 +4,7 @@ import { upload, uploadDocument, uploadImage } from '../config/multer';
 import { authenticate } from '../middleware/auth.middleware';
 import { StorageService } from '../services/storage/storage.service';
 
-const router = Router();
+const router: import('express').Router = Router();
 
 /**
  * @swagger

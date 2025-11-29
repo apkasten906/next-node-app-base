@@ -1,7 +1,9 @@
-import { After, AfterAll, Before, BeforeAll, Status } from '@cucumber/cucumber';
+import { After, AfterAll, Before, BeforeAll, Status, setDefaultTimeout } from '@cucumber/cucumber';
 import { World } from './world';
 
 BeforeAll(async function () {
+  // Set a reasonable default timeout for steps to prevent indefinite hangs
+  setDefaultTimeout(30_000);
   console.log('🥒 Cucumber test suite starting...');
 });
 

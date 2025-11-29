@@ -32,7 +32,8 @@
     "db:seed": "pnpm --filter=backend prisma db seed",
     "db:studio": "pnpm --filter=backend prisma studio",
     "db:reset": "pnpm --filter=backend prisma migrate reset",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "ci:backend-tests": "node ./scripts/run-backend-tests-ci.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",

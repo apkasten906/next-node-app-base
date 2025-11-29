@@ -142,6 +142,16 @@ Fixes #456
 - Maintain test coverage above 80%
 - Run tests before submitting PR: `pnpm test`
 
+## Git hooks
+
+This repository uses Husky to run local Git hooks that help keep the codebase healthy.
+
+- `pre-commit`: runs `lint-staged` (Prettier + ESLint) and a quick TypeScript check for changed files.
+- `commit-msg`: runs `commitlint` to enforce conventional commit messages.
+- `pre-push`: runs a fast backend test gate using `scripts/run-backend-tests-ci.js --quick` which sets `TEST_EXTERNAL_SERVICES=false` and `REDIS_MOCK=true` so tests run quickly and deterministically locally.
+
+If a hook fails locally, fix the reported issues and re-run the hook commands manually (or re-commit). CI will run the same checks and will block merges on failures.
+
 ### Documentation
 
 - Update README.md if you change functionality

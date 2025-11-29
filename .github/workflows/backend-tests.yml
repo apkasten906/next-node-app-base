@@ -1,0 +1,41 @@
+name: Backend Unit Tests (CI)
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  backend-unit-tests:
+    name: Backend Unit Tests
+    runs-on: ubuntu-latest
+    env:
+      TEST_EXTERNAL_SERVICES: "false"
+      REDIS_MOCK: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install pnpm
+        run: npm install -g pnpm@8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run backend unit tests
+        run: pnpm -C apps/backend test:ci
+
+      - name: Upload vitest coverage (if produced)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: |
+            apps/backend/reports/**
+            apps/backend/coverage/**

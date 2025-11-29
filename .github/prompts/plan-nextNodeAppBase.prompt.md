@@ -1,3 +1,38 @@
+Plan for next-node-app-base (updated)
+
+## Overview
+
+- Goal: Make this monorepo production-ready with reliable developer workflows and CI, hardened pre-push checks, deterministic integration tests, and a simple, configurable artifact publishing flow.
+
+## Recent changes (delta)
+
+- Hardened `pre-push` to run a fast backend test gate and added `scripts/run-backend-tests-ci.js` to force mocks for external services in local dev.
+- Converted many high-value `@security` BDD scenarios into integration tests and wired Cucumber step-definitions to use in-memory services (AuditLogService, AuthorizationService, CacheService). Added cache-backed rate limiter tests and mock Redis support.
+-- Chosen artifact registry: GitHub Packages selected (see Advanced Features for placement). A registry-agnostic publish flow will allow CI and local dev to swap to an internal registry exposed via the service mesh by setting `REGISTRY_URL` and `NPM_AUTH_TOKEN`.
+
+## Priorities (A / B / C from original plan)
+
+1. B (current): Convert `@security` BDD scenarios to integration tests and make tests resilient to external services (MockRedis, toggles). Continue until all critical scenarios are covered.
+2. C (next): Finalize artifact registry and publishing flow (GitHub Packages default), add `scripts/publish-packages.js`, `.npmrc.template`, and GitHub Actions publish workflow. Make publish flow registry-agnostic via `REGISTRY_URL` so we can route to an internal registry through the service mesh.
+3. A (later): Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy.
+
+## Actionable steps (short-term)
+
+- Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. (owner: dev)
+- Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
+- Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — DONE (see `docs/adr/0001-artifact-registry-github-packages.md`).
+- Add an optional `test-setup` (Vitest `setupFiles`) to set `REDIS_MOCK=true` and `TEST_EXTERNAL_SERVICES=false` for local/CI fast gates.
+
+## Notes on service-mesh friendliness
+
+- The publish flow will be registry-agnostic. To swap in an internal registry that lives inside the cluster (Verdaccio, Artifactory, Nexus), set CI `REGISTRY_URL` to a stable internal address (e.g. `http://npm-registry.svc.cluster.local:4873`) and provide `NPM_AUTH_TOKEN` in secrets. The service mesh can expose/secure that endpoint; the CI/publish scripts remain unchanged.
+
+## Next check-in
+
+- After ADR is added, implement the `scripts/publish-packages.js`, `.github/workflows/publish.yml`, and `.npmrc.template` files. Then update `packages/*` to be scoped where appropriate (e.g., `@apkasten906/<pkg>`).
+
+If you want me to proceed: I can implement the publish script and workflow next, or draft a Kubernetes manifest for an internal Verdaccio registry fronted by the mesh. Which would you like?
+
 # Plan: Full-Stack Monorepo Base Template
 
 Create a production-ready base repository for rapidly starting new web applications with a Next.js frontend, Node.js backend, comprehensive testing, and DevOps infrastructure. The setup follows SOLID principles with dependency injection, includes logging/monitoring, PostgreSQL database support, OWASP security standards, Istio service mesh for infrastructure concerns, and is Kubernetes and CI/CD ready.
@@ -1238,7 +1273,7 @@ spec:
     - Feature toggle system with DI
     - Environment-based flags
     - User-based flags
-    - Percentage rollouts
+    - Percentage-based releases
     - A/B testing support
     - Flag management API
     - Feature flag audit logging
@@ -1289,6 +1324,14 @@ spec:
     - GraphQL mocking support (if using GraphQL)
     - Debugging with MSW DevTools
     - Seamless transition to real APIs
+
+  49. **Artifact Registry & Publish Flow**
+    - Default to GitHub Packages for minimal ops and GitHub-native CI integration
+    - Provide a registry-agnostic publish script and CI workflow that accept `REGISTRY_URL` and `NPM_AUTH_TOKEN` so registry endpoint and auth can be swapped without code changes
+    - Document scoped-package requirements for GitHub Packages (use `@apkasten906/*` scoped names for packages intended to be published)
+    - Recommend internal registry (Verdaccio / Artifactory) deployment in-cluster behind the service mesh for organizations that need proxying, caching, or private unscoped packages
+    - CI should place registry auth into `.npmrc` at runtime; publishing script should support `--dry-run` and `--ci` modes
+    - Add `.npmrc.template` and `scripts/publish-packages.js` that write an ephemeral npmrc and run `pnpm -w -r publish --registry ${REGISTRY_URL}`
 
 ## Implementation Phases
 

@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running pre-commit: lint-staged"
+pnpm -s lint-staged || {
+  echo "lint-staged failed";
+  exit 1;
+}
+
+echo "Running quick TypeScript check (backend)"
+pnpm -C apps/backend exec tsc -p apps/backend/tsconfig.json --noEmit || {
+  echo "TypeScript check failed";
+  exit 1;
+}
+
+echo "pre-commit checks passed"

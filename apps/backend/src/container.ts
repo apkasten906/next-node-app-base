@@ -19,4 +19,13 @@ container.registerSingleton(AuthorizationService);
 container.registerSingleton(AuditLogService);
 container.registerSingleton(EnvironmentSecretsManager);
 
+// Register user domain bindings
+import { UserController } from './controllers/user.controller';
+import { UserRepository } from './repositories/user.repository';
+import { UserService } from './services/user/user.service';
+
+container.registerSingleton(UserRepository);
+container.registerSingleton(UserService);
+container.registerSingleton(UserController);
+
 export { container };

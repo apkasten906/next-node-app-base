@@ -1,10 +1,8 @@
 import {
   EmailOptions,
   IEmailProvider,
-  INotificationService,
   IPushNotificationProvider,
   ISmsProvider,
-  NotificationResult,
   PushNotificationOptions,
   SmsOptions,
 } from '@repo/types';
@@ -15,7 +13,7 @@ import { LoggerService } from '../logger.service';
  * Main notification service that delegates to specific providers
  */
 @injectable()
-export class NotificationService implements INotificationService {
+export class NotificationService {
   constructor(
     private logger: LoggerService,
     private emailProvider: IEmailProvider,
@@ -23,7 +21,7 @@ export class NotificationService implements INotificationService {
     private pushProvider: IPushNotificationProvider
   ) {}
 
-  async sendEmail(options: EmailOptions): Promise<NotificationResult> {
+  async sendEmail(options: EmailOptions): Promise<any> {
     try {
       this.logger.info('Sending email', { to: options.to, subject: options.subject });
       const result = await this.emailProvider.send(options);
@@ -40,11 +38,12 @@ export class NotificationService implements INotificationService {
       return {
         success: false,
         error: (error as Error).message,
+        notificationId: Date.now().toString(),
       };
     }
   }
 
-  async sendSms(options: SmsOptions): Promise<NotificationResult> {
+  async sendSms(options: SmsOptions): Promise<any> {
     try {
       this.logger.info('Sending SMS', { to: options.to });
       const result = await this.smsProvider.send(options);
@@ -61,11 +60,12 @@ export class NotificationService implements INotificationService {
       return {
         success: false,
         error: (error as Error).message,
+        notificationId: Date.now().toString(),
       };
     }
   }
 
-  async sendPushNotification(options: PushNotificationOptions): Promise<NotificationResult> {
+  async sendPushNotification(options: PushNotificationOptions): Promise<any> {
     try {
       this.logger.info('Sending push notification', {
         userId: options.userId,
@@ -88,11 +88,12 @@ export class NotificationService implements INotificationService {
       return {
         success: false,
         error: (error as Error).message,
+        notificationId: Date.now().toString(),
       };
     }
   }
 
-  async sendBulkEmail(emails: EmailOptions[]): Promise<NotificationResult[]> {
+  async sendBulkEmail(emails: EmailOptions[]): Promise<any[]> {
     this.logger.info('Sending bulk emails', { count: emails.length });
 
     const results = await Promise.allSettled(emails.map((email) => this.sendEmail(email)));
@@ -104,6 +105,7 @@ export class NotificationService implements INotificationService {
         return {
           success: false,
           error: result.reason?.message || 'Unknown error',
+          notificationId: Date.now().toString(),
         };
       }
     });

@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running pre-push: quick backend unit tests (mocked)"
+# Use the Node runner which sets TEST_EXTERNAL_SERVICES and REDIS_MOCK cross-platform
+# Run quick unit-only tests for pre-push
+node "$(git rev-parse --show-toplevel)/scripts/run-backend-tests-ci.js" --quick || {
+  echo "pre-push tests failed";
+  exit 1;
+}
+
+echo "pre-push checks passed"

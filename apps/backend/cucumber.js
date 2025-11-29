@@ -8,7 +8,8 @@ module.exports = {
     format: [
       'progress-bar',
       'html:reports/cucumber-report.html',
-      'json:reports/cucumber-report.json',
+      // JSON formatter disabled due to Cucumber 12.2.0 bug with testStepResult
+      // 'json:reports/cucumber-report.json',
       '@cucumber/pretty-formatter',
     ],
     formatOptions: {

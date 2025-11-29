@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname \"$0\")/_/husky.sh"
+
+echo "Running commit-msg: commitlint"
+pnpm -s commitlint --edit "$1" || {
+  echo "Commit message lint failed";
+  exit 1;
+}
+
+echo "commit-msg checks passed"

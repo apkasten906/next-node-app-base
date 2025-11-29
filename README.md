@@ -171,6 +171,16 @@ pnpm db:studio              # Open Prisma Studio
 pnpm db:reset               # Reset database
 ```
 
+### Git hooks
+
+This repository uses Husky hooks to enforce linting, commit message rules, and a fast test gate before pushing.
+
+- `pre-commit`: runs `lint-staged` (Prettier + ESLint) and a quick TypeScript check on `apps/backend`.
+- `commit-msg`: runs `commitlint` to enforce conventional commit messages.
+- `pre-push`: runs a quick mocked backend test run via `scripts/run-backend-tests-ci.js` which sets `TEST_EXTERNAL_SERVICES=false` and `REDIS_MOCK=true`.
+
+If a hook fails, fix the issues locally and re-run the commands. CI runs the same checks and will block merges if they fail.
+
 ## 🔒 Security
 
 This project follows OWASP security standards and best practices:

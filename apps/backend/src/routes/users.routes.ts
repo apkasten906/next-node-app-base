@@ -4,12 +4,12 @@ import { AuditLogService } from '../services/audit/audit-log.service';
 import { AuthorizationService } from '../services/auth/authorization.service';
 import { DatabaseService } from '../services/database.service';
 
-const router = Router();
+const router: import('express').Router = Router();
 
 /**
  * Get all users (admin only)
  */
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const db = container.resolve(DatabaseService);
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
@@ -17,12 +17,14 @@ router.get('/', async (req: Request, res: Response) => {
     // Check authorization
     const userId = (req as any).user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
-    const hasPermission = await authz.checkPermission(userId, 'users', 'read');
+    const hasPermission = await authz.hasPermission(userId, 'users:read');
     if (!hasPermission) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     const users = await db.user.findMany({
@@ -41,6 +43,7 @@ router.get('/', async (req: Request, res: Response) => {
     });
 
     res.json(users);
+    return;
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -50,7 +53,7 @@ router.get('/', async (req: Request, res: Response) => {
 /**
  * Get single user by ID
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const db = container.resolve(DatabaseService);
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
@@ -60,15 +63,17 @@ router.get('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
 
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Users can view their own profile, admins can view anyone
     const isOwnProfile = userId === id;
-    const hasPermission = await authz.checkPermission(userId, 'users', 'read');
+    const hasPermission = await authz.hasPermission(userId, 'users:read');
 
     if (!isOwnProfile && !hasPermission) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     const user = await db.user.findUnique({
@@ -87,7 +92,8 @@ router.get('/:id', async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
+      return;
     }
 
     await audit.log({
@@ -95,12 +101,12 @@ router.get('/:id', async (req: Request, res: Response) => {
       action: 'READ',
       resource: 'user',
       resourceId: id,
-      status: 'success',
       ipAddress: req.ip,
       userAgent: req.get('user-agent'),
-    });
+    } as any);
 
     res.json(user);
+    return;
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -110,7 +116,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 /**
  * Update user
  */
-router.patch('/:id', async (req: Request, res: Response) => {
+router.patch('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const db = container.resolve(DatabaseService);
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
@@ -121,15 +127,17 @@ router.patch('/:id', async (req: Request, res: Response) => {
     const { name, image } = req.body;
 
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Users can update their own profile, admins can update anyone
     const isOwnProfile = userId === id;
-    const hasPermission = await authz.checkPermission(userId, 'users', 'update');
+    const hasPermission = await authz.hasPermission(userId, 'users:update');
 
     if (!isOwnProfile && !hasPermission) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     const user = await db.user.update({
@@ -154,13 +162,13 @@ router.patch('/:id', async (req: Request, res: Response) => {
       action: 'UPDATE',
       resource: 'user',
       resourceId: id,
-      status: 'success',
       ipAddress: req.ip,
       userAgent: req.get('user-agent'),
       metadata: { fields: Object.keys({ name, image }) },
-    });
+    } as any);
 
     res.json(user);
+    return;
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -170,7 +178,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
 /**
  * Delete user (admin only)
  */
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const db = container.resolve(DatabaseService);
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
@@ -180,17 +188,20 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
 
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
-    const hasPermission = await authz.checkPermission(userId, 'users', 'delete');
+    const hasPermission = await authz.hasPermission(userId, 'users:delete');
     if (!hasPermission) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     // Prevent self-deletion
     if (userId === id) {
-      return res.status(400).json({ error: 'Cannot delete your own account' });
+      res.status(400).json({ error: 'Cannot delete your own account' });
+      return;
     }
 
     await db.user.delete({
@@ -202,12 +213,12 @@ router.delete('/:id', async (req: Request, res: Response) => {
       action: 'DELETE',
       resource: 'user',
       resourceId: id,
-      status: 'success',
       ipAddress: req.ip,
       userAgent: req.get('user-agent'),
-    });
+    } as any);
 
     res.status(204).send();
+    return;
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ error: 'Internal server error' });
