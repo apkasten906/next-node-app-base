@@ -203,7 +203,7 @@ export class AzureBlobStorageProvider implements IStorageProvider {
       const blockBlobClient = containerClient.getBlockBlobClient(filePath);
 
       return await blockBlobClient.exists();
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -337,7 +337,7 @@ export class AzureBlobStorageProvider implements IStorageProvider {
       if (!exists) {
         await containerClient.create();
       }
-    } catch (_error) {
+    } catch {
       // Container might already exist
     }
   }

@@ -112,9 +112,9 @@ export class GcpStorageProvider implements IStorageProvider {
       });
 
       return fileMetadata;
-    } catch (error) {
-      this.logger.error('GCP Storage upload failed', error as Error);
-      throw error;
+    } catch (_error) {
+      this.logger.error('GCP Storage upload failed', _error as Error);
+      throw _error;
     }
   }
 
@@ -138,9 +138,9 @@ export class GcpStorageProvider implements IStorageProvider {
       });
 
       return buffer;
-    } catch (error) {
-      this.logger.error('GCP Storage download failed', error as Error);
-      throw error;
+    } catch (_error) {
+      this.logger.error('GCP Storage download failed', _error as Error);
+      throw _error;
     }
   }
 
@@ -159,9 +159,9 @@ export class GcpStorageProvider implements IStorageProvider {
       });
 
       return url;
-    } catch (error) {
-      this.logger.error('GCP Storage getSignedUrl failed', error as Error);
-      throw error;
+    } catch (_error) {
+      this.logger.error('GCP Storage getSignedUrl failed', _error as Error);
+      throw _error;
     }
   }
 
@@ -179,8 +179,8 @@ export class GcpStorageProvider implements IStorageProvider {
       });
 
       return true;
-    } catch (error) {
-      this.logger.error('GCP Storage delete failed', error as Error);
+    } catch (_error) {
+      this.logger.error('GCP Storage delete failed', _error as Error);
       return false;
     }
   }
@@ -197,7 +197,7 @@ export class GcpStorageProvider implements IStorageProvider {
 
       const [exists] = await file.exists();
       return exists;
-    } catch (_error) {
+    } catch {
       return false;
     }
   }
@@ -234,8 +234,8 @@ export class GcpStorageProvider implements IStorageProvider {
       );
 
       return fileMetadata;
-    } catch (error) {
-      this.logger.error('GCP Storage list failed', error as Error);
+    } catch (_error) {
+      this.logger.error('GCP Storage list failed', _error as Error);
       return [];
     }
   }
@@ -259,9 +259,9 @@ export class GcpStorageProvider implements IStorageProvider {
         bucket: bucketName,
         key: filePath,
       };
-    } catch (error) {
-      this.logger.error('GCP Storage getMetadata failed', error as Error);
-      throw error;
+    } catch (_error) {
+      this.logger.error('GCP Storage getMetadata failed', _error as Error);
+      throw _error;
     }
   }
 
@@ -285,9 +285,9 @@ export class GcpStorageProvider implements IStorageProvider {
       });
 
       return this.getMetadata(destinationPath, options);
-    } catch (error) {
-      this.logger.error('GCP Storage copy failed', error as Error);
-      throw error;
+    } catch (_error) {
+      this.logger.error('GCP Storage copy failed', _error as Error);
+      throw _error;
     }
   }
 
@@ -311,9 +311,9 @@ export class GcpStorageProvider implements IStorageProvider {
       });
 
       return this.getMetadata(destinationPath, options);
-    } catch (error) {
-      this.logger.error('GCP Storage move failed', error as Error);
-      throw error;
+    } catch (_error) {
+      this.logger.error('GCP Storage move failed', _error as Error);
+      throw _error;
     }
   }
 
@@ -322,8 +322,8 @@ export class GcpStorageProvider implements IStorageProvider {
       const bucket = this.storage.bucket(this.defaultBucket);
       await bucket.exists();
       return true;
-    } catch (error) {
-      this.logger.error('GCP Storage health check failed', error as Error);
+    } catch (_error) {
+      this.logger.error('GCP Storage health check failed', _error as Error);
       return false;
     }
   }

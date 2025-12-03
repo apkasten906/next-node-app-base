@@ -312,7 +312,7 @@ export class LocalStorageProvider implements IStorageProvider {
           });
         }
       }
-    } catch (_error) {
+    } catch {
       // Directory might not exist
     }
 

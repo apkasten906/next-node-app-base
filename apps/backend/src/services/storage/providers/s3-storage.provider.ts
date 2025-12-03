@@ -132,7 +132,7 @@ export class S3StorageProvider implements IStorageProvider {
       }
 
       const chunks: Uint8Array[] = [];
-      for await (const chunk of response.Body as any) {
+      for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
         chunks.push(chunk);
       }
 
@@ -226,7 +226,7 @@ export class S3StorageProvider implements IStorageProvider {
 
       await this.client.send(command);
       return true;
-    } catch (_error) {
+    } catch {
       return false;
     }
   }
