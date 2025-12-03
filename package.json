@@ -33,7 +33,9 @@
     "db:studio": "pnpm --filter=backend prisma studio",
     "db:reset": "pnpm --filter=backend prisma migrate reset",
     "prepare": "husky install",
-    "ci:backend-tests": "node ./scripts/run-backend-tests-ci.js"
+    "ci:backend-tests": "node ./scripts/run-backend-tests-ci.js",
+    "publish:packages": "node ./scripts/publish-packages.js",
+    "publish:dry-run": "DRY_RUN=true node ./scripts/publish-packages.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",

@@ -202,11 +202,13 @@ Comprehensive documentation is available in the [docs/](docs/) directory:
 
 - **Architecture Decision Records (ADRs)**: [docs/adr/](docs/adr/)
   - [ADR-001: Node.js 25 for Native TypeScript](docs/adr/001-node-js-25-native-typescript.md)
+  - [ADR-008: Artifact Registry — GitHub Packages](docs/adr/008-artifact-registry-github-packages.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [Security Architecture](docs/architecture/security-architecture.md)
 - [Service Mesh (Istio)](docs/architecture/service-mesh.md)
 - [API Documentation](docs/api/openapi.yaml)
 - [HATEOAS Guide](docs/api/hateoas-guide.md)
+- [Publishing Packages](docs/PUBLISHING.md) - How to publish packages to npm registries
 - [Development Setup](docs/development/local-setup.md)
 - [Dev Containers](docs/development/dev-containers.md)
 - [Deployment Guide](docs/deployment.md)

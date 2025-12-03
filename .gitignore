@@ -38,6 +38,10 @@ lerna-debug.log*
 !.env.example
 !.env.*.example
 
+# NPM registry credentials
+.npmrc
+!.npmrc.template
+
 # IDE
 .vscode/*
 !.vscode/extensions.json

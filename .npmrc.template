@@ -1,0 +1,49 @@
+# .npmrc.template
+#
+# Template for configuring npm registry authentication.
+# Copy this file to `.npmrc` and fill in the appropriate values.
+#
+# IMPORTANT: Never commit the actual `.npmrc` file with real tokens!
+# Add `.npmrc` to your `.gitignore`.
+
+# ──────────────────────────────────────────────────────────────────────────────
+# GitHub Packages Configuration (Default)
+# ──────────────────────────────────────────────────────────────────────────────
+# Scope packages to your GitHub username or organization
+@apkasten906:registry=https://npm.pkg.github.com
+
+# GitHub Packages authentication
+# Replace YOUR_GITHUB_TOKEN with a Personal Access Token (PAT) with `read:packages` and `write:packages` scopes
+# Create a PAT at: https://github.com/settings/tokens
+//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Alternative: Internal Registry (e.g., Verdaccio, Artifactory, Nexus)
+# ──────────────────────────────────────────────────────────────────────────────
+# Uncomment and configure for an internal registry exposed via service mesh
+# @apkasten906:registry=http://npm-registry.svc.cluster.local:4873
+# //npm-registry.svc.cluster.local:4873/:_authToken=YOUR_REGISTRY_TOKEN
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Alternative: npmjs.com (Public Registry)
+# ──────────────────────────────────────────────────────────────────────────────
+# For publishing public packages to npmjs.com
+# registry=https://registry.npmjs.org/
+# //registry.npmjs.org/:_authToken=YOUR_NPM_TOKEN
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Security Settings
+# ──────────────────────────────────────────────────────────────────────────────
+always-auth=true
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Local Development
+# ──────────────────────────────────────────────────────────────────────────────
+# For local development, you typically don't need to publish packages.
+# You can use pnpm workspaces to link packages locally without publishing.
+#
+# To test the publish flow locally without actually publishing:
+#   DRY_RUN=true node scripts/publish-packages.js
+#
+# To publish for real:
+#   NPM_AUTH_TOKEN=<your-token> node scripts/publish-packages.js

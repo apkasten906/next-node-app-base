@@ -1,10 +1,27 @@
 {
-  "name": "@repo/types",
+  "name": "@apkasten906/types",
   "version": "1.0.0",
-  "private": true,
-  "description": "Shared TypeScript types and interfaces",
+  "private": false,
+  "description": "Shared TypeScript types and interfaces for next-node-app-base monorepo",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apkasten906/next-node-app-base.git",
+    "directory": "packages/types"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "keywords": [
+    "typescript",
+    "types",
+    "monorepo",
+    "shared"
+  ],
+  "author": "apkasten906",
+  "license": "MIT",
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
