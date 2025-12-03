@@ -26,11 +26,12 @@ Plan for next-node-app-base (updated)
 - ✅ **Option 8** (WSJF 4.50) - Publish dry-run: Created registry-agnostic publish script, .npmrc.template, configured @apkasten906/types package, documented publishing workflow, validated with dry-run (commit `cc9fbad`)
 - ✅ **Option 2** (WSJF 4.00) - GitHub Actions publish workflow: Implemented automated publishing with manual dispatch, tag triggers, and release integration; supports dry-run and internal registries (commit `20aa32c`)
 - ✅ **Option 6** (WSJF 4.00) - Verdaccio in-cluster manifest: Created complete Kubernetes manifests with Istio integration, ConfigMap, PVC, security hardening, comprehensive deployment documentation (commit `db8f4fd`)
+- ✅ **Option 5** (WSJF 3.67) - Wire Cucumber steps to integration harness: All Cucumber step definitions wired to integration tests with in-memory services (AuditLogService, AuthorizationService, CacheService), added cache-backed rate limiter tests, mock Redis support
 
 ### Next Priorities
 
-- ⏳ **Option 5** - Wire Cucumber steps to integration harness (WSJF 3.67)
 - ⏳ **Option 4** - Full ABAC/policy engine expansion (WSJF 2.78)
+- 🆕 **Code Quality** - Continue ESLint improvements (79 errors, 87 warnings remaining)
 
 ## Priorities (A / B / C from original plan)
 
@@ -41,9 +42,12 @@ Plan for next-node-app-base (updated)
 ## Actionable steps (short-term)
 
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. (owner: dev)
-- ⏳ IN PROGRESS: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
+- ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
 - ✅ DONE: Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — see `docs/adr/0001-artifact-registry-github-packages.md`.
 - ✅ DONE: Add an optional `test-setup` (Vitest `setupFiles`) to set `REDIS_MOCK=true` and `TEST_EXTERNAL_SERVICES=false` for local/CI fast gates.
+- ✅ DONE: Fix all TypeScript compilation errors (29 errors resolved - test files + frontend tsconfig)
+- ✅ DONE: Auto-fix ESLint issues (75 issues fixed - import ordering, missing globals, parser config)
+- ⏳ IN PROGRESS: Address remaining ESLint code quality issues (79 errors, 87 warnings)
 
 ## Notes on service-mesh friendliness
 
