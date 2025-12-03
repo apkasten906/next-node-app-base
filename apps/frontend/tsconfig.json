@@ -9,6 +9,7 @@
     "allowJs": true,
     "noEmit": true,
     "isolatedModules": true,
+    "rootDir": ".",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
