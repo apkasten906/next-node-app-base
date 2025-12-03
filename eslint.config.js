@@ -4,7 +4,7 @@ const tseslint = require('@typescript-eslint/eslint-plugin');
 const tsparser = require('@typescript-eslint/parser');
 const prettierConfig = require('eslint-config-prettier');
 const importPlugin = require('eslint-plugin-import');
-const securityPlugin = require('eslint-plugin-security');
+const securityPlugin = /** @type {any} */ (require('eslint-plugin-security'));
 
 module.exports = [
   // Global ignores (equivalent to ignorePatterns)
@@ -84,7 +84,11 @@ module.exports = [
 
   // TypeScript files with type-checking (apps/backend, apps/frontend, packages/*)
   {
-    files: ['apps/backend/src/**/*.{ts,tsx}', 'apps/frontend/**/*.{ts,tsx}', 'packages/**/*.{ts,tsx}'],
+    files: [
+      'apps/backend/src/**/*.{ts,tsx}',
+      'apps/frontend/**/*.{ts,tsx}',
+      'packages/**/*.{ts,tsx}',
+    ],
     ignores: ['**/*.test.ts', '**/*.spec.ts', '**/*.test.tsx', '**/*.spec.tsx'],
     languageOptions: {
       ecmaVersion: 2022,

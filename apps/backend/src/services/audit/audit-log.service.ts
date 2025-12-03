@@ -97,6 +97,7 @@ export class AuditLogService {
     resourceId?: string;
     success: boolean;
     errorMessage?: string;
+    metadata?: Record<string, any>;
   }): Promise<void> {
     await this.log({
       ...params,

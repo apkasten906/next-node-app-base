@@ -48,8 +48,11 @@
     "adduser",
     "apkasten",
     "configmap",
+    "hateoas",
+    "HATEOAS",
     "htpasswd",
     "ingressgateway",
+    "nextauth",
     "npmjs",
     "virtualservice"
   ]

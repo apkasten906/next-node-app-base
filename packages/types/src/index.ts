@@ -1,3 +1,4 @@
+export * from './interfaces/abac';
 export * from './interfaces/analytics';
 export * from './interfaces/authentication';
 export * from './interfaces/cache';

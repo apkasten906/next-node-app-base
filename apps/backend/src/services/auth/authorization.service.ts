@@ -1,7 +1,10 @@
-import { IAuthorizationService } from '@repo/types';
+import { AuthorizationContext, IAuthorizationService, Policy, PolicyContext } from '@repo/types';
 import { inject, injectable } from 'tsyringe';
 
 import { AuditAction, AuditLogService } from '../audit/audit-log.service';
+
+import { PolicyEngine } from './policy-engine.service';
+import { InMemoryPolicyStore } from './policy-store.service';
 
 /**
  * Authorization service for RBAC/ABAC
@@ -15,9 +18,15 @@ export class AuthorizationService implements IAuthorizationService {
   private userPermissions: Map<string, Set<string>> = new Map();
   private rolePermissions: Map<string, Set<string>> = new Map();
 
-  constructor(@inject(AuditLogService) private audit?: AuditLogService) {
+  constructor(
+    @inject(AuditLogService) private audit?: AuditLogService,
+    @inject(PolicyEngine) private policyEngine?: PolicyEngine,
+    @inject(InMemoryPolicyStore) private policyStore?: InMemoryPolicyStore,
+  ) {
     // Initialize default role-permission mappings
     this.initializeDefaultRoles();
+    // Initialize example ABAC policies
+    void this.policyStore?.initializeExamplePolicies();
   }
 
   /**
@@ -72,7 +81,9 @@ export class AuthorizationService implements IAuthorizationService {
           resource,
           success: true,
         });
-      } catch {}
+      } catch {
+        // Audit logging is optional - continue on error
+      }
       return true;
     }
 
@@ -88,7 +99,9 @@ export class AuthorizationService implements IAuthorizationService {
           resourceId: context.ownerId,
           success: true,
         });
-      } catch {}
+      } catch {
+        // Audit logging is optional - continue on error
+      }
       return true;
     }
 
@@ -100,18 +113,98 @@ export class AuthorizationService implements IAuthorizationService {
         resource,
         success: false,
       });
-    } catch {}
-
+    } catch {
+      // Audit logging is optional - continue on error
+    }
     return false;
   }
 
   /**
-   * Reset in-memory state for tests
+   * Check if user can access resource with full ABAC context
+   */
+  async canAccessWithContext(context: AuthorizationContext): Promise<boolean> {
+    // First, try RBAC with legacy canAccess method
+    const rbacAllowed = await this.canAccess(
+      context.userId,
+      context.resource,
+      context.action,
+      context.attributes,
+    );
+
+    if (!rbacAllowed && this.policyEngine && this.policyStore) {
+      // If RBAC denies, try ABAC policies
+      const policies = await this.policyStore.findApplicablePolicies({
+        user: context.userAttributes || { id: context.userId },
+        resource: context.resourceAttributes || { type: context.resource },
+        environment: context.environmentAttributes || {},
+        action: context.action,
+      });
+
+      if (policies.length > 0) {
+        const policyContext: PolicyContext = {
+          user: context.userAttributes || { id: context.userId },
+          resource: context.resourceAttributes || { type: context.resource },
+          environment: context.environmentAttributes || {},
+          action: context.action,
+        };
+
+        const result = await this.policyEngine.evaluatePolicies(policies, policyContext);
+
+        // Log ABAC evaluation result
+        try {
+          await this.audit?.logAuthz({
+            userId: context.userId,
+            action:
+              result.effect === 'allow'
+                ? AuditAction.ACCESS_GRANTED
+                : AuditAction.ACCESS_DENIED,
+            resource: context.resource,
+            success: result.effect === 'allow',
+            metadata: {
+              evaluationMethod: 'ABAC',
+              matchedRules: result.matchedRules,
+              reason: result.reason,
+            },
+          });
+        } catch {
+          // Audit logging is optional - continue on error
+        }
+
+        return result.effect === 'allow';
+      }
+    }
+
+    return rbacAllowed;
+  }
+
+  /**
+   * Add a policy (ABAC)
+   */
+  async addPolicy(policy: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {
+    if (!this.policyStore) {
+      throw new Error('Policy store not available');
+    }
+    await this.policyStore.createPolicy(policy);
+  }
+
+  /**
+   * Remove a policy (ABAC)
+   */
+  async removePolicy(policyId: string): Promise<void> {
+    if (!this.policyStore) {
+      throw new Error('Policy store not available');
+    }
+    await this.policyStore.deletePolicy(policyId);
+  }
+
+  /**
+   * Reset for tests
    */
   resetForTests(): void {
     this.userRoles.clear();
     this.userPermissions.clear();
     this.rolePermissions.clear();
+    void this.policyStore?.reset();
     this.initializeDefaultRoles();
   }
 

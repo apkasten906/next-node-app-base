@@ -86,9 +86,15 @@ export interface IAuthorizationService {
   hasPermission(userId: string, permission: string): Promise<boolean>;
 
   /**
-   * Check if user can access resource
+   * Check if user can access resource (RBAC mode)
+   * @deprecated Use canAccessWithContext for full ABAC support
    */
   canAccess(userId: string, resource: string, action: string): Promise<boolean>;
+
+  /**
+   * Check if user can access resource with full ABAC context
+   */
+  canAccessWithContext(context: AuthorizationContext): Promise<boolean>;
 
   /**
    * Get user roles
@@ -99,6 +105,16 @@ export interface IAuthorizationService {
    * Get user permissions
    */
   getUserPermissions(userId: string): Promise<string[]>;
+
+  /**
+   * Add a policy (ABAC)
+   */
+  addPolicy?(policy: any): Promise<void>;
+
+  /**
+   * Remove a policy (ABAC)
+   */
+  removePolicy?(policyId: string): Promise<void>;
 }
 
 export interface AuthorizationContext {
@@ -106,4 +122,7 @@ export interface AuthorizationContext {
   resource: string;
   action: string;
   attributes?: Record<string, any>;
+  userAttributes?: Record<string, any>;
+  resourceAttributes?: Record<string, any>;
+  environmentAttributes?: Record<string, any>;
 }
