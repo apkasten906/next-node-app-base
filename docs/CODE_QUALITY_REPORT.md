@@ -13,15 +13,50 @@
 **After ABAC:** 180 ESLint issues (91 errors, 89 warnings) + 0 TypeScript errors
 **Current:** 160 backend issues (73 errors, 87 warnings) + 0 TypeScript errors
 **Total Progress:** 81 ESLint issues + 29 TypeScript errors fixed (46% overall improvement)
-**Recent Fixes:** Import ordering, floating promises, unused variables, namespace warnings, return types, @ts-expect-error replacements
+**Recent Fixes:** Import ordering, floating promises, unused variables, namespace warnings, return types, @ts-expect-error replacements, **ABAC test suite (30 tests)**
 
 - ✅ **TypeScript Compilation:** All workspaces pass (backend, frontend, packages)
 - ✅ **ABAC Implementation:** Full policy engine with backward-compatible RBAC integration
+- ✅ **ABAC Testing:** 30 comprehensive tests (17 unit + 13 integration) - ALL PASSING
 - ⚠️ **ESLint:** 160 backend issues remaining (73 errors, 87 warnings)
 - 📊 **Auto-fixed:** Import ordering violations corrected
 - 📊 **Manual Fixes:** user.routes.test.ts, frontend tsconfig, unused variables, floating promises, return types
 
 ## Recent Additions
+
+### ✅ ABAC Test Suite (Commit ab5c6b5) - NEW
+
+**Test Files:**
+
+- `apps/backend/src/tests/services/policy-engine.service.test.ts` - PolicyEngine unit tests (17 tests)
+- `apps/backend/src/tests/integration/abac-scenarios.integration.test.ts` - ABAC integration tests (13 tests)
+
+**Unit Tests Coverage:**
+
+- ✅ All comparison operators (EQUALS, NOT_EQUALS, GT, GTE, LT, LTE, IN, NIN, CONTAINS, MATCHES)
+- ✅ Logical operators (AND, OR, NOT) with nested conditions
+- ✅ Policy evaluation with ALLOW and DENY effects
+- ✅ Deny-overrides strategy enforcement
+- ✅ Priority ordering validation
+- ✅ Disabled policy handling
+- ✅ Wildcard matching for actions and resources
+- ✅ Time-based access scenarios
+
+**Integration Tests Coverage:**
+
+- ✅ Scenario 1: Department-based access (HR accessing employee records)
+- ✅ Scenario 2: Resource state-based access (draft vs published documents)
+- ✅ Scenario 3: Location-based access (IP-based filtering)
+- ✅ Scenario 4: Multi-factor access control (clearance + MFA requirements)
+- ✅ Scenario 5: Time-window access (business hours enforcement)
+- ✅ Scenario 6: Combined RBAC + ABAC evaluation
+- ✅ Scenario 7: Deny-overrides strategy with conflicting policies
+
+**Test Results:**
+- **All 30 tests passing** (17 unit + 13 integration)
+- Full coverage of PolicyEngine functionality
+- Real-world ABAC scenarios validated
+- Audit logging verified for all scenarios
 
 ### ✅ ABAC Policy Engine (Commit 888e75a)
 
