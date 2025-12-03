@@ -74,7 +74,7 @@ export class AzureBlobStorageProvider implements IStorageProvider {
           metadata: options.metadata,
         });
       } else {
-        // @ts-ignore - Stream type mismatch between web and node streams
+        // @ts-expect-error - Stream type mismatch between web and node streams
         await blockBlobClient.uploadStream(file, undefined, undefined, {
           blobHTTPHeaders: {
             blobContentType: options.contentType || 'application/octet-stream',

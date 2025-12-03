@@ -68,7 +68,7 @@ export class S3StorageProvider implements IStorageProvider {
       const command = new PutObjectCommand({
         Bucket: bucket,
         Key: key,
-        // @ts-ignore - ReadableStream type mismatch between web and node
+        // @ts-expect-error - ReadableStream type mismatch between web and node
         Body: file,
         ContentType: options.contentType || 'application/octet-stream',
         Metadata: options.metadata,

@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { createWriteStream } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -57,11 +58,11 @@ export class LocalStorageProvider implements IStorageProvider {
         await fs.writeFile(fullPath, file);
       } else {
         // Handle stream
-        const writeStream = require('fs').createWriteStream(fullPath);
-        await new Promise((resolve, reject) => {
+        const writeStream = createWriteStream(fullPath);
+        await new Promise<void>((resolve, reject) => {
           file.pipe(writeStream);
           file.on('error', reject);
-          writeStream.on('finish', resolve);
+          writeStream.on('finish', () => resolve());
           writeStream.on('error', reject);
         });
       }

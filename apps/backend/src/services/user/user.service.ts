@@ -18,11 +18,11 @@ export class UserService {
     return this.userRepo.findAll();
   }
 
-  async updateUser(id: string, updates: Partial<UserEntity>) {
+  async updateUser(id: string, updates: Partial<UserEntity>): Promise<UserEntity | null> {
     return this.userRepo.update(id, updates);
   }
 
-  async deleteUser(id: string) {
+  async deleteUser(id: string): Promise<boolean> {
     return this.userRepo.delete(id);
   }
 }
