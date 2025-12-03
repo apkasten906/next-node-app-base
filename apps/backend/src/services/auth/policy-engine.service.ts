@@ -250,8 +250,11 @@ export class PolicyEngine implements IPolicyEngine {
 
   /**
    * Extract attribute value from context
+   * Note: Uses 'any' for generic ABAC attribute handling across dynamic contexts
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private extractAttributeValue(attribute: { source: string; key: string }, context: PolicyContext): any {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sourceMap: Record<string, Record<string, any>> = {
       user: context.user,
       resource: context.resource,
@@ -266,10 +269,12 @@ export class PolicyEngine implements IPolicyEngine {
 
     // Support nested keys with dot notation (e.g., "user.department")
     const keys = attribute.key.split('.');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let value: any = source;
 
     for (const key of keys) {
       if (value && typeof value === 'object') {
+        // eslint-disable-next-line security/detect-object-injection
         value = value[key];
       } else {
         return undefined;
@@ -281,7 +286,9 @@ export class PolicyEngine implements IPolicyEngine {
 
   /**
    * Compare values using the specified operator
+   * Note: Uses 'any' for generic ABAC value comparison across dynamic attribute types
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private compareValues(actual: any, operator: ComparisonOperator, expected: any): boolean {
     switch (operator) {
       case ComparisonOperator.EQUALS:
@@ -320,6 +327,7 @@ export class PolicyEngine implements IPolicyEngine {
       case ComparisonOperator.MATCHES:
         if (typeof actual === 'string' && typeof expected === 'string') {
           try {
+            // eslint-disable-next-line security/detect-non-literal-regexp
             const regex = new RegExp(expected);
             return regex.test(actual);
           } catch {

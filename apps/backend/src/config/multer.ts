@@ -78,7 +78,7 @@ export function createFileFilter(allowedMimeTypes: string[]) {
     // Check MIME type
     if (!allowedMimeTypes.includes(file.mimetype)) {
       return callback(
-        new Error(`Invalid file type. Allowed types: ${allowedMimeTypes.join(', ')}`) as any,
+        new Error(`Invalid file type. Allowed types: ${allowedMimeTypes.join(', ')}`),
         false
       );
     }
@@ -101,7 +101,7 @@ export function createFileFilter(allowedMimeTypes: string[]) {
     const allowedExtensions = validExtensions[file.mimetype];
     if (allowedExtensions && !allowedExtensions.includes(ext)) {
       return callback(
-        new Error(`File extension ${ext} does not match MIME type ${file.mimetype}`) as any,
+        new Error(`File extension ${ext} does not match MIME type ${file.mimetype}`),
         false
       );
     }
@@ -117,7 +117,7 @@ export function createFileFilter(allowedMimeTypes: string[]) {
 export function configureMulterMemory(options?: {
   maxFileSize?: number;
   allowedMimeTypes?: string[];
-}) {
+}): multer.Multer {
   return multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -136,7 +136,7 @@ export function configureMulterDisk(options?: {
   destination?: string;
   maxFileSize?: number;
   allowedMimeTypes?: string[];
-}) {
+}): multer.Multer {
   return multer({
     storage: multer.diskStorage({
       destination: options?.destination || 'uploads/',

@@ -53,6 +53,7 @@
 - ✅ Scenario 7: Deny-overrides strategy with conflicting policies
 
 **Test Results:**
+
 - **All 30 tests passing** (17 unit + 13 integration)
 - Full coverage of PolicyEngine functionality
 - Real-world ABAC scenarios validated

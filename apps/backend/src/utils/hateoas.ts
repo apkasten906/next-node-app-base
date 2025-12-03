@@ -7,13 +7,13 @@ export interface HateoasLink {
   type?: string;
 }
 
-export interface HateoasResponse<T = any> {
+export interface HateoasResponse<T = unknown> {
   data: T;
   _links: Record<string, HateoasLink>;
-  _meta?: Record<string, any>;
+  _meta?: Record<string, unknown>;
 }
 
-export interface PaginatedHateoasResponse<T = any> extends HateoasResponse<T[]> {
+export interface PaginatedHateoasResponse<T = unknown> extends HateoasResponse<T[]> {
   _meta: {
     total: number;
     page: number;
@@ -27,7 +27,7 @@ export interface PaginatedHateoasResponse<T = any> extends HateoasResponse<T[]> 
  */
 export class HateoasBuilder {
   private links: Record<string, HateoasLink> = {};
-  private meta: Record<string, any> = {};
+  private meta: Record<string, unknown> = {};
 
   /**
    * Add a link to the response
@@ -36,7 +36,7 @@ export class HateoasBuilder {
     this.links[rel] = {
       href,
       rel,
-      method: method as any,
+      method: method as HateoasLink['method'],
       type,
     };
     return this;
@@ -109,7 +109,7 @@ export class HateoasBuilder {
   /**
    * Add metadata
    */
-  addMeta(key: string, value: any): this {
+  addMeta(key: string, value: unknown): this {
     this.meta[key] = value;
     return this;
   }
@@ -183,7 +183,11 @@ export function buildUrl(req: Request, path?: string): string {
 /**
  * Helper to create standard resource links
  */
-export function createResourceLinks(req: Request, resourceId: string, basePath: string) {
+export function createResourceLinks(
+  req: Request,
+  resourceId: string,
+  basePath: string
+): HateoasBuilder {
   const baseUrl = getBaseUrl(req);
 
   return hateoas()
@@ -202,7 +206,7 @@ export function createCollectionLinks(
   page: number,
   pageSize: number,
   total: number
-) {
+): HateoasBuilder {
   const baseUrl = getBaseUrl(req);
 
   return hateoas()

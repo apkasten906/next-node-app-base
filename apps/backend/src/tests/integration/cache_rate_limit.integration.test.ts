@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type NextFunction, type Request, type Response } from 'express';
 import request from 'supertest';
 import { describe, it } from 'vitest';
 
@@ -19,7 +19,7 @@ describe('Cache-backed Rate Limiter Integration', () => {
 
     const app = express();
 
-    const rateLimiter = async (req: any, res: any, next: any) => {
+    const rateLimiter = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const key = `rl:${req.ip || 'test-ip'}`;
       const existing = (await cache.get<number>(key)) || 0;
       const count = existing + 1;

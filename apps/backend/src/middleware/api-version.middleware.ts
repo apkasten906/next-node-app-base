@@ -36,7 +36,7 @@ export function apiVersionMiddleware(options: ApiVersionMiddlewareOptions = {}) 
     }
 
     // Attach version to request object
-    (req as any).apiVersion = version;
+    req.apiVersion = version;
 
     // Set version in response header
     res.setHeader('API-Version', version);
@@ -50,7 +50,7 @@ export function apiVersionMiddleware(options: ApiVersionMiddlewareOptions = {}) 
  */
 export function requireVersion(minVersion: string) {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const currentVersion = (req as any).apiVersion || '1.0';
+    const currentVersion = req.apiVersion || '1.0';
 
     if (compareVersions(currentVersion, minVersion) < 0) {
       res.status(400).json({
@@ -89,5 +89,5 @@ function compareVersions(a: string, b: string): number {
  * Get API version from request
  */
 export function getApiVersion(req: Request): string {
-  return (req as any).apiVersion || '1.0';
+  return req.apiVersion || '1.0';
 }

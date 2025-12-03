@@ -1,5 +1,3 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { PolicyEngine } from '../../services/auth/policy-engine.service';
 import {
   AttributeSource,
   ComparisonOperator,
@@ -8,6 +6,9 @@ import {
   PolicyContext,
   PolicyEffect,
 } from '@repo/types';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { PolicyEngine } from '../../services/auth/policy-engine.service';
 
 describe('PolicyEngine', () => {
   let policyEngine: PolicyEngine;

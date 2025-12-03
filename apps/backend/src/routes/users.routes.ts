@@ -16,7 +16,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
 
     // Check authorization
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
@@ -60,7 +60,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
     const audit = container.resolve<AuditLogService>('AuditLogService');
 
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
     const { id } = req.params;
 
     if (!userId) {
@@ -104,7 +104,8 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       resourceId: id,
       ipAddress: req.ip,
       userAgent: req.get('user-agent'),
-    } as any);
+      success: true,
+    });
 
     res.json(user);
     return;
@@ -123,7 +124,7 @@ router.patch('/:id', async (req: Request, res: Response): Promise<void> => {
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
     const audit = container.resolve<AuditLogService>('AuditLogService');
 
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
     const { id } = req.params;
     const { name, image } = req.body;
 
@@ -166,7 +167,8 @@ router.patch('/:id', async (req: Request, res: Response): Promise<void> => {
       ipAddress: req.ip,
       userAgent: req.get('user-agent'),
       metadata: { fields: Object.keys({ name, image }) },
-    } as any);
+      success: true,
+    });
 
     res.json(user);
     return;
@@ -185,7 +187,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
     const audit = container.resolve<AuditLogService>('AuditLogService');
 
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
     const { id } = req.params;
 
     if (!userId) {
@@ -216,7 +218,8 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
       resourceId: id,
       ipAddress: req.ip,
       userAgent: req.get('user-agent'),
-    } as any);
+      success: true,
+    });
 
     res.status(204).send();
     return;

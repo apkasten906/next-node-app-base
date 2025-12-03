@@ -16,8 +16,8 @@ describe('Secrets Manager Integration', () => {
        
       await mgr.getSecret('SOME_RANDOM_SECRET');
       throw new Error('Expected getSecret to throw for missing secret');
-    } catch (err: any) {
-      expect(err.message).toMatch(/Secret not found/);
+    } catch (err: unknown) {
+      expect((err as Error).message).toMatch(/Secret not found/);
     }
   });
 });

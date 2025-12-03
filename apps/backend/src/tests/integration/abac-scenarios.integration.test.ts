@@ -1,13 +1,9 @@
+import { AttributeSource, ComparisonOperator, LogicalOperator, PolicyEffect } from '@repo/types';
 import { beforeEach, describe, expect, it } from 'vitest';
+
 import { container } from '../../container';
 import { AuthorizationService } from '../../services/auth/authorization.service';
 import { InMemoryPolicyStore } from '../../services/auth/policy-store.service';
-import {
-  AttributeSource,
-  ComparisonOperator,
-  LogicalOperator,
-  PolicyEffect,
-} from '@repo/types';
 
 describe('ABAC Scenarios - Integration', () => {
   let authService: AuthorizationService;
