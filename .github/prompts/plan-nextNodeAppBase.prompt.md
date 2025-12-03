@@ -21,10 +21,13 @@ Plan for next-node-app-base (updated)
 - ✅ **Option 1** (WSJF 5.00) - ESLint/lint-staged fix: Migrated to ESLint v9 flat config format, fixed Husky pre-commit and commit-msg hooks (commit `86f14b6`)
 - ✅ **Options 5-7** (WSJF 4.33) - Test resilience: Added skip logic to external-service-dependent tests, extended ESLint config for test files, removed unused variables (commit `a28779f`)
 
-### Next Priorities (WSJF ~4.0)
+### Medium Priority (WSJF ~4.0)
 
-- ⏳ **Option 8** - Publish dry-run to GitHub Packages (WSJF 4.50)
-- ⏳ **Option 2** - Registry-agnostic publish flow implementation (WSJF 4.00)
+- ✅ **Option 8** (WSJF 4.50) - Publish dry-run: Created registry-agnostic publish script, .npmrc.template, configured @apkasten906/types package, documented publishing workflow, validated with dry-run (commit `cc9fbad`)
+
+### Next Priorities
+
+- ⏳ **Option 2** - GitHub Actions publish workflow (WSJF 4.00)
 - ⏳ **Option 6** - Verdaccio in-cluster manifest (WSJF 4.00)
 - ⏳ **Option 5** - Wire Cucumber steps to integration harness (WSJF 3.67)
 - ⏳ **Option 4** - Full ABAC/policy engine expansion (WSJF 2.78)
@@ -1345,8 +1348,6 @@ spec:
     - Seamless transition to real APIs
 
 49. **Artifact Registry & Publish Flow**
-
-
     - Default to GitHub Packages for minimal ops and GitHub-native CI integration
     - Provide a registry-agnostic publish script and CI workflow that accept `REGISTRY_URL` and `NPM_AUTH_TOKEN` so registry endpoint and auth can be swapped without code changes
     - Document scoped-package requirements for GitHub Packages (use `@apkasten906/*` scoped names for packages intended to be published)
