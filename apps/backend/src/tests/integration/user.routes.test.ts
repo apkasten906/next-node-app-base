@@ -1,9 +1,9 @@
-import express, { Express } from 'express';
+import express, { Express, NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import { container } from 'tsyringe';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AuthMiddleware } from '../../middleware/auth.middleware';
+import * as authMiddleware from '../../middleware/auth.middleware';
 import { userRouter } from '../../routes/user.routes';
 import { UserService } from '../../services/user/user.service';
 
@@ -13,7 +13,6 @@ const shouldSkipUserRoutesTests = process.env.TEST_EXTERNAL_SERVICES === 'false'
 describe.skipIf(shouldSkipUserRoutesTests)('User Routes Integration Tests', () => {
   let app: Express;
   let mockUserService: Partial<UserService>;
-  let mockAuthMiddleware: Partial<AuthMiddleware>;
 
   beforeEach(() => {
     // Clear container
@@ -21,29 +20,36 @@ describe.skipIf(shouldSkipUserRoutesTests)('User Routes Integration Tests', () =
 
     // Create mock services
     mockUserService = {
-      findById: vi.fn(),
-      findByEmail: vi.fn(),
+      getUser: vi.fn(),
       createUser: vi.fn(),
       updateUser: vi.fn(),
       deleteUser: vi.fn(),
       listUsers: vi.fn(),
     };
 
-    mockAuthMiddleware = {
-      authenticate: vi.fn((req, res, next) => {
+    // Mock auth middleware
+    vi.spyOn(authMiddleware, 'authenticate').mockImplementation(
+      async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
         req.user = {
-          id: 'test-user-id',
+          userId: 'test-user-id',
           email: 'test@example.com',
-          role: 'USER',
+          roles: ['USER'],
+          permissions: [],
+          iat: Date.now(),
+          exp: Date.now() + 3600000,
         };
         next();
-      }),
-      requireRole: vi.fn(() => (req, res, next) => next()),
-    };
+      }
+    );
+
+    vi.spyOn(authMiddleware, 'requireRole').mockImplementation(
+      () =>
+        async (_req: Request, _res: Response, next: NextFunction): Promise<void> =>
+          next()
+    );
 
     // Register mocks in container
     container.registerInstance(UserService, mockUserService as UserService);
-    container.registerInstance(AuthMiddleware, mockAuthMiddleware as AuthMiddleware);
 
     // Create Express app
     app = express();
@@ -62,7 +68,7 @@ describe.skipIf(shouldSkipUserRoutesTests)('User Routes Integration Tests', () =
         updatedAt: new Date(),
       };
 
-      vi.mocked(mockUserService.findById).mockResolvedValue(mockUser);
+      vi.mocked(mockUserService.getUser!).mockResolvedValue(mockUser);
 
       const response = await request(app).get('/api/users/user-123').expect(200);
 
@@ -74,13 +80,13 @@ describe.skipIf(shouldSkipUserRoutesTests)('User Routes Integration Tests', () =
     });
 
     it('should return 404 when user not found', async () => {
-      vi.mocked(mockUserService.findById).mockResolvedValue(null);
+      vi.mocked(mockUserService.getUser!).mockResolvedValue(null);
 
       await request(app).get('/api/users/nonexistent').expect(404);
     });
 
     it('should return 500 on service error', async () => {
-      vi.mocked(mockUserService.findById).mockRejectedValue(new Error('Database error'));
+      vi.mocked(mockUserService.getUser!).mockRejectedValue(new Error('Database error'));
 
       await request(app).get('/api/users/user-123').expect(500);
     });
@@ -102,7 +108,7 @@ describe.skipIf(shouldSkipUserRoutesTests)('User Routes Integration Tests', () =
         updatedAt: new Date(),
       };
 
-      vi.mocked(mockUserService.createUser).mockResolvedValue(createdUser);
+      vi.mocked(mockUserService.createUser!).mockResolvedValue(createdUser);
 
       const response = await request(app).post('/api/users').send(newUser).expect(201);
 
@@ -123,7 +129,7 @@ describe.skipIf(shouldSkipUserRoutesTests)('User Routes Integration Tests', () =
     });
 
     it('should return 409 when email already exists', async () => {
-      vi.mocked(mockUserService.createUser).mockRejectedValue(new Error('Email already exists'));
+      vi.mocked(mockUserService.createUser!).mockRejectedValue(new Error('Email already exists'));
 
       const newUser = {
         email: 'existing@example.com',
@@ -150,7 +156,7 @@ describe.skipIf(shouldSkipUserRoutesTests)('User Routes Integration Tests', () =
         updatedAt: new Date(),
       };
 
-      vi.mocked(mockUserService.updateUser).mockResolvedValue(updatedUser);
+      vi.mocked(mockUserService.updateUser!).mockResolvedValue(updatedUser);
 
       const response = await request(app).put('/api/users/user-123').send(updateData).expect(200);
 
@@ -158,7 +164,7 @@ describe.skipIf(shouldSkipUserRoutesTests)('User Routes Integration Tests', () =
     });
 
     it('should return 404 when updating nonexistent user', async () => {
-      vi.mocked(mockUserService.updateUser).mockResolvedValue(null);
+      vi.mocked(mockUserService.updateUser!).mockResolvedValue(null);
 
       await request(app).put('/api/users/nonexistent').send({ name: 'New Name' }).expect(404);
     });
@@ -166,13 +172,13 @@ describe.skipIf(shouldSkipUserRoutesTests)('User Routes Integration Tests', () =
 
   describe('DELETE /api/users/:id', () => {
     it('should delete user', async () => {
-      vi.mocked(mockUserService.deleteUser).mockResolvedValue(true);
+      vi.mocked(mockUserService.deleteUser!).mockResolvedValue(true);
 
       await request(app).delete('/api/users/user-123').expect(204);
     });
 
     it('should return 404 when deleting nonexistent user', async () => {
-      vi.mocked(mockUserService.deleteUser).mockResolvedValue(false);
+      vi.mocked(mockUserService.deleteUser!).mockResolvedValue(false);
 
       await request(app).delete('/api/users/nonexistent').expect(404);
     });
@@ -199,20 +205,14 @@ describe.skipIf(shouldSkipUserRoutesTests)('User Routes Integration Tests', () =
         },
       ];
 
-      vi.mocked(mockUserService.listUsers).mockResolvedValue({
-        users: mockUsers,
-        total: 2,
-        page: 1,
-        pageSize: 10,
-      });
+      vi.mocked(mockUserService.listUsers!).mockResolvedValue(mockUsers);
 
       const response = await request(app)
         .get('/api/users')
         .query({ page: 1, pageSize: 10 })
         .expect(200);
 
-      expect(response.body.users).toHaveLength(2);
-      expect(response.body.total).toBe(2);
+      expect(response.body).toHaveLength(2);
     });
 
     it('should filter users by role', async () => {
@@ -227,16 +227,11 @@ describe.skipIf(shouldSkipUserRoutesTests)('User Routes Integration Tests', () =
         },
       ];
 
-      vi.mocked(mockUserService.listUsers).mockResolvedValue({
-        users: mockAdmins,
-        total: 1,
-        page: 1,
-        pageSize: 10,
-      });
+      vi.mocked(mockUserService.listUsers!).mockResolvedValue(mockAdmins);
 
       const response = await request(app).get('/api/users').query({ role: 'ADMIN' }).expect(200);
 
-      expect(response.body.users[0].role).toBe('ADMIN');
+      expect(response.body[0]?.role).toBe('ADMIN');
     });
   });
 });
