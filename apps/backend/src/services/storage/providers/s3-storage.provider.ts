@@ -226,7 +226,7 @@ export class S3StorageProvider implements IStorageProvider {
 
       await this.client.send(command);
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

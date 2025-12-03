@@ -144,9 +144,9 @@ export class AzureBlobStorageProvider implements IStorageProvider {
       });
 
       return buffer;
-    } catch (error) {
-      this.logger.error('Azure Blob download failed', error as Error);
-      throw error;
+    } catch (_error) {
+      this.logger.error('Azure Blob download failed', _error as Error);
+      throw _error;
     }
   }
 
@@ -186,8 +186,8 @@ export class AzureBlobStorageProvider implements IStorageProvider {
       });
 
       return true;
-    } catch (error) {
-      this.logger.error('Azure Blob delete failed', error as Error);
+    } catch (_error) {
+      this.logger.error('Azure Blob delete failed', _error as Error);
       return false;
     }
   }
@@ -337,7 +337,7 @@ export class AzureBlobStorageProvider implements IStorageProvider {
       if (!exists) {
         await containerClient.create();
       }
-    } catch (error) {
+    } catch (_error) {
       // Container might already exist
     }
   }

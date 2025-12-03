@@ -197,7 +197,7 @@ export class GcpStorageProvider implements IStorageProvider {
 
       const [exists] = await file.exists();
       return exists;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

@@ -21,7 +21,7 @@ export class AuthorizationService implements IAuthorizationService {
   constructor(
     @inject(AuditLogService) private audit?: AuditLogService,
     @inject(PolicyEngine) private policyEngine?: PolicyEngine,
-    @inject(InMemoryPolicyStore) private policyStore?: InMemoryPolicyStore,
+    @inject(InMemoryPolicyStore) private policyStore?: InMemoryPolicyStore
   ) {
     // Initialize default role-permission mappings
     this.initializeDefaultRoles();
@@ -128,7 +128,7 @@ export class AuthorizationService implements IAuthorizationService {
       context.userId,
       context.resource,
       context.action,
-      context.attributes,
+      context.attributes
     );
 
     if (!rbacAllowed && this.policyEngine && this.policyStore) {
@@ -155,9 +155,7 @@ export class AuthorizationService implements IAuthorizationService {
           await this.audit?.logAuthz({
             userId: context.userId,
             action:
-              result.effect === 'allow'
-                ? AuditAction.ACCESS_GRANTED
-                : AuditAction.ACCESS_DENIED,
+              result.effect === 'allow' ? AuditAction.ACCESS_GRANTED : AuditAction.ACCESS_DENIED,
             resource: context.resource,
             success: result.effect === 'allow',
             metadata: {

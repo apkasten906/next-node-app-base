@@ -19,8 +19,6 @@ describe('AuthorizationService — owner semantics and audit logging', () => {
   it('assigns roles, grants permissions, honors :own semantics, and records audit logs', async () => {
     const userId = 'user-123';
 
-    const initialLogs = await audit.getLogs();
-
     // Assign role that grants posts:create
     await auth.assignRole(userId, 'user');
     const canCreate = await auth.canAccess(userId, 'posts', 'create');

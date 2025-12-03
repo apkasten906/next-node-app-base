@@ -311,7 +311,7 @@ export class LocalStorageProvider implements IStorageProvider {
           });
         }
       }
-    } catch (error) {
+    } catch (_error) {
       // Directory might not exist
     }
 
