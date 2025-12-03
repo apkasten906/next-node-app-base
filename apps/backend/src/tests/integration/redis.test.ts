@@ -1,7 +1,11 @@
 import Redis from 'ioredis';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-describe('Redis Integration Tests', () => {
+// Skip Redis integration tests when using MockRedis (set via REDIS_MOCK or TEST_EXTERNAL_SERVICES)
+const shouldSkipRedisTests =
+  process.env.REDIS_MOCK === 'true' || process.env.TEST_EXTERNAL_SERVICES === 'false';
+
+describe.skipIf(shouldSkipRedisTests)('Redis Integration Tests', () => {
   let redis: Redis;
 
   beforeAll(() => {

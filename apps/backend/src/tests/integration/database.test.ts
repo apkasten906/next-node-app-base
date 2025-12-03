@@ -2,9 +2,14 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+
 import { EncryptionService } from '../../services/auth/encryption.service';
 
-describe('Database Integration Tests', () => {
+// Skip database tests when external services are disabled or DATABASE_URL not set
+const shouldSkipDatabaseTests =
+  process.env.TEST_EXTERNAL_SERVICES === 'false' || !process.env['DATABASE_URL'];
+
+describe.skipIf(shouldSkipDatabaseTests)('Database Integration Tests', () => {
   let prisma: PrismaClient;
   let encryptionService: EncryptionService;
   let pool: Pool;
@@ -271,7 +276,7 @@ describe('Database Integration Tests', () => {
           // This should cause the transaction to rollback
           throw new Error('Intentional error');
         });
-      } catch (error) {
+      } catch {
         // Expected to catch error
       }
 
@@ -309,4 +314,3 @@ describe('Database Integration Tests', () => {
     });
   });
 });
-
