@@ -24,10 +24,10 @@ Plan for next-node-app-base (updated)
 ### Medium Priority (WSJF ~4.0)
 
 - ✅ **Option 8** (WSJF 4.50) - Publish dry-run: Created registry-agnostic publish script, .npmrc.template, configured @apkasten906/types package, documented publishing workflow, validated with dry-run (commit `cc9fbad`)
+- ✅ **Option 2** (WSJF 4.00) - GitHub Actions publish workflow: Implemented automated publishing with manual dispatch, tag triggers, and release integration; supports dry-run and internal registries (commit `20aa32c`)
 
 ### Next Priorities
 
-- ⏳ **Option 2** - GitHub Actions publish workflow (WSJF 4.00)
 - ⏳ **Option 6** - Verdaccio in-cluster manifest (WSJF 4.00)
 - ⏳ **Option 5** - Wire Cucumber steps to integration harness (WSJF 3.67)
 - ⏳ **Option 4** - Full ABAC/policy engine expansion (WSJF 2.78)
