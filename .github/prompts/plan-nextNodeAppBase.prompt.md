@@ -25,10 +25,10 @@ Plan for next-node-app-base (updated)
 
 - ✅ **Option 8** (WSJF 4.50) - Publish dry-run: Created registry-agnostic publish script, .npmrc.template, configured @apkasten906/types package, documented publishing workflow, validated with dry-run (commit `cc9fbad`)
 - ✅ **Option 2** (WSJF 4.00) - GitHub Actions publish workflow: Implemented automated publishing with manual dispatch, tag triggers, and release integration; supports dry-run and internal registries (commit `20aa32c`)
+- ✅ **Option 6** (WSJF 4.00) - Verdaccio in-cluster manifest: Created complete Kubernetes manifests with Istio integration, ConfigMap, PVC, security hardening, comprehensive deployment documentation (commit `db8f4fd`)
 
 ### Next Priorities
 
-- ⏳ **Option 6** - Verdaccio in-cluster manifest (WSJF 4.00)
 - ⏳ **Option 5** - Wire Cucumber steps to integration harness (WSJF 3.67)
 - ⏳ **Option 4** - Full ABAC/policy engine expansion (WSJF 2.78)
 
