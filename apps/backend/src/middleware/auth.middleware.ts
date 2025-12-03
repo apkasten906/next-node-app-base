@@ -6,6 +6,7 @@ import { AuthorizationService } from '../services/auth/authorization.service';
 import { JwtService } from '../services/auth/jwt.service';
 
 // Extend Express Request to include user
+// eslint-disable-next-line @typescript-eslint/no-namespace
 declare global {
   namespace Express {
     interface Request {
@@ -36,7 +37,7 @@ export const authenticate = async (
 
     req.user = payload;
     next();
-  } catch (error) {
+  } catch (_error) {
     res.status(403).json({ error: 'Invalid or expired token' });
   }
 };

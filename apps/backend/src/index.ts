@@ -239,8 +239,12 @@ registerStorageProvider();
 const app = new App();
 
 // Graceful shutdown handlers
-process.on('SIGTERM', () => app.shutdown());
-process.on('SIGINT', () => app.shutdown());
+process.on('SIGTERM', () => {
+  void app.shutdown();
+});
+process.on('SIGINT', () => {
+  void app.shutdown();
+});
 
 // Start server
-app.start();
+void app.start();

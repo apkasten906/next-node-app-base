@@ -11,8 +11,8 @@ import { EncryptionService } from './services/auth/encryption.service';
 import { JwtService } from './services/auth/jwt.service';
 import { PolicyEngine } from './services/auth/policy-engine.service';
 import { InMemoryPolicyStore } from './services/auth/policy-store.service';
-// Register secrets manager
 import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
+import { UserService } from './services/user/user.service';
 
 // Register services as singletons
 container.registerSingleton(JwtService);
@@ -24,8 +24,6 @@ container.registerSingleton(AuditLogService);
 container.registerSingleton(EnvironmentSecretsManager);
 
 // Register user domain bindings
-import { UserService } from './services/user/user.service';
-
 container.registerSingleton(UserRepository);
 container.registerSingleton(UserService);
 container.registerSingleton(UserController);
