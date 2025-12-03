@@ -136,6 +136,13 @@ export class AuditLogService {
   }
 
   /**
+   * Clear in-memory logs (test helper)
+   */
+  clear(): void {
+    this.logs.length = 0;
+  }
+
+  /**
    * Get audit logs (with pagination and filtering)
    * In production, this would query from persistent storage
    */

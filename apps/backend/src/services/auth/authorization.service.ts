@@ -1,5 +1,6 @@
 import { IAuthorizationService } from '@repo/types';
-import { injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
+import { AuditAction, AuditLogService } from '../audit/audit-log.service';
 
 /**
  * Authorization service for RBAC/ABAC
@@ -13,7 +14,7 @@ export class AuthorizationService implements IAuthorizationService {
   private userPermissions: Map<string, Set<string>> = new Map();
   private rolePermissions: Map<string, Set<string>> = new Map();
 
-  constructor() {
+  constructor(@inject(AuditLogService) private audit?: AuditLogService) {
     // Initialize default role-permission mappings
     this.initializeDefaultRoles();
   }
@@ -51,9 +52,66 @@ export class AuthorizationService implements IAuthorizationService {
   /**
    * Check if user can access resource with specific action
    */
-  async canAccess(userId: string, resource: string, action: string): Promise<boolean> {
+  async canAccess(
+    userId: string,
+    resource: string,
+    action: string,
+    context?: { ownerId?: string }
+  ): Promise<boolean> {
     const permission = `${resource}:${action}`;
-    return this.hasPermission(userId, permission);
+
+    // Direct permission
+    const direct = await this.hasPermission(userId, permission);
+    if (direct) {
+      // audit allow
+      try {
+        await this.audit?.logAuthz({
+          userId,
+          action: AuditAction.ACCESS_GRANTED,
+          resource,
+          success: true,
+        });
+      } catch {}
+      return true;
+    }
+
+    // Support "own" permissions like `resource:action:own`
+    const ownPermission = `${permission}:own`;
+    const hasOwn = await this.hasPermission(userId, ownPermission);
+    if (hasOwn && context?.ownerId && context.ownerId === userId) {
+      try {
+        await this.audit?.logAuthz({
+          userId,
+          action: AuditAction.ACCESS_GRANTED,
+          resource,
+          resourceId: context.ownerId,
+          success: true,
+        });
+      } catch {}
+      return true;
+    }
+
+    // audit deny
+    try {
+      await this.audit?.logAuthz({
+        userId,
+        action: AuditAction.ACCESS_DENIED,
+        resource,
+        success: false,
+      });
+    } catch {}
+
+    return false;
+  }
+
+  /**
+   * Reset in-memory state for tests
+   */
+  resetForTests(): void {
+    this.userRoles.clear();
+    this.userPermissions.clear();
+    this.rolePermissions.clear();
+    this.initializeDefaultRoles();
   }
 
   /**
