@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: registry
+
+resources:
+  - namespace.yaml
+  - pvc.yaml
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  - istio-virtualservice.yaml
+
+commonLabels:
+  managed-by: kustomize
+  project: next-node-app-base
+
+# Optional: Apply common annotations
+commonAnnotations:
+  description: 'Internal npm registry with Verdaccio'
+  documentation: 'https://github.com/apkasten906/next-node-app-base/tree/master/kubernetes/verdaccio'
+
+# Images (can be overridden in overlays)
+images:
+  - name: verdaccio/verdaccio
+    newTag: '5.31'
+
+# ConfigMap generator (alternative to static configmap.yaml)
+# configMapGenerator:
+#   - name: verdaccio-config
+#     files:
+#       - config.yaml
+
+# Replicas (can be overridden in overlays)
+replicas:
+  - name: verdaccio
+    count: 1

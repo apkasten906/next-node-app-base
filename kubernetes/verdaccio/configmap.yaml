@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: verdaccio-config
+  namespace: registry
+  labels:
+    app: npm-registry
+data:
+  config.yaml: |
+    # Verdaccio Configuration for Internal Registry
+
+    # Storage path for packages
+    storage: /verdaccio/storage/data
+
+    # Authentication
+    auth:
+      htpasswd:
+        file: /verdaccio/storage/htpasswd
+        # Maximum users allowed to register (-1 for unlimited)
+        max_users: -1
+        # Hash algorithm (bcrypt, scrypt, sha256)
+        algorithm: bcrypt
+
+    # Access control
+    # Packages are organized by scope: @apkasten906/*
+    packages:
+      '@apkasten906/*':
+        # Allow all authenticated users to access
+        access: $authenticated
+        # Allow all authenticated users to publish
+        publish: $authenticated
+        # Proxy to npmjs.com if package not found locally
+        proxy: npmjs
+
+      '@*/*':
+        # Scoped packages
+        access: $authenticated
+        publish: $authenticated
+        proxy: npmjs
+
+      '**':
+        # All other packages
+        access: $authenticated
+        publish: $authenticated
+        proxy: npmjs
+
+    # Uplinks - proxy to public registries
+    uplinks:
+      npmjs:
+        url: https://registry.npmjs.org/
+        cache: true
+        timeout: 30s
+        maxage: 2m
+        max_fails: 5
+        fail_timeout: 5m
+
+    # Web interface
+    web:
+      title: Internal NPM Registry
+      # Disable gravatar to improve performance
+      gravatar: false
+      # Sort packages by name
+      sort_packages: asc
+      # Enable search
+      enable: true
+
+    # Server configuration
+    server:
+      # Set keepAliveTimeout to avoid Kubernetes ingress timeouts
+      keepAliveTimeout: 60
+
+    # Middleware
+    middlewares:
+      audit:
+        enabled: true
+
+    # Logs configuration
+    logs:
+      - { type: stdout, format: pretty, level: info }
+
+    # Security headers
+    security:
+      api:
+        jwt:
+          sign:
+            expiresIn: 7d
+      web:
+        sign:
+          expiresIn: 7d
+
+    # Listen on all interfaces (required for Kubernetes)
+    listen: 0.0.0.0:4873
+
+    # Max body size for package uploads
+    max_body_size: 100mb
+
+    # Notifications (optional)
+    # notify:
+    #   method: POST
+    #   headers: [{ 'Content-Type': 'application/json' }]
+    #   endpoint: http://slack-webhook-url
+    #   content: '{"text":"Package published: {{ name }}@{{ version }}"}'

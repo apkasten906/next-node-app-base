@@ -274,59 +274,71 @@ Future enhancement: Integrate [changesets](https://github.com/changesets/changes
 
 ## Service Mesh Integration
 
-When running applications inside a Kubernetes cluster with a service mesh (Istio, Linkerd), you can configure an internal registry:
+When running applications inside a Kubernetes cluster with a service mesh (Istio, Linkerd), you can configure an internal registry.
 
-### Deploy Internal Registry (Verdaccio Example)
+### Deploy Internal Registry (Verdaccio)
 
-```yaml
-# kubernetes/verdaccio/deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: npm-registry
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: npm-registry
-  template:
-    metadata:
-      labels:
-        app: npm-registry
-    spec:
-      containers:
-        - name: verdaccio
-          image: verdaccio/verdaccio:5
-          ports:
-            - containerPort: 4873
-          volumeMounts:
-            - name: storage
-              mountPath: /verdaccio/storage
-      volumes:
-        - name: storage
-          persistentVolumeClaim:
-            claimName: npm-registry-pvc
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: npm-registry
-spec:
-  selector:
-    app: npm-registry
-  ports:
-    - port: 4873
-      targetPort: 4873
+This repository includes complete Kubernetes manifests for deploying Verdaccio with Istio integration.
+
+**Quick Deploy:**
+
+```bash
+# Deploy all Verdaccio resources
+kubectl apply -f kubernetes/verdaccio/
+
+# Or use kustomize
+kubectl apply -k kubernetes/verdaccio/
+
+# Verify deployment
+kubectl get all -n registry
 ```
 
+**What's Included:**
+
+- Namespace with Istio injection enabled
+- Verdaccio deployment with security best practices
+- PersistentVolumeClaim (10Gi) for package storage
+- ConfigMap with production-ready Verdaccio configuration
+- ClusterIP service for internal access
+- Istio VirtualService and DestinationRule for traffic management
+
+**Access the Registry:**
+
+```bash
+# From inside cluster
+http://npm-registry.registry.svc.cluster.local:4873
+
+# Port forward for local access
+kubectl port-forward -n registry svc/npm-registry 4873:4873
+open http://localhost:4873
+```
+
+**Complete Documentation:**
+See [kubernetes/verdaccio/README.md](../kubernetes/verdaccio/README.md) for:
+
+- Configuration options
+- User authentication setup
+- Monitoring and health checks
+- Scaling and high availability
+- Troubleshooting guide
+- Backup and restore procedures
+
 ### Configure CI to Use Internal Registry
+
+Update GitHub Actions workflow:
 
 ```yaml
 # .github/workflows/publish.yml
 env:
-  REGISTRY_URL: http://npm-registry.svc.cluster.local:4873
+  REGISTRY_URL: http://npm-registry.registry.svc.cluster.local:4873
   NPM_AUTH_TOKEN: ${{ secrets.INTERNAL_REGISTRY_TOKEN }}
 ```
+
+Or add as repository secrets:
+
+1. Go to Settings → Secrets → Actions
+2. Add `INTERNAL_REGISTRY_URL`: `http://npm-registry.registry.svc.cluster.local:4873`
+3. Add `INTERNAL_REGISTRY_TOKEN`: Your Verdaccio auth token
 
 ## Troubleshooting
 
