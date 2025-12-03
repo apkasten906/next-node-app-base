@@ -1,6 +1,8 @@
 import { IStorageProvider } from '@repo/types';
 import { container } from 'tsyringe';
+
 import { LoggerService } from '../logger.service';
+
 import { AzureBlobStorageProvider } from './providers/azure-blob-storage.provider';
 import { GcpStorageProvider } from './providers/gcp-storage.provider';
 import { LocalStorageProvider } from './providers/local-storage.provider';

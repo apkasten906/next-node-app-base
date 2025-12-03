@@ -14,7 +14,7 @@ Verdaccio serves as an internal npm registry that:
 
 ## Architecture
 
-```
+```txt
 ┌─────────────────────────────────────────────────┐
 │ Istio Service Mesh                               │
 │                                                   │
@@ -145,6 +145,7 @@ The default storage size is **10Gi**. To change:
    ```
 
 2. For cloud providers, uncomment and set `storageClassName`:
+
    ```yaml
    storageClassName: standard # GKE
    # storageClassName: gp2       # AWS EKS
@@ -224,6 +225,7 @@ env:
    ```
 
 4. **Publish packages**:
+
    ```bash
    # From monorepo root
    DRY_RUN=false \

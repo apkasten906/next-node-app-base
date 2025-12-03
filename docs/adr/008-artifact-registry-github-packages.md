@@ -6,7 +6,7 @@ Date: 2025-11-29
 
 ## Context
 
-This monorepo contains multiple workspace packages (apps/*, packages/*). We need a reliable, secure, and easy-to-use artifact registry for publishing private packages and for CI to pull artifacts and images. The team is not running enterprise infrastructure today and prefers minimal operational burden.
+This monorepo contains multiple workspace packages (apps/_, packages/_). We need a reliable, secure, and easy-to-use artifact registry for publishing private packages and for CI to pull artifacts and images. The team is not running enterprise infrastructure today and prefers minimal operational burden.
 
 We also run applications inside a service mesh and want the ability to swap the artifact registry (for example, to route traffic through an internal proxy/registry inside the mesh) without code changes.
 

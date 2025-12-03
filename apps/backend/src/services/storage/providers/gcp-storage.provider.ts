@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 import { Storage } from '@google-cloud/storage';
 import {
   DeleteOptions,
@@ -7,8 +9,8 @@ import {
   ListOptions,
   UploadOptions,
 } from '@repo/types';
-import crypto from 'crypto';
 import { injectable } from 'tsyringe';
+
 import { LoggerService } from '../../logger.service';
 
 /**

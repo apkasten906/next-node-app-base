@@ -1,5 +1,6 @@
 import { container } from 'tsyringe';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { LoggerService } from '../../services/logger.service';
 
 describe('LoggerService', () => {

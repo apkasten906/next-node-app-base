@@ -4,7 +4,7 @@ Thank you for your interest in contributing! We welcome contributions from the c
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to conduct@example.com.
+This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to <conduct@example.com>.
 
 ## How Can I Contribute?
 
@@ -116,7 +116,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 
 **Examples:**
 
-```
+```git
 feat(backend): add webhook management system
 
 Implement webhook registration, delivery queue, and retry logic
@@ -125,7 +125,7 @@ with HMAC signature verification.
 Closes #123
 ```
 
-```
+```git
 fix(frontend): resolve memory leak in WebSocket connection
 
 The WebSocket connection was not being properly cleaned up on
@@ -161,7 +161,7 @@ If a hook fails locally, fix the reported issues and re-run the hook commands ma
 
 ## Project Structure
 
-```
+```txt
 next-node-app-base/
 ├── apps/
 │   ├── frontend/          # Next.js app
@@ -207,7 +207,7 @@ If you discover a security vulnerability, please follow our [Security Policy](SE
 - **GitHub Issues**: For bugs and feature requests
 - **GitHub Discussions**: For questions and general discussions
 - **Slack**: [Join our Slack workspace](#)
-- **Email**: contribute@example.com
+- **Email**: <contribute@example.com>
 
 ## Recognition
 
@@ -226,7 +226,7 @@ By contributing, you agree that your contributions will be licensed under the MI
 Feel free to reach out:
 
 - Create a [GitHub Discussion](https://github.com/your-org/next-node-app-base/discussions)
-- Email us at contribute@example.com
+- Email us at <contribute@example.com>
 - Join our [Slack workspace](#)
 
 ---

@@ -1,5 +1,6 @@
 import { EmailOptions, IEmailProvider, NotificationResult } from '@repo/types';
 import { injectable } from 'tsyringe';
+
 import { LoggerService } from '../../logger.service';
 
 /**

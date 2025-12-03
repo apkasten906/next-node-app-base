@@ -1,5 +1,6 @@
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import { container } from 'tsyringe';
+
 import { AuthorizationService } from '../services/auth/authorization.service';
 import { DatabaseService } from '../services/database.service';
 import { createCollectionLinks, createResourceLinks } from '../utils/hateoas';

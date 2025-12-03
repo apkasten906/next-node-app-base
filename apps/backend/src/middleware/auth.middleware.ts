@@ -1,6 +1,7 @@
 import { TokenPayload } from '@repo/types';
 import { NextFunction, Request, Response } from 'express';
 import { container } from 'tsyringe';
+
 import { AuthorizationService } from '../services/auth/authorization.service';
 import { JwtService } from '../services/auth/jwt.service';
 

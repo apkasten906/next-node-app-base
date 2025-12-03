@@ -84,21 +84,19 @@ module.exports = [
 
   // TypeScript files with type-checking (apps/backend, apps/frontend, packages/*)
   {
-    files: ['apps/backend/**/*.{ts,tsx}', 'apps/frontend/**/*.{ts,tsx}', 'packages/**/*.{ts,tsx}'],
+    files: ['apps/backend/src/**/*.{ts,tsx}', 'apps/frontend/**/*.{ts,tsx}', 'packages/**/*.{ts,tsx}'],
     ignores: ['**/*.test.ts', '**/*.spec.ts', '**/*.test.tsx', '**/*.spec.tsx'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
       parser: tsparser,
       parserOptions: {
-        project: [
-          './apps/backend/tsconfig.json',
-          './apps/frontend/tsconfig.json',
-          './packages/*/tsconfig.json',
-        ],
+        project: true,
+        tsconfigRootDir: __dirname,
       },
       globals: {
         // Node.js globals
+        NodeJS: 'readonly',
         require: 'readonly',
         module: 'readonly',
         process: 'readonly',
@@ -106,6 +104,15 @@ module.exports = [
         __filename: 'readonly',
         console: 'readonly',
         Buffer: 'readonly',
+        crypto: 'readonly',
+        fetch: 'readonly',
+        setTimeout: 'readonly',
+        setInterval: 'readonly',
+        setImmediate: 'readonly',
+        clearTimeout: 'readonly',
+        clearInterval: 'readonly',
+        // Express namespace
+        Express: 'readonly',
         // ES2022 globals
         Promise: 'readonly',
         Symbol: 'readonly',

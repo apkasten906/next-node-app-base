@@ -1,5 +1,6 @@
 import { IAuthorizationService } from '@repo/types';
 import { inject, injectable } from 'tsyringe';
+
 import { AuditAction, AuditLogService } from '../audit/audit-log.service';
 
 /**

@@ -1,6 +1,7 @@
+import crypto from 'crypto';
+
 import { IEncryptionService } from '@repo/types';
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 import { injectable } from 'tsyringe';
 
 @injectable()

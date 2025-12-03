@@ -1,5 +1,6 @@
 import { container } from 'tsyringe';
 import { beforeEach, describe, expect, it } from 'vitest';
+
 import { JwtService } from '../../services/auth/jwt.service';
 
 describe('JwtService', () => {

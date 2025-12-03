@@ -43,5 +43,14 @@
     "**/build/**": true,
     "**/.next/**": true,
     "**/.turbo/**": true
-  }
+  },
+  "cSpell.words": [
+    "adduser",
+    "apkasten",
+    "configmap",
+    "htpasswd",
+    "ingressgateway",
+    "npmjs",
+    "virtualservice"
+  ]
 }

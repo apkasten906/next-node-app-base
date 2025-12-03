@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { AuditAction, AuditLogService } from '../../services/audit/audit-log.service';
 
 describe('Audit Log Integration', () => {

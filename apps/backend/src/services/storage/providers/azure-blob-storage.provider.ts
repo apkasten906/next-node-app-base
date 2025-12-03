@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 import {
   BlobSASPermissions,
   BlobServiceClient,
@@ -12,8 +14,8 @@ import {
   ListOptions,
   UploadOptions,
 } from '@repo/types';
-import crypto from 'crypto';
 import { injectable } from 'tsyringe';
+
 import { LoggerService } from '../../logger.service';
 
 /**

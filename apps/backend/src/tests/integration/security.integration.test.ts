@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { container } from 'tsyringe';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { App } from '../../index';
 import { authenticate } from '../../middleware/auth.middleware';
 import { JwtService } from '../../services/auth/jwt.service';

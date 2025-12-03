@@ -1,5 +1,6 @@
 import { IEmailProvider, IPushNotificationProvider, ISmsProvider } from '@repo/types';
 import { container } from 'tsyringe';
+
 import { ConsoleEmailProvider } from './providers/console-email.provider';
 import { ConsolePushProvider } from './providers/console-push.provider';
 import { ConsoleSmsProvider } from './providers/console-sms.provider';

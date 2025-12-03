@@ -1,4 +1,5 @@
 import { injectable } from 'tsyringe';
+
 import { UserEntity, UserRepository } from '../../repositories/user.repository';
 
 @injectable()

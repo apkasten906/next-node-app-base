@@ -1,5 +1,6 @@
 import { container } from 'tsyringe';
 import { beforeEach, describe, expect, it } from 'vitest';
+
 import { EncryptionService } from '../../services/auth/encryption.service';
 
 describe('EncryptionService', () => {

@@ -1,5 +1,6 @@
 import Redis from 'ioredis';
 import { inject, singleton } from 'tsyringe';
+
 import { LoggerService } from './logger.service';
 
 // Minimal in-memory mock implementing the Redis subset used in tests

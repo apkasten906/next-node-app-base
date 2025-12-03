@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { container } from '../../container';
 import { EncryptionService } from '../../services/auth/encryption.service';
 

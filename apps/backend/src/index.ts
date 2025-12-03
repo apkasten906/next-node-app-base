@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import 'reflect-metadata';
 import { container } from 'tsyringe';
+
 import { setupSwagger } from './config/swagger';
 import { apiVersionMiddleware } from './middleware/api-version.middleware';
 import filesRouter from './routes/files.routes';
