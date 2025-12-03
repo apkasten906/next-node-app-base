@@ -28,10 +28,13 @@ Plan for next-node-app-base (updated)
 - ✅ **Option 6** (WSJF 4.00) - Verdaccio in-cluster manifest: Created complete Kubernetes manifests with Istio integration, ConfigMap, PVC, security hardening, comprehensive deployment documentation (commit `db8f4fd`)
 - ✅ **Option 5** (WSJF 3.67) - Wire Cucumber steps to integration harness: All Cucumber step definitions wired to integration tests with in-memory services (AuditLogService, AuthorizationService, CacheService), added cache-backed rate limiter tests, mock Redis support
 
+### Low Priority (WSJF ~2.8)
+
+- ✅ **Option 4** (WSJF 2.78) - Full ABAC/policy engine expansion: Implemented comprehensive ABAC policy engine with PolicyEngine, PolicyStore, deny-overrides strategy, AND/OR/NOT logical operators, 9 comparison operators, 4 attribute sources, example policies (time-based, department-based, ownership, location), integrated with AuthorizationService maintaining backward-compatible RBAC (commit `888e75a`)
+
 ### Next Priorities
 
-- ⏳ **Option 4** - Full ABAC/policy engine expansion (WSJF 2.78)
-- 🆕 **Code Quality** - Continue ESLint improvements (79 errors, 87 warnings remaining)
+- 🆕 **Code Quality** - Continue ESLint improvements (91 errors, 89 warnings remaining)
 
 ## Priorities (A / B / C from original plan)
 
@@ -47,7 +50,8 @@ Plan for next-node-app-base (updated)
 - ✅ DONE: Add an optional `test-setup` (Vitest `setupFiles`) to set `REDIS_MOCK=true` and `TEST_EXTERNAL_SERVICES=false` for local/CI fast gates.
 - ✅ DONE: Fix all TypeScript compilation errors (29 errors resolved - test files + frontend tsconfig)
 - ✅ DONE: Auto-fix ESLint issues (75 issues fixed - import ordering, missing globals, parser config)
-- ⏳ IN PROGRESS: Address remaining ESLint code quality issues (79 errors, 87 warnings)
+- ✅ DONE: Implement full ABAC policy engine (PolicyEngine, PolicyStore, deny-overrides, operators, attribute sources, example policies, docs)
+- ⏳ IN PROGRESS: Address remaining ESLint code quality issues (91 errors, 89 warnings)
 
 ## Notes on service-mesh friendliness
 
