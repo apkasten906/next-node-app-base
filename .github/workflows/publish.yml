@@ -1,0 +1,199 @@
+name: Publish Packages
+
+on:
+  # Manual trigger with options
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Run in dry-run mode (no actual publish)'
+        required: false
+        type: boolean
+        default: true
+      registry-url:
+        description: 'Registry URL (leave empty for GitHub Packages default)'
+        required: false
+        type: string
+        default: ''
+      packages-filter:
+        description: 'Comma-separated list of package names to publish (empty = all)'
+        required: false
+        type: string
+        default: ''
+
+  # Automatic trigger on version tags
+  push:
+    tags:
+      - 'v*.*.*'
+
+  # Automatic trigger on GitHub releases
+  release:
+    types: [published]
+
+# Required permissions for GitHub Packages
+permissions:
+  contents: read
+  packages: write
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  build:
+    name: Build Packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        run: npm install -g pnpm@${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: |
+          echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: turbo run build --filter='./packages/*'
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-builds
+          path: |
+            packages/*/dist
+            packages/*/package.json
+          retention-days: 1
+
+  publish:
+    name: Publish to Registry
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        run: npm install -g pnpm@${{ env.PNPM_VERSION }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: package-builds
+          path: packages
+
+      - name: Determine registry URL
+        id: registry
+        run: |
+          if [ -n "${{ inputs.registry-url }}" ]; then
+            echo "url=${{ inputs.registry-url }}" >> $GITHUB_OUTPUT
+          else
+            echo "url=https://npm.pkg.github.com" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine dry-run mode
+        id: dry-run
+        run: |
+          # Manual dispatch: use input
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "enabled=${{ inputs.dry-run }}" >> $GITHUB_OUTPUT
+          # Tag/release: always publish for real
+          else
+            echo "enabled=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish packages (dry-run)
+        if: steps.dry-run.outputs.enabled == 'true'
+        run: node scripts/publish-packages.js
+        env:
+          REGISTRY_URL: ${{ steps.registry.outputs.url }}
+          NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: 'true'
+          PACKAGES_FILTER: ${{ inputs.packages-filter }}
+
+      - name: Publish packages (production)
+        if: steps.dry-run.outputs.enabled == 'false'
+        run: node scripts/publish-packages.js
+        env:
+          REGISTRY_URL: ${{ steps.registry.outputs.url }}
+          NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGES_FILTER: ${{ inputs.packages-filter }}
+
+      - name: Create publish summary
+        if: always()
+        run: |
+          echo "## Publish Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Registry:** ${{ steps.registry.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run:** ${{ steps.dry-run.outputs.enabled }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ inputs.packages-filter }}" ]; then
+            echo "- **Packages Filter:** ${{ inputs.packages-filter }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Published Packages" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for detailed publish results." >> $GITHUB_STEP_SUMMARY
+
+  # Optional: Create GitHub release notes with published packages
+  release-notes:
+    name: Update Release Notes
+    runs-on: ubuntu-latest
+    needs: publish
+    if: github.event_name == 'release'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get published packages
+        id: packages
+        run: |
+          # Extract package names and versions from packages/*
+          packages=$(find packages -name 'package.json' -not -path '*/node_modules/*' -exec jq -r 'select(.private == false) | "\(.name)@\(.version)"' {} \; | paste -sd "," -)
+          echo "list=$packages" >> $GITHUB_OUTPUT
+
+      - name: Add packages to release notes
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const packages = '${{ steps.packages.outputs.list }}'.split(',').filter(Boolean);
+            if (packages.length === 0) {
+              console.log('No publishable packages found');
+              return;
+            }
+
+            const packageList = packages.map(pkg => `- \`${pkg}\``).join('\n');
+            const body = `## Published Packages\n\n${packageList}\n\n---\n\n${context.payload.release.body}`;
+
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: context.payload.release.id,
+              body: body
+            });

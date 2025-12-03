@@ -102,9 +102,104 @@ node scripts/publish-packages.js
 
 ## CI/CD Workflows
 
-### GitHub Actions
+### GitHub Actions Automated Publishing
 
-The publish workflow is configured in `.github/workflows/publish.yml` (to be created).
+The repository includes a GitHub Actions workflow (`.github/workflows/publish.yml`) for automated package publishing.
+
+#### Workflow Triggers
+
+1. **Manual Dispatch** (recommended for testing)
+   - Go to Actions → Publish Packages → Run workflow
+   - Options:
+     - Dry-run mode (default: enabled)
+     - Custom registry URL (default: GitHub Packages)
+     - Packages filter (default: all publishable packages)
+
+2. **Git Tags** (automatic publishing)
+   - Push a version tag: `git tag v1.0.0 && git push --tags`
+   - Workflow publishes all non-private packages
+   - Always runs in production mode (no dry-run)
+
+3. **GitHub Releases** (automatic publishing)
+   - Create a release in GitHub UI
+   - Workflow publishes packages and updates release notes
+   - Release notes automatically include published package list
+
+#### Workflow Jobs
+
+1. **Build Job**
+   - Checks out code
+   - Installs dependencies with pnpm
+   - Builds all packages in `packages/*` directory
+   - Uploads build artifacts for publish job
+
+2. **Publish Job**
+   - Downloads build artifacts
+   - Runs `scripts/publish-packages.js` with appropriate environment
+   - Uses `GITHUB_TOKEN` for authentication (automatic)
+   - Creates publish summary in GitHub Actions UI
+
+3. **Release Notes Job** (only for releases)
+   - Updates release notes with published package list
+   - Formats as: `@apkasten906/package-name@version`
+
+#### Required Secrets
+
+**For GitHub Packages (default):**
+
+- `GITHUB_TOKEN` - Automatically provided by GitHub Actions, no configuration needed
+- Workflow has `packages: write` permission
+
+**For Internal Registry:**
+
+- Add secret: `NPM_AUTH_TOKEN` with your registry token
+- Optionally add secret: `INTERNAL_REGISTRY_URL`
+- Update workflow to use secrets instead of inputs
+
+#### Example: Manual Dry-Run
+
+1. Go to repository → Actions tab
+2. Select "Publish Packages" workflow
+3. Click "Run workflow"
+4. Configure options:
+   - ✅ Dry-run mode: `true`
+   - Registry URL: (leave empty for GitHub Packages)
+   - Packages filter: (leave empty for all)
+5. Click "Run workflow"
+6. Monitor output in Actions log
+
+#### Example: Publish via Git Tag
+
+```bash
+# Ensure all changes are committed
+git status
+
+# Create and push a version tag
+git tag v1.0.0
+git push origin v1.0.0
+
+# Workflow automatically triggers and publishes
+# Check Actions tab for progress
+```
+
+#### Example: Publishing to Internal Registry
+
+To configure the workflow for an internal registry:
+
+1. Add repository secrets:
+   - `INTERNAL_REGISTRY_URL`: `http://npm-registry.svc.cluster.local:4873`
+   - `INTERNAL_REGISTRY_TOKEN`: Your auth token
+
+2. Update `.github/workflows/publish.yml`:
+
+   ```yaml
+   env:
+     REGISTRY_URL: ${{ secrets.INTERNAL_REGISTRY_URL }}
+     NPM_AUTH_TOKEN: ${{ secrets.INTERNAL_REGISTRY_TOKEN }}
+   ```
+
+3. Commit and push changes
+4. Trigger workflow manually or via tag
 
 **Required Secrets:**
 
