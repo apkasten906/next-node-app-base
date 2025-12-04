@@ -419,9 +419,18 @@ turbo run build --filter=@apkasten906/types
 
 ## Future Enhancements
 
-- [ ] GitHub Actions workflow for automated publishing
+- [x] **GitHub Actions workflow for automated publishing** - IMPLEMENTED (`.github/workflows/publish.yml`)
 - [ ] Automated versioning with changesets or semantic-release
 - [ ] Provenance attestation for published packages
 - [ ] NPM package signing
 - [ ] Pre-publish validation hooks
 - [ ] Package size budgets and monitoring
+
+## Completed Features
+
+✅ **Registry-agnostic publishing script** - `scripts/publish-packages.js` supports any npm-compatible registry  
+✅ **GitHub Actions workflow** - Automated publishing via manual dispatch, tags, or releases  
+✅ **Dry-run mode** - Test publishing without actually uploading packages  
+✅ **Package filtering** - Selectively publish specific packages  
+✅ **Service mesh support** - Route publishing through internal registries via environment variables  
+✅ **Verdaccio Kubernetes manifests** - Complete deployment configuration with Istio integration
