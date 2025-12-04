@@ -101,6 +101,7 @@ export class JwtService {
       d: 86400,
     };
 
+    // eslint-disable-next-line security/detect-object-injection -- Controlled access to time unit multipliers with validated keys from regex pattern (s/m/h/d)
     return value * (multipliers[unit] || 60);
   }
 }
