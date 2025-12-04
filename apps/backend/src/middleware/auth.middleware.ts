@@ -1,19 +1,8 @@
-import { TokenPayload } from '@repo/types';
 import { NextFunction, Request, Response } from 'express';
 import { container } from 'tsyringe';
 
 import { AuthorizationService } from '../services/auth/authorization.service';
 import { JwtService } from '../services/auth/jwt.service';
-
-// Extend Express Request to include user
-
-declare global {
-  namespace Express {
-    interface Request {
-      user?: TokenPayload;
-    }
-  }
-}
 
 /**
  * Middleware to authenticate JWT token
@@ -37,7 +26,7 @@ export const authenticate = async (
 
     req.user = payload;
     next();
-  } catch (_error) {
+  } catch {
     res.status(403).json({ error: 'Invalid or expired token' });
   }
 };
@@ -53,7 +42,7 @@ export const requireRole = (...roles: string[]) => {
     }
 
     const authService = container.resolve(AuthorizationService);
-    const userId = req.user['userId'];
+    const userId = req.user.userId;
 
     for (const role of roles) {
       const hasRole = await authService.hasRole(userId, role);
@@ -80,7 +69,7 @@ export const requirePermission = (...permissions: string[]) => {
     }
 
     const authService = container.resolve(AuthorizationService);
-    const userId = req.user['userId'];
+    const userId = req.user.userId;
 
     for (const permission of permissions) {
       const hasPermission = await authService.hasPermission(userId, permission);
@@ -107,7 +96,7 @@ export const requireAccess = (resource: string, action: string) => {
     }
 
     const authService = container.resolve(AuthorizationService);
-    const userId = req.user['userId'];
+    const userId = req.user.userId;
 
     const canAccess = await authService.canAccess(userId, resource, action);
 

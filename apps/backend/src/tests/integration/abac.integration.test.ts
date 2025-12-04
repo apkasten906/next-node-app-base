@@ -13,10 +13,12 @@ describe('ABAC (Attribute-Based Access Control) smoke test', () => {
       clearance: 'confidential',
     } as Record<string, string>;
 
+    // eslint-disable-next-line security/detect-object-injection -- Test fixture validating attribute-based access control
     const hasAccess = Object.entries(requirements).every(([k, v]) => userAttrs[k] === v);
     expect(hasAccess).toBe(true);
 
     const badReq = { department: 'sales' };
+    // eslint-disable-next-line security/detect-object-injection -- Test fixture validating attribute-based access control
     const denied = Object.entries(badReq).every(([k, v]) => userAttrs[k] === v);
     expect(denied).toBe(false);
   });

@@ -63,6 +63,7 @@ class MockRedis {
  */
 @singleton()
 export class CacheService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Redis client can be MockRedis or ioredis, both with compatible interfaces
   private client: any;
 
   constructor(@inject(LoggerService) private logger: LoggerService) {
@@ -77,6 +78,7 @@ export class CacheService {
     }
 
     // Default Redis options
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Redis constructor options vary by version
     const defaultOptions: any = {
       retryStrategy: (times: number) => {
         const delay = Math.min(times * 50, 2000);
@@ -230,6 +232,7 @@ export class CacheService {
   /**
    * Get Redis client instance
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Returns MockRedis or ioredis instance
   getClient(): any {
     return this.client;
   }

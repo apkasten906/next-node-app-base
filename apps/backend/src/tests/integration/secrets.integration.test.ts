@@ -13,7 +13,6 @@ describe('Secrets Manager Integration', () => {
     // Unknown secret should fall back to env and throw if missing
     delete process.env['SOME_RANDOM_SECRET'];
     try {
-       
       await mgr.getSecret('SOME_RANDOM_SECRET');
       throw new Error('Expected getSecret to throw for missing secret');
     } catch (err: unknown) {

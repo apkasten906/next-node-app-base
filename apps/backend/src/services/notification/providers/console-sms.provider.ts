@@ -18,10 +18,15 @@ export class ConsoleSmsProvider implements ISmsProvider {
       body: options.body,
     });
 
+    // eslint-disable-next-line no-console -- Intentional console output for development SMS provider
     console.log('\n=== SMS MESSAGE ===');
+    // eslint-disable-next-line no-console -- Intentional console output for development SMS provider
     console.log('To:', options.to);
+    // eslint-disable-next-line no-console -- Intentional console output for development SMS provider
     console.log('From:', options.from || '+1234567890');
+    // eslint-disable-next-line no-console -- Intentional console output for development SMS provider
     console.log('Body:', options.body);
+    // eslint-disable-next-line no-console -- Intentional console output for development SMS provider
     console.log('==================\n');
 
     return {

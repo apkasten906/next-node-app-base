@@ -70,12 +70,16 @@
     "ingressgateway",
     "Kiali",
     "Meili",
+    "msword",
     "Multer",
     "nextauth",
     "npmjs",
     "nvmrc",
+    "officedocument",
+    "openxmlformats",
     "presigner",
     "Promtail",
+    "quicktime",
     "rabbitmq",
     "rollouts",
     "runbooks",
@@ -86,6 +90,7 @@
     "tsyringe",
     "Turborepo",
     "virtualservice",
+    "wordprocessingml",
     "WSJF"
   ]
 }

@@ -32,8 +32,8 @@ export class SendGridEmailProvider implements IEmailProvider {
       // const sgMail = require('@sendgrid/mail');
       // sgMail.setApiKey(this.apiKey);
 
-      // @ts-ignore - Used when @sendgrid/mail is installed
-      const message = {
+      // @ts-expect-error - Used when @sendgrid/mail is installed
+      const _message = {
         to: options.to,
         from: options.from || this.fromEmail,
         subject: options.subject,

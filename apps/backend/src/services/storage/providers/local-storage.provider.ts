@@ -283,6 +283,7 @@ export class LocalStorageProvider implements IStorageProvider {
       'audio/mpeg': '.mp3',
     };
 
+    // eslint-disable-next-line security/detect-object-injection -- Controlled mime type mapping from predefined set
     return mimeMap[mimeType] || '';
   }
 

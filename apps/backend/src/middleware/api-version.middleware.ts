@@ -75,7 +75,9 @@ function compareVersions(a: string, b: string): number {
   const bParts = b.split('.').map(Number);
 
   for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+    // eslint-disable-next-line security/detect-object-injection -- Array index access in controlled loop
     const aNum = aParts[i] || 0;
+    // eslint-disable-next-line security/detect-object-injection -- Array index access in controlled loop
     const bNum = bParts[i] || 0;
 
     if (aNum > bNum) return 1;

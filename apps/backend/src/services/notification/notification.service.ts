@@ -3,6 +3,7 @@ import {
   IEmailProvider,
   IPushNotificationProvider,
   ISmsProvider,
+  NotificationResult,
   PushNotificationOptions,
   SmsOptions,
 } from '@repo/types';
@@ -22,7 +23,7 @@ export class NotificationService {
     private pushProvider: IPushNotificationProvider
   ) {}
 
-  async sendEmail(options: EmailOptions): Promise<any> {
+  async sendEmail(options: EmailOptions): Promise<NotificationResult> {
     try {
       this.logger.info('Sending email', { to: options.to, subject: options.subject });
       const result = await this.emailProvider.send(options);
@@ -39,12 +40,12 @@ export class NotificationService {
       return {
         success: false,
         error: (error as Error).message,
-        notificationId: Date.now().toString(),
+        messageId: Date.now().toString(),
       };
     }
   }
 
-  async sendSms(options: SmsOptions): Promise<any> {
+  async sendSms(options: SmsOptions): Promise<NotificationResult> {
     try {
       this.logger.info('Sending SMS', { to: options.to });
       const result = await this.smsProvider.send(options);
@@ -61,12 +62,12 @@ export class NotificationService {
       return {
         success: false,
         error: (error as Error).message,
-        notificationId: Date.now().toString(),
+        messageId: Date.now().toString(),
       };
     }
   }
 
-  async sendPushNotification(options: PushNotificationOptions): Promise<any> {
+  async sendPushNotification(options: PushNotificationOptions): Promise<NotificationResult> {
     try {
       this.logger.info('Sending push notification', {
         userId: options.userId,
@@ -89,12 +90,12 @@ export class NotificationService {
       return {
         success: false,
         error: (error as Error).message,
-        notificationId: Date.now().toString(),
+        messageId: Date.now().toString(),
       };
     }
   }
 
-  async sendBulkEmail(emails: EmailOptions[]): Promise<any[]> {
+  async sendBulkEmail(emails: EmailOptions[]): Promise<NotificationResult[]> {
     this.logger.info('Sending bulk emails', { count: emails.length });
 
     const results = await Promise.allSettled(emails.map((email) => this.sendEmail(email)));
@@ -106,7 +107,7 @@ export class NotificationService {
         return {
           success: false,
           error: result.reason?.message || 'Unknown error',
-          notificationId: Date.now().toString(),
+          messageId: Date.now().toString(),
         };
       }
     });

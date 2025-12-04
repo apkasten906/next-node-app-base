@@ -60,8 +60,11 @@ export class NotificationProviderFactory {
         break;
     }
 
+    // eslint-disable-next-line no-console -- Startup information logging
     console.log(`📧 Email provider: ${emailProvider}`);
+    // eslint-disable-next-line no-console -- Startup information logging
     console.log(`📱 SMS provider: ${smsProvider}`);
+    // eslint-disable-next-line no-console -- Startup information logging
     console.log(`🔔 Push notification provider: ${pushProvider}`);
   }
 }

@@ -33,6 +33,7 @@ export class HateoasBuilder {
    * Add a link to the response
    */
   addLink(rel: string, href: string, method?: string, type?: string): this {
+    // eslint-disable-next-line security/detect-object-injection -- Controlled assignment using validated rel parameter
     this.links[rel] = {
       href,
       rel,
@@ -110,6 +111,7 @@ export class HateoasBuilder {
    * Add metadata
    */
   addMeta(key: string, value: unknown): this {
+    // eslint-disable-next-line security/detect-object-injection -- Controlled metadata assignment using validated key parameter
     this.meta[key] = value;
     return this;
   }

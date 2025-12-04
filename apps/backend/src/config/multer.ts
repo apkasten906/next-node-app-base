@@ -78,8 +78,7 @@ export function createFileFilter(allowedMimeTypes: string[]) {
     // Check MIME type
     if (!allowedMimeTypes.includes(file.mimetype)) {
       return callback(
-        new Error(`Invalid file type. Allowed types: ${allowedMimeTypes.join(', ')}`),
-        false
+        new Error(`Invalid file type. Allowed types: ${allowedMimeTypes.join(', ')}`)
       );
     }
 
@@ -100,10 +99,7 @@ export function createFileFilter(allowedMimeTypes: string[]) {
 
     const allowedExtensions = validExtensions[file.mimetype];
     if (allowedExtensions && !allowedExtensions.includes(ext)) {
-      return callback(
-        new Error(`File extension ${ext} does not match MIME type ${file.mimetype}`),
-        false
-      );
+      return callback(new Error(`File extension ${ext} does not match MIME type ${file.mimetype}`));
     }
 
     callback(null, true);

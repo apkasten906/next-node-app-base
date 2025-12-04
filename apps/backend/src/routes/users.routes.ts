@@ -16,7 +16,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
 
     // Check authorization
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
@@ -60,7 +60,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
     const audit = container.resolve<AuditLogService>('AuditLogService');
 
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     const { id } = req.params;
 
     if (!userId) {
@@ -124,7 +124,7 @@ router.patch('/:id', async (req: Request, res: Response): Promise<void> => {
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
     const audit = container.resolve<AuditLogService>('AuditLogService');
 
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     const { id } = req.params;
     const { name, image } = req.body;
 
@@ -187,7 +187,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
     const authz = container.resolve<AuthorizationService>('AuthorizationService');
     const audit = container.resolve<AuditLogService>('AuditLogService');
 
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     const { id } = req.params;
 
     if (!userId) {

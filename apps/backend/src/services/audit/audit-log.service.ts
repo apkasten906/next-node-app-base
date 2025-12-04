@@ -66,6 +66,7 @@ export class AuditLogService {
     // - Send to SIEM system
     // - Trigger alerts for critical events
     // - Ensure immutability of logs
+    // eslint-disable-next-line no-console -- Development audit log output (replace with proper logging in production)
     console.log('[AUDIT]', JSON.stringify(logEntry));
   }
 
@@ -97,7 +98,7 @@ export class AuditLogService {
     resourceId?: string;
     success: boolean;
     errorMessage?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }): Promise<void> {
     await this.log({
       ...params,

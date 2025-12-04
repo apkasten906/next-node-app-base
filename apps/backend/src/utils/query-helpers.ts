@@ -107,20 +107,27 @@ export interface FilterParams {
 export function parseFilters(query: Record<string, unknown>): FilterParams[] {
   const filters: FilterParams[] = [];
 
-  if (!query.filter || typeof query.filter !== 'object') {
+  const filterValue = query['filter'];
+  if (!filterValue || typeof filterValue !== 'object' || filterValue === null) {
     return filters;
   }
 
-  Object.keys(query.filter).forEach((field) => {
-    const fieldFilters = query.filter[field];
+  const filterObj = filterValue as Record<string, unknown>;
 
-    if (typeof fieldFilters === 'object') {
-      Object.keys(fieldFilters).forEach((operator) => {
+  Object.keys(filterObj).forEach((field) => {
+    // eslint-disable-next-line security/detect-object-injection -- Controlled access to filter field from query parameters
+    const fieldFilters = filterObj[field];
+
+    if (fieldFilters && typeof fieldFilters === 'object') {
+      const ops = fieldFilters as Record<string, unknown>;
+
+      Object.keys(ops).forEach((operator) => {
         if (isValidOperator(operator)) {
           filters.push({
             field,
             operator: operator as FilterParams['operator'],
-            value: fieldFilters[operator],
+            // eslint-disable-next-line security/detect-object-injection -- Controlled access to operator value from validated operators
+            value: ops[operator],
           });
         }
       });

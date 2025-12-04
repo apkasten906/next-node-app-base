@@ -254,6 +254,8 @@ export function setupSwagger(app: Express): void {
     res.send(swaggerSpec);
   });
 
+  // eslint-disable-next-line no-console -- Startup information logging
   console.log('📚 Swagger documentation available at /api-docs');
+  // eslint-disable-next-line no-console -- Startup information logging
   console.log('📄 OpenAPI spec available at /api-docs.json');
 }

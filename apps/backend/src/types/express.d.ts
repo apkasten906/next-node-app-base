@@ -2,7 +2,7 @@
  * Express type extensions for custom properties
  */
 
-import { Request } from 'express';
+import { TokenPayload } from '@repo/types';
 
 declare global {
   namespace Express {
@@ -13,14 +13,11 @@ declare global {
       apiVersion?: string;
 
       /**
-       * Authenticated user information
+       * Authenticated user information from JWT token
        */
-      user?: {
-        id: string;
-        email?: string;
-        roles?: string[];
-        [key: string]: unknown;
-      };
+      user?: TokenPayload;
     }
   }
 }
+
+export {};

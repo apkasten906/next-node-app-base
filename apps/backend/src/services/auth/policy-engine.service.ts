@@ -24,7 +24,9 @@ export class PolicyEngine implements IPolicyEngine {
    * @deprecated Use evaluatePolicies instead - this method requires policies to be passed in
    */
   async evaluate(_context: PolicyContext): Promise<PolicyEvaluationResult> {
-    throw new Error('evaluate method requires policies to be passed in - use evaluatePolicies instead');
+    throw new Error(
+      'evaluate method requires policies to be passed in - use evaluatePolicies instead'
+    );
   }
 
   /**
@@ -32,7 +34,7 @@ export class PolicyEngine implements IPolicyEngine {
    */
   async evaluatePolicies(
     policies: Policy[],
-    context: PolicyContext,
+    context: PolicyContext
   ): Promise<PolicyEvaluationResult> {
     const deniedRules: string[] = [];
     const allowedRules: string[] = [];
@@ -148,10 +150,7 @@ export class PolicyEngine implements IPolicyEngine {
   /**
    * Evaluate conditions (logical combination)
    */
-  async evaluateConditions(
-    conditions: LogicalCondition,
-    context: PolicyContext,
-  ): Promise<boolean> {
+  async evaluateConditions(conditions: LogicalCondition, context: PolicyContext): Promise<boolean> {
     switch (conditions.operator) {
       case LogicalOperator.AND:
         return this.evaluateAnd(conditions.conditions, context);
@@ -172,7 +171,7 @@ export class PolicyEngine implements IPolicyEngine {
    */
   private async evaluateAnd(
     conditions: (Condition | LogicalCondition)[],
-    context: PolicyContext,
+    context: PolicyContext
   ): Promise<boolean> {
     for (const condition of conditions) {
       const result = await this.evaluateCondition(condition, context);
@@ -188,7 +187,7 @@ export class PolicyEngine implements IPolicyEngine {
    */
   private async evaluateOr(
     conditions: (Condition | LogicalCondition)[],
-    context: PolicyContext,
+    context: PolicyContext
   ): Promise<boolean> {
     for (const condition of conditions) {
       const result = await this.evaluateCondition(condition, context);
@@ -204,7 +203,7 @@ export class PolicyEngine implements IPolicyEngine {
    */
   private async evaluateNot(
     conditions: (Condition | LogicalCondition)[],
-    context: PolicyContext,
+    context: PolicyContext
   ): Promise<boolean> {
     if (conditions.length === 0) {
       return false;
@@ -224,7 +223,7 @@ export class PolicyEngine implements IPolicyEngine {
    */
   private async evaluateCondition(
     condition: Condition | LogicalCondition,
-    context: PolicyContext,
+    context: PolicyContext
   ): Promise<boolean> {
     // Check if it's a logical condition
     if ('operator' in condition && 'conditions' in condition) {
@@ -240,7 +239,7 @@ export class PolicyEngine implements IPolicyEngine {
    */
   private async evaluateSimpleCondition(
     condition: Condition,
-    context: PolicyContext,
+    context: PolicyContext
   ): Promise<boolean> {
     const actualValue = this.extractAttributeValue(condition.attribute, context);
     const expectedValue = condition.value;
@@ -252,8 +251,11 @@ export class PolicyEngine implements IPolicyEngine {
    * Extract attribute value from context
    * Note: Uses 'any' for generic ABAC attribute handling across dynamic contexts
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private extractAttributeValue(attribute: { source: string; key: string }, context: PolicyContext): any {
+  private extractAttributeValue(
+    attribute: { source: string; key: string },
+    context: PolicyContext
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): any {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sourceMap: Record<string, Record<string, any>> = {
       user: context.user,

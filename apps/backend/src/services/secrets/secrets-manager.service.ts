@@ -23,6 +23,7 @@ export class EnvironmentSecretsManager implements ISecretsManager {
 
     if (!secret) {
       // Fall back to environment variable
+      // eslint-disable-next-line security/detect-object-injection -- Controlled access to environment variables by secret key
       const envValue = process.env[key];
       if (!envValue) {
         throw new Error(`Secret not found: ${key}`);
@@ -126,6 +127,7 @@ export class EnvironmentSecretsManager implements ISecretsManager {
     ];
 
     for (const key of criticalSecrets) {
+      // eslint-disable-next-line security/detect-object-injection -- Controlled iteration over predefined critical secret keys
       const value = process.env[key];
       if (value) {
         this.secrets.set(key, {
