@@ -20,10 +20,12 @@ class MockStorageProvider implements IStorageProvider {
 
   async upload(file: Buffer | Readable, options: UploadOptions): Promise<FileMetadata> {
     const buffer = Buffer.isBuffer(file) ? file : Buffer.from('mock-data');
-    const path = `${options.folder || ''}/${options.filename}`;
+    const filename = options.filename ?? 'unnamed';
+    const folder = options.folder ?? '';
+    const path = folder ? `${folder}/${filename}` : filename;
 
     const metadata: FileMetadata = {
-      filename: options.filename,
+      filename,
       path,
       size: buffer.length,
       contentType: options.contentType || 'application/octet-stream',
@@ -70,11 +72,13 @@ class MockStorageProvider implements IStorageProvider {
     const files = Array.from(this.files.values()).map((f) => f.metadata);
 
     if (options?.folder) {
-      return files.filter((f) => f.path.startsWith(options.folder));
+      const folder = options.folder!;
+      return files.filter((f) => f.path.startsWith(folder));
     }
 
     if (options?.prefix) {
-      return files.filter((f) => f.filename.startsWith(options.prefix));
+      const prefix = options.prefix!;
+      return files.filter((f) => f.filename.startsWith(prefix));
     }
 
     return files;
