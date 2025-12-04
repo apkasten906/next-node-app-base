@@ -43,14 +43,19 @@ Plan for next-node-app-base (updated)
   - JWT token generation and validation (6 tests)
   - OWASP Top 10 protection headers (12 tests)
   - See `docs/bdd-coverage-analysis.md` for complete mapping
-- **Current Status**: 204 tests passing, 0 ESLint errors/warnings, 100% BDD @security scenario coverage
-- **Next**: Proceed to priority C (artifact registry finalization) or expand BDD coverage to other feature files
+- ✅ **Artifact Registry Publishing** - Complete registry-agnostic publishing flow verified and tested - commit `d422d55`
+  - Publish script tested successfully in dry-run mode
+  - GitHub Actions workflow complete and documented
+  - Package scoping verified (@apkasten906/types publishable, @repo/\* private)
+  - Documentation updated in `docs/PUBLISHING.md`
+- **Current Status**: 204 tests passing, 0 ESLint errors/warnings, 100% BDD @security scenario coverage, artifact publishing verified
+- **Next**: Priority A - Investigate Prisma CLI/migrations or continue with other plan steps
 
 ## Priorities (A / B / C from original plan)
 
 1. ✅ **B (COMPLETED)**: Convert `@security` BDD scenarios to integration tests and make tests resilient to external services (MockRedis, toggles). All 15 critical security scenarios now covered.
-2. **C (CURRENT)**: Finalize artifact registry and publishing flow (GitHub Packages default), add `scripts/publish-packages.js`, `.npmrc.template`, and GitHub Actions publish workflow. Make publish flow registry-agnostic via `REGISTRY_URL` so we can route to an internal registry through the service mesh.
-3. **A (LATER)**: Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy.
+2. ✅ **C (COMPLETED)**: Finalize artifact registry and publishing flow (GitHub Packages default), add `scripts/publish-packages.js`, `.npmrc.template`, and GitHub Actions publish workflow. Make publish flow registry-agnostic via `REGISTRY_URL` so we can route to an internal registry through the service mesh. All components verified and tested.
+3. **A (CURRENT)**: Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy.
 
 ## Actionable steps (short-term)
 
