@@ -39,18 +39,22 @@ Plan for next-node-app-base (updated)
 - ✅ **Testing Infrastructure - Notifications** - NotificationService tests completed (24 tests) - commit `dc88870`
 - ✅ **Testing Infrastructure - Webhooks** - WebhookService tests completed (25 tests) - commit `8a03485`
 - ✅ **Testing Infrastructure - Secrets** - SecretsManagerService tests completed (35 tests) - commit `b8d2566`
-- **Current Status**: 186 tests passing, 0 ESLint errors/warnings, comprehensive service test coverage achieved
-- **Next**: Continue with integration/E2E test expansion or proceed to next plan priorities (BDD scenarios, artifact registry)
+- ✅ **BDD Scenario Coverage** - All 15 @security scenarios converted to integration tests (100% coverage) - commit `f90746d`
+  - JWT token generation and validation (6 tests)
+  - OWASP Top 10 protection headers (12 tests)
+  - See `docs/bdd-coverage-analysis.md` for complete mapping
+- **Current Status**: 204 tests passing, 0 ESLint errors/warnings, 100% BDD @security scenario coverage
+- **Next**: Proceed to priority C (artifact registry finalization) or expand BDD coverage to other feature files
 
 ## Priorities (A / B / C from original plan)
 
-1. B (current): Convert `@security` BDD scenarios to integration tests and make tests resilient to external services (MockRedis, toggles). Continue until all critical scenarios are covered.
-2. C (next): Finalize artifact registry and publishing flow (GitHub Packages default), add `scripts/publish-packages.js`, `.npmrc.template`, and GitHub Actions publish workflow. Make publish flow registry-agnostic via `REGISTRY_URL` so we can route to an internal registry through the service mesh.
-3. A (later): Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy.
+1. ✅ **B (COMPLETED)**: Convert `@security` BDD scenarios to integration tests and make tests resilient to external services (MockRedis, toggles). All 15 critical security scenarios now covered.
+2. **C (CURRENT)**: Finalize artifact registry and publishing flow (GitHub Packages default), add `scripts/publish-packages.js`, `.npmrc.template`, and GitHub Actions publish workflow. Make publish flow registry-agnostic via `REGISTRY_URL` so we can route to an internal registry through the service mesh.
+3. **A (LATER)**: Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy.
 
 ## Actionable steps (short-term)
 
-- ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. (owner: dev)
+- ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
 - ✅ DONE: Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — see `docs/adr/0001-artifact-registry-github-packages.md`.
 - ✅ DONE: Add an optional `test-setup` (Vitest `setupFiles`) to set `REDIS_MOCK=true` and `TEST_EXTERNAL_SERVICES=false` for local/CI fast gates.
@@ -61,6 +65,7 @@ Plan for next-node-app-base (updated)
 - ✅ DONE: Add comprehensive Storage Service unit tests (28 tests covering all file operations, MIME validation, health checks)
 - ✅ DONE: Improve cache service type safety - eliminated `any` types with IRedisClient interface (-11 warnings)
 - ✅ DONE: Replace remaining `any` types with `unknown` and type aliases (query-helpers, policy-engine) - improved type safety with runtime guards
+- ✅ DONE: Complete BDD @security scenario integration test coverage (JWT generation/validation, OWASP headers) - 18 new tests added
 
 ## Notes on service-mesh friendliness
 
