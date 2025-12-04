@@ -55,6 +55,7 @@ Plan for next-node-app-base (updated)
 - ✅ DONE: Address ESLint code quality issues - achieved 0 errors, 13 warnings (100% error elimination, 92% warning reduction from 154 total problems)
 - ✅ DONE: Add comprehensive Storage Service unit tests (28 tests covering all file operations, MIME validation, health checks)
 - ✅ DONE: Improve cache service type safety - eliminated `any` types with IRedisClient interface (-11 warnings)
+- ✅ DONE: Replace remaining `any` types with `unknown` and type aliases (query-helpers, policy-engine) - improved type safety with runtime guards
 
 ## Notes on service-mesh friendliness
 
