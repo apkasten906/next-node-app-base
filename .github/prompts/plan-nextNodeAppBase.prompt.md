@@ -35,6 +35,7 @@ Plan for next-node-app-base (updated)
 ### Next Priorities
 
 - ✅ **Code Quality** - ESLint improvements completed (0 errors, 24 warnings) - commits `8e94d79`, `59f4c95`
+- ✅ **Testing Infrastructure** - Storage Service tests completed (28 comprehensive tests) - commit `646dfbb`
 
 ## Priorities (A / B / C from original plan)
 
@@ -52,6 +53,7 @@ Plan for next-node-app-base (updated)
 - ✅ DONE: Auto-fix ESLint issues (75 issues fixed - import ordering, missing globals, parser config)
 - ✅ DONE: Implement full ABAC policy engine (PolicyEngine, PolicyStore, deny-overrides, operators, attribute sources, example policies, docs)
 - ✅ DONE: Address ESLint code quality issues - achieved 0 errors, 24 warnings (100% error elimination, 84% total reduction from 154 problems)
+- ✅ DONE: Add comprehensive Storage Service unit tests (28 tests covering all file operations, MIME validation, health checks)
 
 ## Notes on service-mesh friendliness
 
