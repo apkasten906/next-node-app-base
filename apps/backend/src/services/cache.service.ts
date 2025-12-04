@@ -3,56 +3,74 @@ import { inject, singleton } from 'tsyringe';
 
 import { LoggerService } from './logger.service';
 
+/**
+ * Common interface for Redis operations
+ * Implemented by both ioredis and MockRedis
+ */
+interface IRedisClient {
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string): Promise<string>;
+  setex(key: string, ttl: number, value: string): Promise<string>;
+  del(key: string): Promise<number>;
+  exists(key: string): Promise<number>;
+  expire(key: string, ttl: number): Promise<number>;
+  mget(...keys: string[]): Promise<(string | null)[]>;
+  flushdb(): Promise<string>;
+  ping(): Promise<string>;
+  quit(): Promise<string>;
+  on(event: string, listener: (...args: unknown[]) => void): void;
+}
+
 // Minimal in-memory mock implementing the Redis subset used in tests
-class MockRedis {
+class MockRedis implements IRedisClient {
   private store = new Map<string, string>();
 
-  async get(key: string) {
+  async get(key: string): Promise<string | null> {
     return this.store.get(key) ?? null;
   }
 
-  async set(key: string, value: string) {
+  async set(key: string, value: string): Promise<string> {
     this.store.set(key, value);
     return 'OK';
   }
 
-  async setex(key: string, _ttl: number, value: string) {
+  async setex(key: string, _ttl: number, value: string): Promise<string> {
     this.store.set(key, value);
     // TTL ignored for mock
     return 'OK';
   }
 
-  async del(key: string) {
+  async del(key: string): Promise<number> {
     return this.store.delete(key) ? 1 : 0;
   }
 
-  async exists(key: string) {
+  async exists(key: string): Promise<number> {
     return this.store.has(key) ? 1 : 0;
   }
 
-  async expire(_key: string, _ttl: number) {
+  async expire(_key: string, _ttl: number): Promise<number> {
     return 1;
   }
 
-  async mget(...keys: string[]) {
+  async mget(...keys: string[]): Promise<(string | null)[]> {
     return keys.map((k) => this.store.get(k) ?? null);
   }
 
-  async flushdb() {
+  async flushdb(): Promise<string> {
     this.store.clear();
     return 'OK';
   }
 
-  async ping() {
+  async ping(): Promise<string> {
     return 'PONG';
   }
 
-  async quit() {
+  async quit(): Promise<string> {
     return 'OK';
   }
 
   // Event handlers compatibility stubs
-  on() {
+  on(): void {
     // no-op for mock
   }
 }
@@ -63,8 +81,7 @@ class MockRedis {
  */
 @singleton()
 export class CacheService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Redis client can be MockRedis or ioredis, both with compatible interfaces
-  private client: any;
+  private client: IRedisClient;
 
   constructor(@inject(LoggerService) private logger: LoggerService) {
     const disableExternal =
@@ -78,8 +95,12 @@ export class CacheService {
     }
 
     // Default Redis options
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Redis constructor options vary by version
-    const defaultOptions: any = {
+    const defaultOptions: {
+      retryStrategy: (times: number) => number | null;
+      maxRetriesPerRequest: number;
+      enableOfflineQueue: boolean;
+      connectTimeout: number;
+    } = {
       retryStrategy: (times: number) => {
         const delay = Math.min(times * 50, 2000);
         return delay;
@@ -232,8 +253,7 @@ export class CacheService {
   /**
    * Get Redis client instance
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Returns MockRedis or ioredis instance
-  getClient(): any {
+  getClient(): IRedisClient {
     return this.client;
   }
 }

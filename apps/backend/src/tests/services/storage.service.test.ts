@@ -1,11 +1,11 @@
 import { Readable } from 'stream';
 
 import {
-  IStorageProvider,
-  FileMetadata,
-  UploadOptions,
   DownloadOptions,
+  FileMetadata,
+  IStorageProvider,
   ListOptions,
+  UploadOptions,
 } from '@repo/types';
 import { container } from 'tsyringe';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
