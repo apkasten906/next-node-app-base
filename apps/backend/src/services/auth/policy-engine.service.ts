@@ -249,18 +249,16 @@ export class PolicyEngine implements IPolicyEngine {
 
   /**
    * Extract attribute value from context
-   * Note: Uses 'any' for generic ABAC attribute handling across dynamic contexts
+   * Returns unknown as ABAC attributes can be any type (string, number, boolean, etc.)
    */
   private extractAttributeValue(
     attribute: { source: string; key: string },
     context: PolicyContext
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): any {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sourceMap: Record<string, Record<string, any>> = {
-      user: context.user,
-      resource: context.resource,
-      environment: context.environment,
+  ): unknown {
+    const sourceMap: Record<string, Record<string, unknown>> = {
+      user: context.user as Record<string, unknown>,
+      resource: context.resource as Record<string, unknown>,
+      environment: context.environment as Record<string, unknown>,
       action: { value: context.action },
     };
 
@@ -271,13 +269,12 @@ export class PolicyEngine implements IPolicyEngine {
 
     // Support nested keys with dot notation (e.g., "user.department")
     const keys = attribute.key.split('.');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let value: any = source;
+    let value: unknown = source;
 
     for (const key of keys) {
-      if (value && typeof value === 'object') {
-        // eslint-disable-next-line security/detect-object-injection
-        value = value[key];
+      if (value && typeof value === 'object' && value !== null) {
+        // eslint-disable-next-line security/detect-object-injection -- Controlled access to ABAC attribute keys
+        value = (value as Record<string, unknown>)[key];
       } else {
         return undefined;
       }
@@ -288,10 +285,10 @@ export class PolicyEngine implements IPolicyEngine {
 
   /**
    * Compare values using the specified operator
-   * Note: Uses 'any' for generic ABAC value comparison across dynamic attribute types
+   * Uses unknown for ABAC value comparison as attributes can be any type
+   * Runtime type checking ensures safe comparisons
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private compareValues(actual: any, operator: ComparisonOperator, expected: any): boolean {
+  private compareValues(actual: unknown, operator: ComparisonOperator, expected: unknown): boolean {
     switch (operator) {
       case ComparisonOperator.EQUALS:
         return actual === expected;
@@ -300,16 +297,41 @@ export class PolicyEngine implements IPolicyEngine {
         return actual !== expected;
 
       case ComparisonOperator.GREATER_THAN:
-        return actual > expected;
+        // Type guard for numeric/string comparison
+        if (typeof actual === 'number' && typeof expected === 'number') {
+          return actual > expected;
+        }
+        if (typeof actual === 'string' && typeof expected === 'string') {
+          return actual > expected;
+        }
+        return false;
 
       case ComparisonOperator.GREATER_THAN_OR_EQUAL:
-        return actual >= expected;
+        if (typeof actual === 'number' && typeof expected === 'number') {
+          return actual >= expected;
+        }
+        if (typeof actual === 'string' && typeof expected === 'string') {
+          return actual >= expected;
+        }
+        return false;
 
       case ComparisonOperator.LESS_THAN:
-        return actual < expected;
+        if (typeof actual === 'number' && typeof expected === 'number') {
+          return actual < expected;
+        }
+        if (typeof actual === 'string' && typeof expected === 'string') {
+          return actual < expected;
+        }
+        return false;
 
       case ComparisonOperator.LESS_THAN_OR_EQUAL:
-        return actual <= expected;
+        if (typeof actual === 'number' && typeof expected === 'number') {
+          return actual <= expected;
+        }
+        if (typeof actual === 'string' && typeof expected === 'string') {
+          return actual <= expected;
+        }
+        return false;
 
       case ComparisonOperator.IN:
         return Array.isArray(expected) && expected.includes(actual);

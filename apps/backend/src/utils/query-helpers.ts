@@ -153,13 +153,17 @@ function isValidOperator(op: string): boolean {
 }
 
 /**
- * Convert filters to Prisma where clause
- * Note: Uses unknown for generic Prisma query building
+ * Prisma where clause type (must be any for compatibility with all Prisma models)
+ * This is intentionally any because Prisma generates different where clause types per model
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function filtersToPrismaWhere(filters: FilterParams[]): any {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = {};
+type PrismaWhereClause = Record<string, unknown>;
+
+/**
+ * Convert filters to Prisma where clause
+ * Returns a dynamic where clause compatible with any Prisma model
+ */
+export function filtersToPrismaWhere(filters: FilterParams[]): PrismaWhereClause {
+  const where: PrismaWhereClause = {};
 
   filters.forEach((filter) => {
     const { field, operator, value } = filter;
@@ -238,11 +242,18 @@ export function parseSorting(sortQuery?: string): SortParams[] {
 }
 
 /**
- * Convert sort params to Prisma orderBy clause
- * Note: Uses any for generic Prisma query building
+ * Prisma orderBy clause type (must support dynamic field access for all models)
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function sortToPrismaOrderBy(sorts: SortParams[]): any {
+type PrismaOrderByClause =
+  | Record<string, 'asc' | 'desc'>
+  | Array<Record<string, 'asc' | 'desc'>>
+  | undefined;
+
+/**
+ * Convert sort params to Prisma orderBy clause
+ * Returns a dynamic orderBy clause compatible with any Prisma model
+ */
+export function sortToPrismaOrderBy(sorts: SortParams[]): PrismaOrderByClause {
   if (sorts.length === 0) {
     return undefined;
   }
