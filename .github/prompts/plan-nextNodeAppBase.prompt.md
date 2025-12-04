@@ -48,14 +48,21 @@ Plan for next-node-app-base (updated)
   - GitHub Actions workflow complete and documented
   - Package scoping verified (@apkasten906/types publishable, @repo/\* private)
   - Documentation updated in `docs/PUBLISHING.md`
-- **Current Status**: 204 tests passing, 0 ESLint errors/warnings, 100% BDD @security scenario coverage, artifact publishing verified
-- **Next**: Priority A - Investigate Prisma CLI/migrations or continue with other plan steps
+- ✅ **Prisma 7 CLI Migration Workaround** - Investigated and resolved Prisma 7 CLI configuration issues - commit `d394653`
+  - Upgraded to Prisma 7.1.0 (@prisma/client, @prisma/adapter-pg, prisma, @prisma/config)
+  - Documented CLI config parsing bug in Prisma 7.0.x and 7.1.0
+  - Implemented hybrid migration strategy (manual SQL + Prisma 6 fallback)
+  - Created helper scripts (db:migrate:manual, db:schema:diff, prisma:downgrade, prisma:upgrade)
+  - Runtime with adapter pattern working perfectly (all 204 tests passing)
+  - See ADR-009 for comprehensive analysis and alternatives evaluated
+- **Current Status**: 204 tests passing, 0 ESLint errors/warnings, 100% BDD @security scenario coverage, artifact publishing verified, Prisma 7 migration strategy documented
+- **Next**: Continue with additional plan enhancements or other development priorities
 
 ## Priorities (A / B / C from original plan)
 
 1. ✅ **B (COMPLETED)**: Convert `@security` BDD scenarios to integration tests and make tests resilient to external services (MockRedis, toggles). All 15 critical security scenarios now covered.
 2. ✅ **C (COMPLETED)**: Finalize artifact registry and publishing flow (GitHub Packages default), add `scripts/publish-packages.js`, `.npmrc.template`, and GitHub Actions publish workflow. Make publish flow registry-agnostic via `REGISTRY_URL` so we can route to an internal registry through the service mesh. All components verified and tested.
-3. **A (CURRENT)**: Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy.
+3. ✅ **A (COMPLETED)**: Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy. Upgraded to Prisma 7.1.0, documented CLI config parsing bug, implemented hybrid migration strategy (manual SQL + Prisma 6 fallback). See ADR-009.
 
 ## Actionable steps (short-term)
 
