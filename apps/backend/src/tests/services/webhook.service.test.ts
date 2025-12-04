@@ -162,10 +162,9 @@ describe('WebhookService', () => {
       });
 
       // Speed up test by mocking sleep
-      vi.spyOn(
-        webhookService as unknown as { sleep: (ms: number) => Promise<void> },
-        'sleep'
-      ).mockResolvedValue(undefined);
+      const sleepSpy = vi
+        .spyOn(webhookService as unknown as { sleep: (ms: number) => Promise<void> }, 'sleep')
+        .mockResolvedValue(undefined);
 
       const result = await webhookService.send(event);
 
@@ -231,6 +230,12 @@ describe('WebhookService', () => {
       };
 
       global.fetch = vi.fn().mockResolvedValue(new MockResponse(false, 500));
+
+      // Mock sleep to speed up test
+      vi.spyOn(
+        webhookService as unknown as { sleep: (ms: number) => Promise<void> },
+        'sleep'
+      ).mockResolvedValue(undefined);
 
       const result = await webhookService.send(event);
 
