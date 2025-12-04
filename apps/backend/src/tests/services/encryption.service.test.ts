@@ -52,27 +52,27 @@ describe('EncryptionService', () => {
   });
 
   describe('encrypt and decrypt', () => {
-    it('should encrypt and decrypt data', () => {
+    it('should encrypt and decrypt data', async () => {
       const data = 'sensitive-data-123';
-      const encrypted = encryptionService.encrypt(data);
+      const encrypted = await encryptionService.encrypt(data);
 
       expect(encrypted).toBeDefined();
       expect(typeof encrypted).toBe('string');
       expect(encrypted).not.toBe(data);
 
-      const decrypted = encryptionService.decrypt(encrypted);
+      const decrypted = await encryptionService.decrypt(encrypted);
       expect(decrypted).toBe(data);
     });
 
-    it('should encrypt and decrypt complex objects', () => {
+    it('should encrypt and decrypt complex objects', async () => {
       const data = JSON.stringify({
         userId: '123',
         email: 'test@example.com',
         role: 'ADMIN',
       });
 
-      const encrypted = encryptionService.encrypt(data);
-      const decrypted = encryptionService.decrypt(encrypted);
+      const encrypted = await encryptionService.encrypt(data);
+      const decrypted = await encryptionService.decrypt(encrypted);
 
       expect(decrypted).toBe(data);
       expect(JSON.parse(decrypted)).toEqual({
@@ -82,43 +82,43 @@ describe('EncryptionService', () => {
       });
     });
 
-    it('should generate different ciphertexts for same plaintext', () => {
+    it('should generate different ciphertexts for same plaintext', async () => {
       const data = 'sensitive-data';
-      const encrypted1 = encryptionService.encrypt(data);
-      const encrypted2 = encryptionService.encrypt(data);
+      const encrypted1 = await encryptionService.encrypt(data);
+      const encrypted2 = await encryptionService.encrypt(data);
 
       expect(encrypted1).not.toBe(encrypted2);
 
       // Both should decrypt to same value
-      expect(encryptionService.decrypt(encrypted1)).toBe(data);
-      expect(encryptionService.decrypt(encrypted2)).toBe(data);
+      expect(await encryptionService.decrypt(encrypted1)).toBe(data);
+      expect(await encryptionService.decrypt(encrypted2)).toBe(data);
     });
 
-    it('should throw error for invalid encrypted data', () => {
-      expect(() => {
-        encryptionService.decrypt('invalid-encrypted-data');
-      }).toThrow();
+    it('should throw error for invalid encrypted data', async () => {
+      await expect(async () => {
+        await encryptionService.decrypt('invalid-encrypted-data');
+      }).rejects.toThrow();
     });
   });
 
-  describe('generateRandomToken', () => {
-    it('should generate random token', () => {
-      const token = encryptionService.generateRandomToken();
+  describe('generateToken', () => {
+    it('should generate random token', async () => {
+      const token = await encryptionService.generateToken();
 
       expect(token).toBeDefined();
       expect(typeof token).toBe('string');
       expect(token.length).toBeGreaterThan(0);
     });
 
-    it('should generate different tokens', () => {
-      const token1 = encryptionService.generateRandomToken();
-      const token2 = encryptionService.generateRandomToken();
+    it('should generate different tokens', async () => {
+      const token1 = await encryptionService.generateToken();
+      const token2 = await encryptionService.generateToken();
 
       expect(token1).not.toBe(token2);
     });
 
-    it('should generate token of specified length', () => {
-      const token = encryptionService.generateRandomToken(64);
+    it('should generate token of specified length', async () => {
+      const token = await encryptionService.generateToken(64);
 
       // Hex encoding: 64 bytes = 128 characters
       expect(token.length).toBe(128);
