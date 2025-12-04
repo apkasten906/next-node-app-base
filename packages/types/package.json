@@ -1,7 +1,7 @@
 {
-  "name": "@apkasten906/types",
+  "name": "@repo/types",
   "version": "1.0.0",
-  "private": false,
+  "private": true,
   "description": "Shared TypeScript types and interfaces for next-node-app-base monorepo",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

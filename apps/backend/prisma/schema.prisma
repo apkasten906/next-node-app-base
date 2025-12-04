@@ -5,12 +5,12 @@ generator client {
   provider = "prisma-client-js"
   // Prisma 7: Output to .prisma/client within the pnpm virtual store
   // Imports from @prisma/client are automatically forwarded to .prisma/client
-  output   = "../../../node_modules/.pnpm/@prisma+client@7.0.1_prisma@7.0.1_typescript@5.9.3/node_modules/.prisma/client"
+  output   = "../../../node_modules/.pnpm/@prisma+client@7.1.0_prisma@7.1.0_typescript@5.9.3/node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
-  // Prisma 7: URL configured in prisma.config.ts
+  // Prisma 7: URL configured in prisma.config.ts at monorepo root
   // At runtime, connection is passed via adapter in database.service.ts
 }
 
