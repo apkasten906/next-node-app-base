@@ -6,22 +6,38 @@ import {
   NotificationResult,
   PushNotificationOptions,
   SmsOptions,
+  QueueName,
+  EmailJobData,
+  SmsJobData,
+  PushJobData,
 } from '@repo/types';
 import { injectable } from 'tsyringe';
 
 import { LoggerService } from '../logger.service';
+import { QueueService } from '../queue/queue.service';
 
 /**
  * Main notification service that delegates to specific providers
  */
 @injectable()
 export class NotificationService {
+  private queueService?: QueueService;
+
   constructor(
     private logger: LoggerService,
     private emailProvider: IEmailProvider,
     private smsProvider: ISmsProvider,
     private pushProvider: IPushNotificationProvider
-  ) {}
+  ) {
+    // Try to resolve QueueService for async notifications
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- Dynamic import for optional dependency
+      const { container } = require('tsyringe');
+      this.queueService = container.resolve(QueueService);
+    } catch {
+      this.logger.warn('QueueService not available, notifications will be sent synchronously');
+    }
+  }
 
   async sendEmail(options: EmailOptions): Promise<NotificationResult> {
     try {
@@ -111,6 +127,75 @@ export class NotificationService {
         };
       }
     });
+  }
+
+  /**
+   * Queue email for background delivery
+   */
+  async queueEmail(options: EmailOptions): Promise<string> {
+    if (!this.queueService) {
+      throw new Error('QueueService not available');
+    }
+
+    const jobData: EmailJobData = {
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      from: options.from,
+      replyTo: options.replyTo,
+      cc: options.cc,
+      bcc: options.bcc,
+    };
+
+    const job = await this.queueService.addJob(QueueName.EMAIL, jobData);
+    this.logger.info('Email queued for delivery', { jobId: job.id, to: options.to });
+    return job.id!;
+  }
+
+  /**
+   * Queue SMS for background delivery
+   */
+  async queueSms(options: SmsOptions): Promise<string> {
+    if (!this.queueService) {
+      throw new Error('QueueService not available');
+    }
+
+    const jobData: SmsJobData = {
+      to: options.to,
+      message: options.message,
+      from: options.from,
+    };
+
+    const job = await this.queueService.addJob(QueueName.SMS, jobData);
+    this.logger.info('SMS queued for delivery', { jobId: job.id, to: options.to });
+    return job.id!;
+  }
+
+  /**
+   * Queue push notification for background delivery
+   */
+  async queuePushNotification(options: PushNotificationOptions): Promise<string> {
+    if (!this.queueService) {
+      throw new Error('QueueService not available');
+    }
+
+    const jobData: PushJobData = {
+      userId: options.userId,
+      title: options.title,
+      body: options.body,
+      data: options.data,
+      badge: options.badge,
+      sound: options.sound,
+      icon: options.icon,
+      imageUrl: options.imageUrl,
+    };
+
+    const job = await this.queueService.addJob(QueueName.PUSH, jobData);
+    this.logger.info('Push notification queued for delivery', {
+      jobId: job.id,
+      userId: options.userId,
+    });
+    return job.id!;
   }
 
   async healthCheck(): Promise<boolean> {

@@ -19,6 +19,9 @@ import { CacheService } from './services/cache.service';
 import { DatabaseService } from './services/database.service';
 import { LoggerService } from './services/logger.service';
 import { registerNotificationProviders } from './services/notification/notification-provider.factory';
+import { createQueueMonitoringDashboard } from './services/queue/monitoring/bull-board';
+import { initializeQueues } from './services/queue/queue-init';
+import { QueueService } from './services/queue/queue.service';
 import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
 import { registerStorageProvider } from './services/storage/storage-provider.factory';
 
@@ -102,6 +105,21 @@ export class App {
     // Swagger documentation
     setupSwagger(this.app);
 
+    // Bull Board queue monitoring dashboard (admin only in production)
+    if (
+      process.env['NODE_ENV'] === 'development' ||
+      process.env['ENABLE_QUEUE_DASHBOARD'] === 'true'
+    ) {
+      try {
+        const queueService = container.resolve(QueueService);
+        const queueDashboard = createQueueMonitoringDashboard(queueService);
+        this.app.use('/admin/queues', queueDashboard);
+        this.logger.info('Queue monitoring dashboard available at /admin/queues');
+      } catch (error) {
+        this.logger.warn('Failed to initialize queue dashboard', { error });
+      }
+    }
+
     // Health check endpoint
     this.app.get('/health', async (_req: Request, res: Response) => {
       const health = {
@@ -147,6 +165,7 @@ export class App {
           ready: '/ready',
           users: '/api/users',
           documentation: '/api-docs',
+          ...(process.env['NODE_ENV'] === 'development' && { queues: '/admin/queues' }),
         },
       });
     });
@@ -191,6 +210,18 @@ export class App {
       // Connect to database
       await this.database.connect();
       this.logger.info('Database connected');
+
+      // Initialize job queues
+      try {
+        initializeQueues();
+        this.logger.info('Job queues initialized');
+      } catch (error) {
+        this.logger.error('Failed to initialize job queues', error as Error);
+        // Continue without queues in development
+        if (process.env['NODE_ENV'] === 'production') {
+          throw error;
+        }
+      }
 
       // Start server
       this.app.listen(port, () => {

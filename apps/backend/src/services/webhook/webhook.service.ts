@@ -1,9 +1,11 @@
 import crypto from 'crypto';
 
+import { QueueName, WebhookJobData } from '@repo/types';
 import { inject, singleton } from 'tsyringe';
 
 import { CacheService } from '../cache.service';
 import { LoggerService } from '../logger.service';
+import { QueueService } from '../queue/queue.service';
 
 /**
  * Webhook event interface
@@ -36,11 +38,21 @@ export interface WebhookResult {
 export class WebhookService {
   private readonly DEFAULT_MAX_RETRIES = 3;
   private readonly RETRY_DELAYS = [1000, 5000, 15000]; // ms
+  private queueService?: QueueService;
 
   constructor(
     @inject(LoggerService) private logger: LoggerService,
     @inject(CacheService) private cache: CacheService
-  ) {}
+  ) {
+    // Try to resolve QueueService, but don't fail if it's not available
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- Dynamic import for optional dependency
+      const { container } = require('tsyringe');
+      this.queueService = container.resolve(QueueService);
+    } catch {
+      this.logger.warn('QueueService not available, webhooks will be processed synchronously');
+    }
+  }
 
   /**
    * Send webhook with retry logic
@@ -166,24 +178,44 @@ export class WebhookService {
   }
 
   /**
-   * Queue webhook for async delivery
+   * Queue webhook for async delivery using BullMQ
    */
   async queue(event: WebhookEvent): Promise<void> {
-    const queueKey = `webhook:queue:${event.id}`;
-    await this.cache.set(queueKey, event, 3600); // 1 hour TTL
+    // Use BullMQ if available, otherwise fallback to setImmediate
+    if (this.queueService) {
+      const jobData: WebhookJobData = {
+        id: event.id,
+        url: event.url,
+        event: event.event,
+        payload: event.payload as Record<string, unknown>,
+        maxRetries: event.maxRetries || this.DEFAULT_MAX_RETRIES,
+      };
 
-    this.logger.info('Webhook queued', {
-      eventId: event.id,
-      url: event.url,
-      event: event.event,
-    });
+      await this.queueService.addJob(QueueName.WEBHOOK, jobData);
 
-    // Process async (in production, use a proper queue like BullMQ)
-    setImmediate(() => {
-      this.send(event).catch((error) => {
-        this.logger.error('Webhook queue processing error', error as Error);
+      this.logger.info('Webhook queued with BullMQ', {
+        eventId: event.id,
+        url: event.url,
+        event: event.event,
       });
-    });
+    } else {
+      // Fallback to cache-based queue
+      const queueKey = `webhook:queue:${event.id}`;
+      await this.cache.set(queueKey, event, 3600); // 1 hour TTL
+
+      this.logger.info('Webhook queued (fallback mode)', {
+        eventId: event.id,
+        url: event.url,
+        event: event.event,
+      });
+
+      // Process async
+      setImmediate(() => {
+        this.send(event).catch((error) => {
+          this.logger.error('Webhook queue processing error', error as Error);
+        });
+      });
+    }
   }
 
   /**

@@ -17,6 +17,7 @@ export {
   SMSParams,
 } from './interfaces/notification';
 export * from './interfaces/payment';
+export * from './interfaces/queue';
 export * from './interfaces/search';
 export * from './interfaces/secrets';
 // export * from './interfaces/storage'; // Conflicts with storage.types.ts

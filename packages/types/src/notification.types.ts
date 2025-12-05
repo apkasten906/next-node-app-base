@@ -9,6 +9,7 @@ export interface EmailOptions {
   subject: string;
   text?: string;
   html?: string;
+  replyTo?: string;
   cc?: string | string[];
   bcc?: string | string[];
   attachments?: EmailAttachment[];
@@ -23,6 +24,7 @@ export interface EmailAttachment {
 export interface SmsOptions {
   to: string;
   body: string;
+  message: string;
   from?: string;
 }
 
@@ -30,7 +32,7 @@ export interface PushNotificationOptions {
   userId: string;
   title: string;
   body: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   badge?: number;
   sound?: string;
   icon?: string;
