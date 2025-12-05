@@ -2,8 +2,8 @@ import { QueueName } from '@repo/types';
 import { container } from 'tsyringe';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-import { LoggerService } from '../../logger.service';
-import { QueueService } from '../queue.service';
+import { LoggerService } from '../../services/logger.service';
+import { QueueService } from '../../services/queue/queue.service';
 
 describe('QueueService', () => {
   let queueService: QueueService;

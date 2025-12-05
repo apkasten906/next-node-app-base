@@ -1,6 +1,7 @@
 import { IQueueService, QueueConfig, QueueMetrics, QueueJob, QueueJobOptions } from '@repo/types';
 import { Job, JobsOptions, Queue, Worker, QueueEvents } from 'bullmq';
 import IORedis from 'ioredis';
+import 'reflect-metadata';
 import { injectable } from 'tsyringe';
 
 import { LoggerService } from '../logger.service';
