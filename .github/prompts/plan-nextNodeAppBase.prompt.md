@@ -85,8 +85,18 @@ Plan for next-node-app-base (updated)
   - GitHub Container Registry (ghcr.io) integration with semantic versioning tags
   - Build cache optimization with BuildKit and GitHub Actions cache
   - Comprehensive documentation in docs/DOCKER.md with usage, troubleshooting, production deployment guide
-- **Current Status**: 204 tests passing, i18n (4 languages), error handling, production Docker infrastructure complete
-- **Next**: Continue with next highest WSJF priority items (BullMQ 4.62, Enhanced CI/CD 4.38)
+- ✅ **Message Queue BullMQ Integration (WSJF 4.62)** - Implemented comprehensive Redis-backed job queue system - commit `c201cb5`
+  - QueueService with full queue management API (add, remove, pause, resume, drain, clean)
+  - 8 queue types: email, sms, push, webhook, file-processing, data-export, report-generation, cleanup
+  - Job processors with progress tracking and metadata (EmailProcessor, SmsProcessor, PushProcessor, WebhookProcessor)
+  - Bull Board monitoring dashboard at /admin/queues (dev mode or ENABLE_QUEUE_DASHBOARD=true)
+  - Integration with NotificationService and WebhookService (optional with graceful fallback)
+  - Per-queue retry strategies with exponential backoff (1-5 retries, 1s-5s delays)
+  - Rate limiting: concurrency (1-20) and rate limits (100-500 jobs/min)
+  - Dependencies: bullmq@5.65.1, @bull-board/api@6.14.2, @bull-board/express@6.14.2
+  - 145 lines of unit tests, 700+ line documentation in docs/QUEUE_SYSTEM.md
+- **Current Status**: 204 tests passing, i18n (4 languages), error handling, production Docker infrastructure, BullMQ queue system complete
+- **Next**: Continue with next highest WSJF priority items (Enhanced CI/CD 4.38, WebSocket Support 4.15)
 
 ## Priorities (A / B / C from original plan)
 
