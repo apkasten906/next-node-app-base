@@ -64,7 +64,17 @@ Plan for next-node-app-base (updated)
   - Integrated language switcher into app layout header
   - Comprehensive documentation in apps/frontend/docs/INTERNATIONALIZATION.md
   - All pages now use translation keys instead of hardcoded text
-- **Current Status**: 204 tests passing, i18n implemented with 4 languages, frontend internationalization complete
+- ✅ **Frontend Error Boundaries & API Client (WSJF 5.85)** - Implemented comprehensive error handling - commit `e09febf`
+  - Created React Error Boundaries (RootErrorBoundary, RouteErrorBoundary, custom ErrorBoundary)
+  - Enhanced API client with retry logic, exponential backoff, timeout handling
+  - Implemented specialized error types (ApiError, NetworkError, ValidationError, AuthenticationError, AuthorizationError, NotFoundError)
+  - Added error display components with i18n support (ErrorDisplay, ErrorAlert, ErrorMessage, ErrorFallback)
+  - Created error logging service with structured logging and Sentry integration ready
+  - Updated all translation files with error messages for EN/ES/FR/DE
+  - Integrated RootErrorBoundary into app layout for global error catching
+  - Comprehensive documentation in apps/frontend/docs/ERROR_HANDLING.md
+  - TypeScript strict error handling with proper type guards
+- **Current Status**: 204 tests passing, i18n implemented with 4 languages, error handling comprehensive
 - **Next**: Continue with next highest WSJF priority items
 
 ## Priorities (A / B / C from original plan)
