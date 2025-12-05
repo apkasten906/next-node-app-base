@@ -1,5 +1,6 @@
 'use client';
 
+import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface DashboardClientProps {
@@ -7,7 +8,7 @@ interface DashboardClientProps {
   userImage: string | null;
 }
 
-export function DashboardClient({ userName }: DashboardClientProps) {
+export function DashboardClient({ userName }: DashboardClientProps): JSX.Element {
   const { t } = useTranslation(['dashboard', 'common']);
 
   return (

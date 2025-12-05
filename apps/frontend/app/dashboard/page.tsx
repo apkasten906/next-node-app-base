@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation';
+import type { JSX } from 'react';
 
 import { auth, signOut } from '@/auth';
 import { DashboardClient } from '@/components/dashboard-client';
 
-export default async function DashboardPage() {
+export default async function DashboardPage(): Promise<JSX.Element> {
   const session = await auth();
 
   if (!session?.user) {

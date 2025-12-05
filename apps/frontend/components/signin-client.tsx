@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslation } from 'react-i18next';
 import type { JSX } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface SignInClientProps {
   onGoogleSignIn: () => Promise<void>;

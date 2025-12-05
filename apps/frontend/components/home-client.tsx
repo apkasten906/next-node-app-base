@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface HomeClientProps {
   isAuthenticated: boolean;
 }
 
-export function HomeClient({ isAuthenticated }: HomeClientProps) {
+export function HomeClient({ isAuthenticated }: HomeClientProps): JSX.Element {
   const { t } = useTranslation(['home', 'common']);
 
   return (
@@ -36,39 +37,27 @@ export function HomeClient({ isAuthenticated }: HomeClientProps) {
         </div>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           <div className="p-6 border rounded-lg">
-            <h2 className="text-2xl font-semibold mb-2">
-              {t('home:features.turborepo.title')}
-            </h2>
+            <h2 className="text-2xl font-semibold mb-2">{t('home:features.turborepo.title')}</h2>
             <p className="text-gray-600">{t('home:features.turborepo.description')}</p>
           </div>
           <div className="p-6 border rounded-lg">
-            <h2 className="text-2xl font-semibold mb-2">
-              {t('home:features.nextjs.title')}
-            </h2>
+            <h2 className="text-2xl font-semibold mb-2">{t('home:features.nextjs.title')}</h2>
             <p className="text-gray-600">{t('home:features.nextjs.description')}</p>
           </div>
           <div className="p-6 border rounded-lg">
-            <h2 className="text-2xl font-semibold mb-2">
-              {t('home:features.nodejs.title')}
-            </h2>
+            <h2 className="text-2xl font-semibold mb-2">{t('home:features.nodejs.title')}</h2>
             <p className="text-gray-600">{t('home:features.nodejs.description')}</p>
           </div>
           <div className="p-6 border rounded-lg">
-            <h2 className="text-2xl font-semibold mb-2">
-              {t('home:features.prisma.title')}
-            </h2>
+            <h2 className="text-2xl font-semibold mb-2">{t('home:features.prisma.title')}</h2>
             <p className="text-gray-600">{t('home:features.prisma.description')}</p>
           </div>
           <div className="p-6 border rounded-lg">
-            <h2 className="text-2xl font-semibold mb-2">
-              {t('home:features.typescript.title')}
-            </h2>
+            <h2 className="text-2xl font-semibold mb-2">{t('home:features.typescript.title')}</h2>
             <p className="text-gray-600">{t('home:features.typescript.description')}</p>
           </div>
           <div className="p-6 border rounded-lg">
-            <h2 className="text-2xl font-semibold mb-2">
-              {t('home:features.testing.title')}
-            </h2>
+            <h2 className="text-2xl font-semibold mb-2">{t('home:features.testing.title')}</h2>
             <p className="text-gray-600">{t('home:features.testing.description')}</p>
           </div>
         </div>
