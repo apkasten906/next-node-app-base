@@ -14,13 +14,26 @@
     "edit": "Modifier",
     "close": "Fermer",
     "submit": "Soumettre",
-    "back": "Retour"
+    "back": "Retour",
+    "retry": "Réessayer",
+    "dismiss": "Ignorer"
   },
   "messages": {
     "loading": "Chargement...",
     "error": "Une erreur s'est produite",
     "success": "Succès",
     "noData": "Aucune donnée disponible"
+  },
+  "errors": {
+    "title": "Une erreur s'est produite",
+    "description": "Nous sommes désolés, une erreur s'est produite. Veuillez réessayer.",
+    "generic": "Une erreur s'est produite",
+    "clientError": "Requête invalide",
+    "serverError": "Erreur du serveur",
+    "networkError": "Échec de la connexion réseau",
+    "notFound": "Ressource non trouvée",
+    "unauthorized": "Authentification requise",
+    "forbidden": "Accès refusé"
   },
   "language": {
     "select": "Sélectionner la langue",

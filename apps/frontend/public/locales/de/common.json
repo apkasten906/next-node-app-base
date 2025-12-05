@@ -13,14 +13,27 @@
     "delete": "Löschen",
     "edit": "Bearbeiten",
     "close": "Schließen",
-    "submit": "Absenden",
-    "back": "Zurück"
+    "submit": "Senden",
+    "back": "Zurück",
+    "retry": "Wiederholen",
+    "dismiss": "Verwerfen"
   },
   "messages": {
     "loading": "Lädt...",
     "error": "Ein Fehler ist aufgetreten",
     "success": "Erfolg",
     "noData": "Keine Daten verfügbar"
+  },
+  "errors": {
+    "title": "Etwas ist schiefgelaufen",
+    "description": "Es tut uns leid, aber ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "generic": "Ein Fehler ist aufgetreten",
+    "clientError": "Ungültige Anfrage",
+    "serverError": "Serverfehler",
+    "networkError": "Netzwerkverbindung fehlgeschlagen",
+    "notFound": "Ressource nicht gefunden",
+    "unauthorized": "Authentifizierung erforderlich",
+    "forbidden": "Zugriff verweigert"
   },
   "language": {
     "select": "Sprache auswählen",

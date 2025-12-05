@@ -14,13 +14,26 @@
     "edit": "Edit",
     "close": "Close",
     "submit": "Submit",
-    "back": "Back"
+    "back": "Back",
+    "retry": "Retry",
+    "dismiss": "Dismiss"
   },
   "messages": {
     "loading": "Loading...",
     "error": "An error occurred",
     "success": "Success",
     "noData": "No data available"
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "description": "We're sorry, but an error occurred. Please try again.",
+    "generic": "An error occurred",
+    "clientError": "Invalid request",
+    "serverError": "Server error",
+    "networkError": "Network connection failed",
+    "notFound": "Resource not found",
+    "unauthorized": "Authentication required",
+    "forbidden": "Access denied"
   },
   "language": {
     "select": "Select Language",

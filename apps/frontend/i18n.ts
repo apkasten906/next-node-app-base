@@ -19,7 +19,6 @@ import commonFr from './public/locales/fr/common.json';
 import dashboardFr from './public/locales/fr/dashboard.json';
 import homeFr from './public/locales/fr/home.json';
 
-
 export const defaultLocale = 'en';
 export const locales = ['en', 'es', 'fr', 'de'] as const;
 export type Locale = (typeof locales)[number];
@@ -58,7 +57,7 @@ const resources = {
   },
 } as const;
 
-i18n.use(initReactI18next).init({
+void i18n.use(initReactI18next).init({
   resources,
   lng: defaultLocale,
   fallbackLng: defaultLocale,

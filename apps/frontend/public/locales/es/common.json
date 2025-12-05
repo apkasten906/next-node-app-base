@@ -14,13 +14,26 @@
     "edit": "Editar",
     "close": "Cerrar",
     "submit": "Enviar",
-    "back": "Volver"
+    "back": "Atrás",
+    "retry": "Reintentar",
+    "dismiss": "Descartar"
   },
   "messages": {
     "loading": "Cargando...",
     "error": "Ocurrió un error",
     "success": "Éxito",
     "noData": "No hay datos disponibles"
+  },
+  "errors": {
+    "title": "Algo salió mal",
+    "description": "Lo sentimos, ocurrió un error. Por favor intenta de nuevo.",
+    "generic": "Ocurrió un error",
+    "clientError": "Solicitud inválida",
+    "serverError": "Error del servidor",
+    "networkError": "Falló la conexión de red",
+    "notFound": "Recurso no encontrado",
+    "unauthorized": "Autenticación requerida",
+    "forbidden": "Acceso denegado"
   },
   "language": {
     "select": "Seleccionar Idioma",
