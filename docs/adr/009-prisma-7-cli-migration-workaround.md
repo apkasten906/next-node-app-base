@@ -246,6 +246,6 @@ export default defineConfig({
 
 ---
 
-**Decision Makers**: Development Team  
-**Date of Decision**: December 4, 2024  
+**Decision Makers**: Development Team
+**Date of Decision**: December 4, 2024
 **Review Date**: Monitor Prisma 7.2+ releases for CLI fixes

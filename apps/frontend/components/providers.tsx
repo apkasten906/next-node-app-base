@@ -2,9 +2,11 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { ReactNode, JSX } from 'react';
+import '@/i18n'; // Initialize i18n
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children }: { children: ReactNode }): JSX.Element {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -16,6 +18,21 @@ export function Providers({ children }: { children: React.ReactNode }) {
         },
       })
   );
+
+  // Initialize i18n locale from cookie
+  useEffect(() => {
+    // eslint-disable-next-line no-undef -- document is available in client components
+    const savedLocale = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('NEXT_LOCALE='))
+      ?.split('=')[1];
+    
+    if (savedLocale) {
+      void import('@/i18n').then((i18n) => {
+        void i18n.default.changeLanguage(savedLocale);
+      });
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

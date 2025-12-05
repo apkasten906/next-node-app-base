@@ -1,0 +1,13 @@
+{
+  "title": "Panel",
+  "welcome": "¡Bienvenido, {{name}}!",
+  "overview": {
+    "title": "Resumen",
+    "description": "Vista general personalizada de tu panel"
+  },
+  "stats": {
+    "users": "Usuarios",
+    "projects": "Proyectos",
+    "tasks": "Tareas"
+  }
+}

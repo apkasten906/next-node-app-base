@@ -1,5 +1,8 @@
-import { Providers } from '@/components/providers';
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+
+import { LanguageSwitcher } from '@/components/language-switcher';
+import { Providers } from '@/components/providers';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -15,7 +18,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <div className="min-h-screen">
+            <header className="border-b">
+              <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div className="font-bold text-xl">Next Node App Base</div>
+                <LanguageSwitcher />
+              </div>
+            </header>
+            <main>{children}</main>
+          </div>
+        </Providers>
       </body>
     </html>
   );

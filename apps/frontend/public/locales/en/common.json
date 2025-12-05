@@ -1,0 +1,29 @@
+{
+  "appName": "Next Node App Base",
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "signIn": "Sign In",
+    "signOut": "Sign Out"
+  },
+  "actions": {
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "submit": "Submit",
+    "back": "Back"
+  },
+  "messages": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "noData": "No data available"
+  },
+  "language": {
+    "select": "Select Language",
+    "current": "Current Language"
+  }
+}

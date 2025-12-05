@@ -1,0 +1,29 @@
+{
+  "appName": "Next Node App Base",
+  "navigation": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter"
+  },
+  "actions": {
+    "continue": "Continuer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "submit": "Soumettre",
+    "back": "Retour"
+  },
+  "messages": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "success": "Succès",
+    "noData": "Aucune donnée disponible"
+  },
+  "language": {
+    "select": "Sélectionner la langue",
+    "current": "Langue actuelle"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "title": "Dashboard",
+  "welcome": "Willkommen, {{name}}!",
+  "overview": {
+    "title": "Übersicht",
+    "description": "Ihre personalisierte Dashboard-Übersicht"
+  },
+  "stats": {
+    "users": "Benutzer",
+    "projects": "Projekte",
+    "tasks": "Aufgaben"
+  }
+}

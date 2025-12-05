@@ -1,0 +1,13 @@
+{
+  "title": "Dashboard",
+  "welcome": "Welcome, {{name}}!",
+  "overview": {
+    "title": "Overview",
+    "description": "Your personalized dashboard overview"
+  },
+  "stats": {
+    "users": "Users",
+    "projects": "Projects",
+    "tasks": "Tasks"
+  }
+}

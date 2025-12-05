@@ -1,0 +1,13 @@
+{
+  "title": "Tableau de bord",
+  "welcome": "Bienvenue, {{name}} !",
+  "overview": {
+    "title": "Vue d'ensemble",
+    "description": "Votre aperçu personnalisé du tableau de bord"
+  },
+  "stats": {
+    "users": "Utilisateurs",
+    "projects": "Projets",
+    "tasks": "Tâches"
+  }
+}

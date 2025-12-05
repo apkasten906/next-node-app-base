@@ -1,0 +1,34 @@
+{
+  "title": "Next Node App Base",
+  "subtitle": "Monorepo prêt pour la production avec Next.js, Node.js et TypeScript",
+  "cta": {
+    "signIn": "Se connecter",
+    "dashboard": "Aller au tableau de bord"
+  },
+  "features": {
+    "turborepo": {
+      "title": "Turborepo",
+      "description": "Système de build monorepo avec cache distant"
+    },
+    "nextjs": {
+      "title": "Next.js 15",
+      "description": "Framework React avec App Router"
+    },
+    "nodejs": {
+      "title": "Node.js 25",
+      "description": "Support natif de TypeScript"
+    },
+    "prisma": {
+      "title": "Prisma ORM",
+      "description": "Accès base de données sécurisé par types"
+    },
+    "typescript": {
+      "title": "TypeScript",
+      "description": "Sécurité complète des types entre frontend et backend"
+    },
+    "testing": {
+      "title": "Tests",
+      "description": "Vitest, Playwright et Cucumber BDD"
+    }
+  }
+}
