@@ -5,15 +5,119 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { LoggerService } from '../../services/logger.service';
 import { QueueService } from '../../services/queue/queue.service';
 
+// Mock IORedis before tests
+vi.mock('ioredis', () => {
+  class MockRedis {
+    on = vi.fn().mockReturnThis();
+    quit = vi.fn().mockResolvedValue('OK');
+    disconnect = vi.fn();
+    ping = vi.fn().mockResolvedValue('PONG');
+    status = 'ready';
+  }
+  return { default: MockRedis };
+});
+
+// Mock BullMQ
+vi.mock('bullmq', () => {
+  // Shared state for jobs
+  const jobStore = new Map<string, { id: string; data: unknown }>();
+  let isPausedState = false;
+  let waitingCount = 5;
+
+  return {
+    Queue: class MockQueue {
+      name: string;
+
+      add = vi.fn().mockImplementation((name, data) => {
+        const job = { id: `job-${Date.now()}`, data };
+        jobStore.set(job.id, job);
+        waitingCount++;
+        return Promise.resolve(job);
+      });
+
+      addBulk = vi
+        .fn()
+        .mockImplementation((jobs) =>
+          Promise.resolve(jobs.map((job, idx) => ({ id: `${idx + 1}`, data: job.data })))
+        );
+
+      getJob = vi.fn().mockImplementation((id) => {
+        const job = jobStore.get(id);
+        if (job) {
+          return Promise.resolve({
+            ...job,
+            remove: vi.fn().mockImplementation(() => {
+              jobStore.delete(id);
+              waitingCount = Math.max(0, waitingCount - 1);
+              return Promise.resolve();
+            }),
+          });
+        }
+        return Promise.resolve(undefined);
+      });
+
+      pause = vi.fn().mockImplementation(() => {
+        isPausedState = true;
+        return Promise.resolve();
+      });
+
+      resume = vi.fn().mockImplementation(() => {
+        isPausedState = false;
+        return Promise.resolve();
+      });
+
+      getWaitingCount = vi.fn().mockImplementation(() => Promise.resolve(waitingCount));
+      getActiveCount = vi.fn().mockResolvedValue(2);
+      getCompletedCount = vi.fn().mockResolvedValue(10);
+      getFailedCount = vi.fn().mockResolvedValue(1);
+      getDelayedCount = vi.fn().mockResolvedValue(0);
+      isPaused = vi.fn().mockImplementation(() => Promise.resolve(isPausedState));
+
+      drain = vi.fn().mockImplementation(() => {
+        waitingCount = 0;
+        return Promise.resolve();
+      });
+
+      clean = vi.fn().mockResolvedValue([]);
+
+      getJobCounts = vi.fn().mockResolvedValue({
+        waiting: 5,
+        active: 2,
+        completed: 10,
+        failed: 1,
+        delayed: 0,
+      });
+
+      close = vi.fn().mockResolvedValue(undefined);
+
+      constructor(name: string) {
+        this.name = name;
+      }
+    },
+    Worker: class MockWorker {
+      on = vi.fn().mockReturnThis();
+      close = vi.fn().mockResolvedValue(undefined);
+    },
+    QueueEvents: class MockQueueEvents {
+      on = vi.fn().mockReturnThis();
+      close = vi.fn().mockResolvedValue(undefined);
+    },
+  };
+});
+
 describe('QueueService', () => {
   let queueService: QueueService;
 
-  beforeEach(() => {
-    // Setup DI container
+  beforeEach(async () => {
+    // Clear mocks
+    vi.clearAllMocks();
+
+    // Setup DI container  - create new instance each time
     container.clearInstances();
-    container.registerSingleton(LoggerService);
-    container.registerSingleton(QueueService);
-    queueService = container.resolve(QueueService);
+
+    // Create service directly to avoid DI issues with mocks
+    const logger = new LoggerService();
+    queueService = new QueueService(logger);
   });
 
   afterEach(async () => {
