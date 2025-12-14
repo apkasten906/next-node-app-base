@@ -25,6 +25,8 @@ export * from './interfaces/webhook';
 export * from './types/common';
 // Export comprehensive storage types
 export * from './storage.types';
+// Export WebSocket types
+export * from './websocket.types';
 // Export notification provider interfaces and types
 export {
   EmailOptions,

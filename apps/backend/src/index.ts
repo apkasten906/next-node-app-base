@@ -1,10 +1,12 @@
+import 'dotenv/config';
+import 'reflect-metadata';
+import { createServer, type Server as HttpServer } from 'http';
+
 import compression from 'compression';
 import cors from 'cors';
-import 'dotenv/config';
 import express, { type Express, type NextFunction, type Request, type Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import 'reflect-metadata';
 import { container } from 'tsyringe';
 
 import { setupSwagger } from './config/swagger';
@@ -24,15 +26,18 @@ import { initializeQueues } from './services/queue/queue-init';
 import { QueueService } from './services/queue/queue.service';
 import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
 import { registerStorageProvider } from './services/storage/storage-provider.factory';
+import { WebSocketService } from './services/websocket/websocket.service';
 
 /**
  * Express application setup with DI container
  */
 export class App {
   public app: Express;
+  private server?: HttpServer;
   private logger: LoggerService;
   private database: DatabaseService;
   private cache: CacheService;
+  private websocket?: WebSocketService;
 
   constructor() {
     this.app = express();
@@ -136,10 +141,12 @@ export class App {
       try {
         const dbHealth = await this.database.healthCheck();
         const cacheHealth = await this.cache.healthCheck();
+        const wsHealth = this.websocket ? await this.websocket.getHealth() : null;
 
         const ready = {
           database: dbHealth,
           cache: cacheHealth,
+          websocket: wsHealth,
           status: dbHealth && cacheHealth ? 'ready' : 'not ready',
         };
 
@@ -150,6 +157,7 @@ export class App {
         res.status(503).json({
           database: false,
           cache: false,
+          websocket: null,
           status: 'not ready',
         });
       }
@@ -223,8 +231,24 @@ export class App {
         }
       }
 
+      // Create HTTP server
+      this.server = createServer(this.app);
+
+      // Initialize WebSocket server
+      try {
+        this.websocket = container.resolve(WebSocketService);
+        await this.websocket.initialize(this.server);
+        this.logger.info('WebSocket server initialized');
+      } catch (error) {
+        this.logger.error('Failed to initialize WebSocket server', error as Error);
+        // Continue without WebSocket in development
+        if (process.env['NODE_ENV'] === 'production') {
+          throw error;
+        }
+      }
+
       // Start server
-      this.app.listen(port, () => {
+      this.server.listen(port, () => {
         this.logger.info(`Server listening on port ${port}`);
         this.logger.info(`Environment: ${process.env['NODE_ENV']}`);
       });
@@ -241,6 +265,24 @@ export class App {
     this.logger.info('Shutting down gracefully');
 
     try {
+      // Shutdown WebSocket server
+      if (this.websocket) {
+        await this.websocket.shutdown();
+      }
+
+      // Close HTTP server
+      if (this.server) {
+        await new Promise<void>((resolve, reject) => {
+          this.server?.close((err) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+      }
+
       await this.database.disconnect();
       await this.cache.disconnect();
       this.logger.info('Connections closed');
@@ -261,6 +303,7 @@ container.registerSingleton('EncryptionService', EncryptionService);
 container.registerSingleton('AuthorizationService', AuthorizationService);
 container.registerSingleton('AuditLogService', AuditLogService);
 container.registerSingleton('SecretsManager', EnvironmentSecretsManager);
+container.registerSingleton(WebSocketService);
 
 // Register notification and storage providers based on environment
 registerNotificationProviders();
