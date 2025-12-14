@@ -1443,6 +1443,17 @@ spec:
 
 ## Implementation Phases
 
+> **Quality Assurance Process**: For each phase, follow this quality workflow:
+>
+> 1. **Implement Feature** - Code the functionality following SOLID principles and DI pattern
+> 2. **Create BDD Scenarios** - Write Cucumber feature files with comprehensive scenarios covering all functionality
+> 3. **Write Unit Tests** - Create unit tests with Vitest covering all code paths, edge cases, and error handling
+> 4. **Run Tests** - Execute `pnpm test:unit` and verify all tests pass
+> 5. **Lint/Type Check** - Run ESLint and TypeScript compiler (`pnpm lint`, `pnpm type-check`) to ensure zero errors
+> 6. **Fix Issues** - Address any test failures, linting errors, or type errors immediately
+> 7. **Commit** - Use conventional commits (feat/fix/docs/test/refactor) with descriptive messages
+> 8. **Document** - Update relevant documentation (README, ADRs, feature guides, API docs)
+
 ### Phase 1: Foundation & Governance
 
 - Initialize monorepo with Turborepo
