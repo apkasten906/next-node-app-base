@@ -95,8 +95,20 @@ Plan for next-node-app-base (updated)
   - Rate limiting: concurrency (1-20) and rate limits (100-500 jobs/min)
   - Dependencies: bullmq@5.65.1, @bull-board/api@6.14.2, @bull-board/express@6.14.2
   - 145 lines of unit tests, 700+ line documentation in docs/QUEUE_SYSTEM.md
-- **Current Status**: 204 tests passing, i18n (4 languages), error handling, production Docker infrastructure, BullMQ queue system complete
-- **Next**: Continue with next highest WSJF priority items (Enhanced CI/CD 4.38, WebSocket Support 4.15)
+- ✅ **WebSocket Support (WSJF 4.15)** - Implemented production-ready Socket.io WebSocket system - commit `cb2f5c4`
+  - WebSocket type definitions (310 lines, 14 interfaces, 5 enums) in @repo/types
+  - WebSocketService with token authentication, room management, Redis Pub/Sub scaling (631 lines)
+  - Features: join/leave rooms, real-time messaging, typing indicators, presence updates, broadcasting
+  - Rate limiting (max connections, event throttling), health checks, graceful shutdown
+  - Frontend useWebSocket React hook with auto-reconnection, event subscriptions (400+ lines)
+  - Horizontal scaling via Redis adapter for multi-instance deployment
+  - Comprehensive unit tests (600+ lines, 20 test cases covering auth, rooms, messaging, broadcasting)
+  - Production documentation in docs/WEBSOCKET.md (500+ lines) with architecture, API reference, best practices
+  - Docker environment configuration (WEBSOCKET_PORT, WEBSOCKET_CORS_ORIGIN, NEXT_PUBLIC_WEBSOCKET_URL)
+  - Dependencies: socket.io@4.8.1, socket.io-client@4.8.1, socket.io-redis-adapter@8.4.6
+  - Integration with backend HTTP server and /ready health endpoint
+- **Current Status**: 224+ tests passing, i18n (4 languages), error handling, production Docker infrastructure, BullMQ queue system, WebSocket real-time communication complete
+- **Next**: Continue with next highest WSJF priority items (Enhanced CI/CD 4.38)
 
 ## Priorities (A / B / C from original plan)
 
