@@ -1,15 +1,15 @@
 import {
+  EmailJobData,
   EmailOptions,
   IEmailProvider,
   IPushNotificationProvider,
   ISmsProvider,
   NotificationResult,
-  PushNotificationOptions,
-  SmsOptions,
-  QueueName,
-  EmailJobData,
-  SmsJobData,
   PushJobData,
+  PushNotificationOptions,
+  QueueName,
+  SmsJobData,
+  SmsOptions,
 } from '@repo/types';
 import { injectable } from 'tsyringe';
 

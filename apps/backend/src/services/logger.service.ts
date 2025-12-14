@@ -112,4 +112,12 @@ export class LoggerService {
   getLogger(): winston.Logger {
     return this.logger;
   }
+
+  /**
+   * Close all transports and clean up resources
+   * Call this before terminating the application or in test cleanup
+   */
+  close(): void {
+    this.logger.close();
+  }
 }

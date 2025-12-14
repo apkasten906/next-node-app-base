@@ -43,7 +43,7 @@ describe('WebSocketService', () => {
   });
 
   afterEach(async () => {
-    // Cleanup
+    // Cleanup in reverse order
     if (clientSocket?.connected) {
       clientSocket.disconnect();
     }
@@ -56,6 +56,11 @@ describe('WebSocketService', () => {
       await new Promise<void>((resolve) => {
         httpServer.close(() => resolve());
       });
+    }
+
+    // Close logger to prevent "write after end" errors
+    if (loggerService) {
+      loggerService.close();
     }
 
     vi.restoreAllMocks();

@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import 'reflect-metadata';
 import { createServer, type Server as HttpServer } from 'http';
+import 'reflect-metadata';
 
 import compression from 'compression';
 import cors from 'cors';
