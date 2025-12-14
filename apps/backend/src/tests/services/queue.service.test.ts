@@ -11,7 +11,8 @@ describe('QueueService', () => {
   beforeEach(() => {
     // Setup DI container
     container.clearInstances();
-    container.resolve(LoggerService);
+    container.registerSingleton(LoggerService);
+    container.registerSingleton(QueueService);
     queueService = container.resolve(QueueService);
   });
 

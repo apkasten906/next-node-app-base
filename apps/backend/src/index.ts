@@ -303,6 +303,7 @@ container.registerSingleton('EncryptionService', EncryptionService);
 container.registerSingleton('AuthorizationService', AuthorizationService);
 container.registerSingleton('AuditLogService', AuditLogService);
 container.registerSingleton('SecretsManager', EnvironmentSecretsManager);
+container.registerSingleton(QueueService);
 container.registerSingleton(WebSocketService);
 
 // Register notification and storage providers based on environment

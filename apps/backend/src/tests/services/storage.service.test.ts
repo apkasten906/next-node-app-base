@@ -26,9 +26,10 @@ class MockStorageProvider implements IStorageProvider {
 
     const metadata: FileMetadata = {
       filename,
+      originalName: filename,
+      mimeType: options.contentType || 'application/octet-stream',
       path,
       size: buffer.length,
-      contentType: options.contentType || 'application/octet-stream',
       uploadedAt: new Date(),
       url: `https://mock-storage.com/${path}`,
     };
@@ -162,7 +163,7 @@ describe('StorageService', () => {
       expect(result).toBeDefined();
       expect(result.filename).toBe('test.txt');
       expect(result.path).toContain('uploads/test.txt');
-      expect(result.contentType).toBe('text/plain');
+      expect(result.mimeType).toBe('text/plain');
       expect(result.size).toBe(fileData.length);
       expect(result.url).toBeDefined();
     });
@@ -391,7 +392,7 @@ describe('StorageService', () => {
 
       expect(metadata).toBeDefined();
       expect(metadata.filename).toBe('test.txt');
-      expect(metadata.contentType).toBe('text/plain');
+      expect(metadata.mimeType).toBe('text/plain');
       expect(metadata.size).toBe(12);
     });
 
