@@ -47,6 +47,10 @@
   "playwright.reuseBrowser": true,
   "playwright.showTrace": false,
   "testing.automaticallyOpenPeekView": "never",
+  "playwright.env": {
+    "CI": "false"
+  },
+  "playwright.searchForWorkspaceFiles": true,
   "cSpell.words": [
     "addgroup",
     "adduser",

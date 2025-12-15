@@ -17,6 +17,33 @@ To see all tests in VSCode Test Explorer, install the **Playwright Test** extens
 
 Alternatively, VSCode will prompt you to install recommended extensions when you open the workspace.
 
+## Setup Requirements
+
+### 1. Install Playwright Browsers
+
+Before running Playwright tests, install the required browsers:
+
+```bash
+# From workspace root
+pnpm playwright install
+
+# Or from frontend directory
+cd apps/frontend
+pnpm exec playwright install
+```
+
+This installs Chromium, Firefox, and WebKit browsers needed for testing.
+
+### 2. Reload VSCode Window
+
+After installing the Playwright extension and browsers:
+
+1. Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac)
+2. Type "Reload Window"
+3. Select "Developer: Reload Window"
+
+This ensures VSCode discovers the Playwright tests.
+
 ## Viewing Tests
 
 ### Backend Tests (Jest)
@@ -59,19 +86,44 @@ pnpm --filter backend test queue.service.test.ts
 pnpm --filter backend test:coverage
 ```
 
-### E2E Tests
+### E2E Tests (Playwright)
+
+**From workspace root:**
 
 ```bash
+# Run all E2E tests across all browsers
+pnpm test:e2e
+
+# Run with interactive UI
+pnpm test:e2e:ui
+
+# Run in debug mode
+pnpm test:e2e:debug
+
+# View test report
+pnpm test:e2e:report
+
+# Run Playwright commands directly
+pnpm playwright test --project=chromium
+pnpm playwright test auth.spec.ts --headed
+```
+
+**From apps/frontend directory:**
+
+```bash
+cd apps/frontend
+
 # Run all E2E tests
-pnpm --filter frontend test:e2e
+pnpm test:e2e
 
 # Run in UI mode (interactive)
-pnpm --filter frontend test:e2e:ui
+pnpm test:e2e:ui
 
 # Run specific browser
-pnpm --filter frontend test:e2e --project=chromium
+pnpm exec playwright test --project=chromium
 
 # Run specific test file
+pnpm exec playwright test e2e/tests/auth.spec.ts
 pnpm --filter frontend test:e2e auth.spec.ts
 ```
 
@@ -113,6 +165,10 @@ Current settings in `.vscode/settings.json`:
 {
   "playwright.reuseBrowser": true,
   "playwright.showTrace": false,
+  "playwright.env": {
+    "CI": "false"
+  },
+  "playwright.searchForWorkspaceFiles": true,
   "testing.automaticallyOpenPeekView": "never"
 }
 ```
@@ -121,6 +177,8 @@ Current settings in `.vscode/settings.json`:
 
 - `playwright.reuseBrowser`: Reuse browser between test runs for speed
 - `playwright.showTrace`: Auto-open trace viewer on failure
+- `playwright.env`: Environment variables for test runs
+- `playwright.searchForWorkspaceFiles`: Search all workspace folders for Playwright configs
 - `testing.automaticallyOpenPeekView`: Control when peek view opens
 
 ## Test Count Breakdown
@@ -150,16 +208,40 @@ Current settings in `.vscode/settings.json`:
 
 ## Troubleshooting
 
-### Playwright Tests Not Showing
+### "playwright command not found" in terminal
 
-**Problem:** Test Explorer only shows 214 backend tests
+**Problem:** Running `npx playwright test` or `playwright test` gives "command not found"
+
+**Solution:**
+
+Playwright is installed in the `apps/frontend` workspace, not globally. Use one of these methods:
+
+```bash
+# Method 1: From workspace root (recommended)
+pnpm test:e2e
+pnpm playwright test
+
+# Method 2: From apps/frontend directory
+cd apps/frontend
+pnpm test:e2e
+pnpm exec playwright test
+
+# Method 3: Using pnpm filter from root
+pnpm --filter=frontend test:e2e
+```
+
+### Playwright Tests Not Showing in Test Explorer
+
+**Problem:** Test Explorer only shows 214 backend tests, no Playwright tests
 
 **Solution:**
 
 1. Install Playwright Test extension (`ms-playwright.playwright`)
-2. Reload VSCode window (Ctrl+Shift+P → "Reload Window")
-3. Verify `apps/frontend/playwright.config.ts` exists
-4. Check Test Explorer sidebar - should see "Playwright Tests" section
+2. Install Playwright browsers: `pnpm playwright install`
+3. Reload VSCode window: Press `Ctrl+Shift+P` → Type "Reload Window" → Enter
+4. Verify `apps/frontend/playwright.config.ts` exists
+5. Check Test Explorer sidebar - expand to see "Playwright Tests" section
+6. Wait 10-30 seconds for test discovery to complete
 
 ### Tests Failing in Test Explorer
 
@@ -167,10 +249,11 @@ Current settings in `.vscode/settings.json`:
 
 **Solution:**
 
-1. Ensure services are running (frontend on :3000, backend on :4000)
-2. Check environment variables in `.env.test`
-3. Run `pnpm exec playwright install` to ensure browsers are installed
-4. Clear Playwright cache: `pnpm exec playwright install --force`
+1. Ensure browsers are installed: `pnpm playwright install`
+2. Check if services are running (frontend on :3000, backend on :4000)
+3. Verify environment variables in `.env.test`
+4. Clear Playwright cache: `pnpm playwright install --force`
+5. Check Playwright output in Test Explorer Output panel
 
 ### Slow Test Discovery
 

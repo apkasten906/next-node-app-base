@@ -138,7 +138,7 @@ next-node-app-base/
 
 ### Available Scripts
 
-```bash
+````bash
 # Development
 pnpm dev                    # Start all apps in development mode
 pnpm dev:frontend           # Start only frontend
@@ -150,25 +150,52 @@ pnpm build:frontend         # Build frontend
 pnpm build:backend          # Build backend
 
 # Testing
+
+## First-Time Setup
+
+Install Playwright browsers (required for E2E tests):
+
+```bash
+# Windows
+.\scripts\setup-playwright.ps1
+
+# Linux/Mac
+./scripts/setup-playwright.sh
+
+# Or manually
+pnpm playwright install
+````
+
+## Running Tests
+
+```bash
 pnpm test                   # Run all tests
 pnpm test:unit              # Run unit tests
 pnpm test:integration       # Run integration tests
-pnpm test:e2e               # Run E2E tests
+pnpm test:e2e               # Run E2E tests (435 tests across 5 browsers)
+pnpm test:e2e:ui            # Run E2E tests in interactive UI mode
+pnpm test:e2e:debug         # Run E2E tests in debug mode
 pnpm test:contract          # Run contract tests
 pnpm test:security          # Run security tests
 pnpm test:load              # Run load tests
+```
+
+See [TEST_EXPLORER_GUIDE.md](docs/TEST_EXPLORER_GUIDE.md) for VSCode Test Explorer setup.
 
 # Code Quality
-pnpm lint                   # Lint all code
-pnpm lint:fix               # Fix linting issues
-pnpm format                 # Format code with Prettier
-pnpm typecheck              # Run TypeScript type checking
+
+pnpm lint # Lint all code
+pnpm lint:fix # Fix linting issues
+pnpm format # Format code with Prettier
+pnpm typecheck # Run TypeScript type checking
 
 # Database
-pnpm db:migrate             # Run database migrations
-pnpm db:seed                # Seed database
-pnpm db:studio              # Open Prisma Studio
-pnpm db:reset               # Reset database
+
+pnpm db:migrate # Run database migrations
+pnpm db:seed # Seed database
+pnpm db:studio # Open Prisma Studio
+pnpm db:reset # Reset database
+
 ```
 
 ### Git hooks
@@ -279,3 +306,4 @@ Built with amazing open-source technologies:
 ---
 
 **⭐ If this template helps you, please give it a star!**
+```
