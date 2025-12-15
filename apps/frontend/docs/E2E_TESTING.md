@@ -217,10 +217,38 @@ await AccessibilityHelpers.testKeyboardNavigation(page, ['Tab', 'Enter']);
 
 ## Running Tests
 
+### Prerequisites
+
+**Automatic Server Startup (Default)**
+
+Playwright is configured to automatically start both frontend and backend servers before running tests:
+
+- **Backend**: `http://localhost:4000` (started first, health check on `/health`)
+- **Frontend**: `http://localhost:3000` (started after backend is ready)
+
+The `webServer` configuration in `playwright.config.ts` handles this automatically. You don't need to start servers manually!
+
+**Manual Server Startup (Alternative)**
+
+If you prefer to run servers manually or are debugging:
+
+```bash
+# Terminal 1: Start backend
+pnpm dev:backend
+
+# Terminal 2: Start frontend
+pnpm dev:frontend
+
+# Terminal 3: Run tests (will reuse existing servers)
+pnpm test:e2e
+```
+
+The config uses `reuseExistingServer: true` in development, so it won't conflict with manually started servers.
+
 ### Local Development
 
 ```bash
-# Run all tests
+# Run all tests (servers start automatically)
 pnpm --filter frontend test:e2e
 
 # Run in UI mode (interactive)
@@ -345,7 +373,7 @@ Use hooks to clean up after tests:
 test.afterEach(async ({ page }) => {
   // Delete test data
   await page.request.delete('/api/test-data');
-  
+
   // Clear auth
   await AuthHelpers.clearAuth(page);
 });
@@ -377,6 +405,7 @@ pnpm --filter frontend test:e2e:ui
 ```
 
 Features:
+
 - Watch mode with hot reload
 - Time travel debugging
 - Network inspector
@@ -411,6 +440,7 @@ pnpm exec playwright show-trace test-results/path/to/trace.zip
 ### 4. Screenshots and Videos
 
 Playwright automatically captures:
+
 - Screenshots on failure
 - Videos on failure (retention mode)
 - Traces on first retry
@@ -430,16 +460,19 @@ DEBUG=pw:api pnpm --filter frontend test:e2e
 ### GitHub Actions
 
 The `.github/workflows/e2e-tests.yml` workflow runs E2E tests on:
+
 - Push to `main` or `develop`
 - Pull requests
 - Manual dispatch
 
 **Browser Matrix**:
+
 - Ubuntu: Chromium, Firefox, WebKit
 - Windows: Chromium
 - macOS: WebKit
 
 **Artifacts**:
+
 - HTML reports (30 days)
 - Videos on failure (7 days)
 - Traces on failure (7 days)
@@ -447,6 +480,7 @@ The `.github/workflows/e2e-tests.yml` workflow runs E2E tests on:
 ### Environment Variables
 
 Set in GitHub Actions secrets:
+
 - `TEST_DATABASE_URL`: Test database connection
 - `NEXTAUTH_SECRET`: NextAuth secret for tests
 - `E2E_BASE_URL`: Frontend URL (default: http://localhost:3000)
@@ -471,6 +505,7 @@ steps:
 
 **Cause**: Services not ready, slow API calls
 **Solution**:
+
 - Increase timeout: `test.setTimeout(60000)`
 - Wait for services in `global-setup.ts`
 - Use `waitForAPIResponse` instead of `waitForTimeout`
@@ -479,6 +514,7 @@ steps:
 
 **Cause**: Race conditions, network issues
 **Solution**:
+
 - Use explicit waits: `await expect(locator).toBeVisible()`
 - Retry assertions: `toPass({ timeout: 5000 })`
 - Disable animations: `page.emulateMedia({ reducedMotion: 'reduce' })`
@@ -487,6 +523,7 @@ steps:
 
 **Cause**: Playwright browsers missing
 **Solution**:
+
 ```bash
 pnpm exec playwright install
 ```
@@ -495,6 +532,7 @@ pnpm exec playwright install
 
 **Cause**: Services running from previous test run
 **Solution**:
+
 ```bash
 # Find and kill process on port 3000
 lsof -ti:3000 | xargs kill -9
@@ -507,6 +545,7 @@ E2E_BASE_URL=http://localhost:3001 pnpm test:e2e
 
 **Cause**: Expired tokens, invalid credentials
 **Solution**:
+
 - Check `.env.test` configuration
 - Verify `NEXTAUTH_SECRET` matches backend
 - Use `AuthHelpers.clearAuth()` in `beforeEach`
@@ -515,6 +554,7 @@ E2E_BASE_URL=http://localhost:3001 pnpm test:e2e
 
 **Cause**: Test data persisting between runs
 **Solution**:
+
 - Use isolated test database
 - Implement `global-teardown.ts` to clean up
 - Use transactions that rollback after each test

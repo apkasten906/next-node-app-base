@@ -34,7 +34,35 @@ pnpm exec playwright install
 
 This installs Chromium, Firefox, and WebKit browsers needed for testing.
 
-### 2. Reload VSCode Window
+### 2. Servers Running (E2E Tests Only)
+
+**Playwright E2E tests require both frontend and backend servers to be running.**
+
+The Playwright configuration automatically starts both servers before running tests:
+
+- Backend: `http://localhost:4000` (with health check)
+- Frontend: `http://localhost:3000`
+
+**Automatic startup** (recommended):
+
+- Playwright's `webServer` config starts both servers automatically
+- Tests wait for servers to be ready before executing
+- Servers shut down after tests complete
+
+**Manual startup** (if needed):
+
+```bash
+# Terminal 1: Start backend
+pnpm dev:backend
+
+# Terminal 2: Start frontend
+pnpm dev:frontend
+
+# Terminal 3: Run tests
+pnpm test:e2e
+```
+
+### 3. Reload VSCode Window
 
 After installing the Playwright extension and browsers:
 

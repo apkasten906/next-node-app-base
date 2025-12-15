@@ -168,17 +168,26 @@ pnpm playwright install
 
 ## Running Tests
 
+**Important for E2E tests:** Playwright automatically starts both frontend and backend servers before running tests. No manual server startup required!
+
 ```bash
 pnpm test                   # Run all tests
 pnpm test:unit              # Run unit tests
 pnpm test:integration       # Run integration tests
-pnpm test:e2e               # Run E2E tests (435 tests across 5 browsers)
+pnpm test:e2e               # Run E2E tests (automatically starts servers)
 pnpm test:e2e:ui            # Run E2E tests in interactive UI mode
 pnpm test:e2e:debug         # Run E2E tests in debug mode
 pnpm test:contract          # Run contract tests
 pnpm test:security          # Run security tests
 pnpm test:load              # Run load tests
 ```
+
+**E2E Test Details:**
+
+- 435 tests across 5 browser projects (Chromium, Firefox, WebKit, Mobile Chrome, Mobile Safari)
+- Servers auto-start: Backend (port 4000) + Frontend (port 3000)
+- Tests wait for servers to be ready before executing
+- Servers auto-shutdown after tests complete
 
 See [TEST_EXPLORER_GUIDE.md](docs/TEST_EXPLORER_GUIDE.md) for VSCode Test Explorer setup.
 
