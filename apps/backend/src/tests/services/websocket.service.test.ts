@@ -8,8 +8,8 @@ import {
   PresenceStatus,
   WebSocketEvent,
 } from '@repo/types';
-import { io as ioClient, Socket as ClientSocket } from 'socket.io-client';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Socket as ClientSocket, io as ioClient } from 'socket.io-client';
+import { afterEach, beforeEach, describe, DoneFn, expect, it, vi } from 'vitest';
 
 import { LoggerService } from '../../services/logger.service';
 import { WebSocketService } from '../../services/websocket/websocket.service';
@@ -100,7 +100,7 @@ describe('WebSocketService', () => {
       });
     });
 
-    it('should accept client connections with valid token', (done) => {
+    it('should accept client connections with valid token', (done: DoneFn) => {
       clientSocket = ioClient(`http://localhost:${testPort}`, {
         auth: {
           token: 'valid-token',
@@ -115,7 +115,7 @@ describe('WebSocketService', () => {
       });
     });
 
-    it('should reject connections without token', (done) => {
+    it('should reject connections without token', (done: DoneFn) => {
       clientSocket = ioClient(`http://localhost:${testPort}`, {
         auth: {}, // No token
         transports: ['websocket'],
@@ -190,7 +190,7 @@ describe('WebSocketService', () => {
       });
     });
 
-    it('should allow joining a room', (done) => {
+    it('should allow joining a room', (done: DoneFn) => {
       const joinRequest: JoinRoomRequest = {
         room: 'test-room',
       };
@@ -376,7 +376,7 @@ describe('WebSocketService', () => {
       });
     });
 
-    it('should send typing-start event', (done) => {
+    it('should send typing-start event', (done: DoneFn) => {
       const client2 = ioClient(`http://localhost:${testPort}`, {
         auth: {
           token: 'valid-token-2',
@@ -397,7 +397,7 @@ describe('WebSocketService', () => {
       });
     });
 
-    it('should send typing-stop event', (done) => {
+    it('should send typing-stop event', (done: DoneFn) => {
       const client2 = ioClient(`http://localhost:${testPort}`, {
         auth: {
           token: 'valid-token-2',
@@ -439,7 +439,7 @@ describe('WebSocketService', () => {
       });
     });
 
-    it('should broadcast presence updates', (done) => {
+    it('should broadcast presence updates', (done: DoneFn) => {
       const client2 = ioClient(`http://localhost:${testPort}`, {
         auth: {
           token: 'valid-token-2',

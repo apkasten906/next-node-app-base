@@ -1,4 +1,4 @@
-import { WebhookJobData, JobResult } from '@repo/types';
+import { JobResult, WebhookJobData } from '@repo/types';
 import { Job } from 'bullmq';
 import 'reflect-metadata';
 import { injectable } from 'tsyringe';

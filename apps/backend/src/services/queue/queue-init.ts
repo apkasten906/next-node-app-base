@@ -1,4 +1,4 @@
-import { QueueName, JobProcessor } from '@repo/types';
+import { JobProcessor, QueueName } from '@repo/types';
 import { container } from 'tsyringe';
 
 import { LoggerService } from '../logger.service';

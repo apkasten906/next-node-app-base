@@ -1,4 +1,4 @@
-import { SmsJobData, PushJobData, JobResult } from '@repo/types';
+import { JobResult, PushJobData, SmsJobData } from '@repo/types';
 import { Job } from 'bullmq';
 import 'reflect-metadata';
 import { injectable } from 'tsyringe';

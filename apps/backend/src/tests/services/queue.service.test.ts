@@ -1,6 +1,6 @@
 import { QueueName } from '@repo/types';
 import { container } from 'tsyringe';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LoggerService } from '../../services/logger.service';
 import { QueueService } from '../../services/queue/queue.service';
