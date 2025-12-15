@@ -44,6 +44,9 @@
     "**/.next/**": true,
     "**/.turbo/**": true
   },
+  "playwright.reuseBrowser": true,
+  "playwright.showTrace": false,
+  "testing.automaticallyOpenPeekView": "never",
   "cSpell.words": [
     "addgroup",
     "adduser",
