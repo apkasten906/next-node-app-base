@@ -29,9 +29,9 @@
     "winston": "^3.18.3"
   },
   "scripts": {
-    "dev": "node --experimental-strip-types --env-file=.env src/index.ts",
+    "dev": "ts-node --transpile-only -r dotenv/config src/index.ts",
     "build": "echo 'Backend build - TypeScript to be configured'",
-    "start": "node --experimental-strip-types --env-file=.env src/index.ts",
+    "start": "ts-node --transpile-only -r dotenv/config src/index.ts",
     "lint": "echo 'Backend lint - ESLint to be configured'",
     "typecheck": "echo 'Backend typecheck - TypeScript to be configured'",
     "test": "vitest run",

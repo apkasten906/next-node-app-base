@@ -82,7 +82,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'pnpm --filter=backend dev',
-      url: 'http://localhost:4000/health',
+      url: 'http://localhost:3001/health',
       reuseExistingServer: !process.env['CI'],
       timeout: 120 * 1000,
       stdout: 'pipe',
