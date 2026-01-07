@@ -579,5 +579,5 @@ When adding new E2E tests:
 
 ---
 
-**Last Updated**: December 2025  
+**Last Updated**: December 2025
 **Maintainer**: Development Team

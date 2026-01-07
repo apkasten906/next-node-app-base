@@ -36,7 +36,7 @@ async function waitForServices(): Promise<void> {
     } catch {
       // eslint-disable-next-line no-console
       console.log(`⏳ Waiting for services... (${i + 1}/${maxAttempts})`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 

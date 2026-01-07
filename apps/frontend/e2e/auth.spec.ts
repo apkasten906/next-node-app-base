@@ -1,30 +1,23 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('Authentication Flow', () => {
-  test('should show sign in page with OAuth providers', async ({ page }) => {
-    await page.goto('/auth/signin');
+import { AuthHelpers } from './helpers/test-helpers';
 
-    await expect(page).toHaveTitle(/Sign In/);
+test.describe('Authentication Flow', () => {
+  test('should show sign in form', async ({ page }) => {
+    await page.goto('/auth/signin');
 
     const heading = page.getByRole('heading', { name: 'Sign In' });
     await expect(heading).toBeVisible();
 
-    // Check for OAuth provider buttons
-    const googleButton = page.getByRole('button', { name: /Google/i });
-    await expect(googleButton).toBeVisible();
-
-    const githubButton = page.getByRole('button', { name: /GitHub/i });
-    await expect(githubButton).toBeVisible();
+    // Check for email/password inputs and submit button
+    await expect(page.getByPlaceholder('email@example.com')).toBeVisible();
+    await expect(page.getByPlaceholder('••••••••')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
   });
 
-  test('should redirect to home when accessing sign in while authenticated', async ({ page }) => {
-    // This test assumes you have a way to mock authentication
-    // For now, it just checks the redirect flow structure
+  test('should allow accessing sign in page when unauthenticated', async ({ page }) => {
     await page.goto('/auth/signin');
-
-    // If authenticated, should see home page elements
-    // This would need proper session mocking in a real test
-    await expect(page).toHaveURL(/\/(auth\/signin)?/);
+    await expect(page).toHaveURL('/auth/signin');
   });
 
   test('should show error page with sign in link when unauthorized', async ({ page }) => {
@@ -39,26 +32,10 @@ test.describe('Authentication Flow', () => {
     expect(isSignInPage || isUnauthorizedPage).toBeTruthy();
   });
 
-  test('should display user session info when authenticated', async ({ context, page }) => {
-    // Mock authentication session
-    await context.addCookies([
-      {
-        name: 'next-auth.session-token',
-        value: 'mock-session-token',
-        domain: 'localhost',
-        path: '/',
-        httpOnly: true,
-        sameSite: 'Lax',
-        expires: Date.now() / 1000 + 3600, // 1 hour
-      },
-    ]);
-
-    await page.goto('/');
-
-    // When authenticated, should show user menu or profile
-    // This would need proper NextAuth session mocking
-    // For now, just verify the page loads
-    await expect(page).toHaveURL('/');
+  test('should allow accessing dashboard when authenticated', async ({ page }) => {
+    await AuthHelpers.signInViaAPI(page);
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL('/dashboard');
   });
 });
 

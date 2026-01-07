@@ -24,8 +24,8 @@ test.describe('Home Page', () => {
     await expect(page.getByText('Next.js 15')).toBeVisible();
     await expect(page.getByText('Node.js 25')).toBeVisible();
     await expect(page.getByText('Prisma ORM')).toBeVisible();
-    await expect(page.getByText('NextAuth.js')).toBeVisible();
-    await expect(page.getByText('OWASP Security')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'TypeScript' })).toBeVisible();
+    await expect(page.getByText('Testing')).toBeVisible();
   });
 
   test('should navigate to sign in page', async ({ page }) => {

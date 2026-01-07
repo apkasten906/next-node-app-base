@@ -65,9 +65,10 @@ export class AuthHelpers {
    */
   static async signInViaAPI(page: Page) {
     const user = TestData.getValidUser();
-    
-    // Make API call to get auth token
-    const response = await page.request.post('/api/auth/signin', {
+    const baseUrl = process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001';
+
+    // Call backend login endpoint to receive HttpOnly cookies
+    const response = await page.request.post(`${baseUrl}/api/auth/login`, {
       data: {
         email: user.email,
         password: user.password,
@@ -78,17 +79,28 @@ export class AuthHelpers {
       throw new Error('Failed to sign in via API');
     }
 
-    // Set auth cookie/token in browser context
-    const data = await response.json();
-    if (data.token) {
-      await page.context().addCookies([
-        {
-          name: 'auth-token',
-          value: data.token,
-          domain: 'localhost',
-          path: '/',
-        },
-      ]);
+    // Extract Set-Cookie headers and set them in the browser context
+    const setCookieHeaders = response
+      .headersArray()
+      .filter((h) => h.name.toLowerCase() === 'set-cookie')
+      .map((h) => h.value);
+
+    const cookiesToSet: Array<{ name: string; value: string; domain: string; path: string }> = [];
+    for (const raw of setCookieHeaders) {
+      // Example: access_token=...; Path=/; HttpOnly; SameSite=Lax
+      const [pair] = raw.split(';');
+      if (!pair) continue;
+      const idx = pair.indexOf('=');
+      if (idx <= 0) continue;
+      const name = pair.substring(0, idx).trim();
+      const value = pair.substring(idx + 1).trim();
+      if (name === 'access_token' || name === 'refresh_token') {
+        cookiesToSet.push({ name, value, domain: 'localhost', path: '/' });
+      }
+    }
+
+    if (cookiesToSet.length) {
+      await page.context().addCookies(cookiesToSet);
     }
   }
 
@@ -187,15 +199,15 @@ export class AccessibilityHelpers {
    */
   static async testKeyboardNavigation(page: Page, expectedFocusableCount: number) {
     let focusableCount = 0;
-    
+
     for (let i = 0; i < expectedFocusableCount * 2; i++) {
       await page.keyboard.press('Tab');
-      const focused = await page.evaluate(() => document.activeElement?.tagName);
+      const focused = await page.evaluate(() => globalThis.document.activeElement?.tagName);
       if (focused && focused !== 'BODY') {
         focusableCount++;
       }
     }
-    
+
     return focusableCount >= expectedFocusableCount;
   }
 
@@ -214,7 +226,7 @@ export class AccessibilityHelpers {
     const ariaLabel = await element.getAttribute('aria-label');
     const ariaLabelledBy = await element.getAttribute('aria-labelledby');
     const title = await element.getAttribute('title');
-    
+
     return !!(ariaLabel || ariaLabelledBy || title);
   }
 }

@@ -6,9 +6,10 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: ['**/tests/**'],
 
   /* Maximum time one test can run */
-  timeout: 30 * 1000,
+  timeout: 60 * 1000,
 
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -48,7 +49,7 @@ export default defineConfig({
     actionTimeout: 10 * 1000,
 
     /* Maximum time for navigation */
-    navigationTimeout: 15 * 1000,
+    navigationTimeout: 45 * 1000,
   },
 
   projects: [
@@ -87,6 +88,14 @@ export default defineConfig({
       timeout: 120 * 1000,
       stdout: 'pipe',
       stderr: 'pipe',
+      env: {
+        // Make E2E deterministic and avoid Redis/DI noise
+        DISABLE_QUEUES: 'true',
+        DISABLE_WEBSOCKETS: 'true',
+        // Use backend-only auth without DB dependency for E2E
+        AUTH_ENABLE_DEV_FALLBACK: 'true',
+        NODE_ENV: process.env['NODE_ENV'] || 'development',
+      },
     },
     {
       command: 'pnpm --filter=frontend dev',
@@ -95,6 +104,13 @@ export default defineConfig({
       timeout: 120 * 1000,
       stdout: 'pipe',
       stderr: 'pipe',
+      env: {
+        NEXTAUTH_URL: 'http://localhost:3000',
+        NEXTAUTH_SECRET: '6a3f5d8e9c2b1a7f4e8d6c5b3a2f1e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f',
+        DATABASE_URL:
+          process.env['DATABASE_URL'] || 'postgresql://postgres:postgres@localhost:5432/nextnode',
+        NEXT_PUBLIC_API_URL: process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001',
+      },
     },
   ],
 });

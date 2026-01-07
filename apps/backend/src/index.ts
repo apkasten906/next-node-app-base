@@ -11,6 +11,8 @@ import { container } from 'tsyringe';
 
 import { setupSwagger } from './config/swagger';
 import { apiVersionMiddleware } from './middleware/api-version.middleware';
+import { attachUserIfPresent } from './middleware/jwt.middleware';
+import authRouter from './routes/auth.routes';
 import filesRouter from './routes/files.routes';
 import { usersRouter } from './routes/users-v2.routes';
 import { AuditLogService } from './services/audit/audit-log.service';
@@ -38,6 +40,14 @@ export class App {
   private database: DatabaseService;
   private cache: CacheService;
   private websocket?: WebSocketService;
+
+  private queuesEnabled(): boolean {
+    return process.env['DISABLE_QUEUES'] !== 'true';
+  }
+
+  private websocketsEnabled(): boolean {
+    return process.env['DISABLE_WEBSOCKETS'] !== 'true';
+  }
 
   constructor() {
     this.app = express();
@@ -94,6 +104,9 @@ export class App {
       })
     );
 
+    // Attach user from JWT if present
+    this.app.use(attachUserIfPresent);
+
     // Correlation ID middleware
     this.app.use((req: Request, res: Response, next: NextFunction) => {
       const correlationId = (req.headers['x-correlation-id'] as string) || crypto.randomUUID();
@@ -112,8 +125,9 @@ export class App {
 
     // Bull Board queue monitoring dashboard (admin only in production)
     if (
-      process.env['NODE_ENV'] === 'development' ||
-      process.env['ENABLE_QUEUE_DASHBOARD'] === 'true'
+      this.queuesEnabled() &&
+      (process.env['NODE_ENV'] === 'development' ||
+        process.env['ENABLE_QUEUE_DASHBOARD'] === 'true')
     ) {
       try {
         const queueService = container.resolve(QueueService);
@@ -173,12 +187,14 @@ export class App {
           ready: '/ready',
           users: '/api/users',
           documentation: '/api-docs',
-          ...(process.env['NODE_ENV'] === 'development' && { queues: '/admin/queues' }),
+          ...(process.env['NODE_ENV'] === 'development' &&
+            this.queuesEnabled() && { queues: '/admin/queues' }),
         },
       });
     });
 
     // Register API routes
+    this.app.use('/api/auth', authRouter);
     this.app.use('/api/users', usersRouter);
     this.app.use('/api/files', filesRouter);
 
@@ -219,32 +235,102 @@ export class App {
       await this.database.connect();
       this.logger.info('Database connected');
 
-      // Initialize job queues
-      try {
-        initializeQueues();
-        this.logger.info('Job queues initialized');
-      } catch (error) {
-        this.logger.error('Failed to initialize job queues', error as Error);
-        // Continue without queues in development
-        if (process.env['NODE_ENV'] === 'production') {
-          throw error;
+      // Seed development/test users for E2E auth flow (only if DB is reachable and users table exists)
+      if (process.env['NODE_ENV'] !== 'production') {
+        try {
+          const reachable = await this.database.healthCheck();
+          if (!reachable) {
+            this.logger.warn('Skipping dev seeding: database not reachable');
+          } else {
+            const existsResult = await this.database.$queryRaw<
+              Array<{ exists: boolean }>
+            >`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='users') AS exists`;
+            const hasUsersTable = existsResult[0]?.exists === true;
+
+            if (!hasUsersTable) {
+              this.logger.warn('Skipping dev seeding: users table not found');
+            } else {
+              const enc = container.resolve(EncryptionService);
+              const testPassword = await enc.hash('Password123!');
+              const adminPassword = await enc.hash('Admin123!');
+
+              await this.database.user.upsert({
+                where: { email: 'test@example.com' },
+                update: {
+                  name: 'Test User',
+                  role: 'USER',
+                  passwordHash: testPassword,
+                },
+                create: {
+                  email: 'test@example.com',
+                  name: 'Test User',
+                  role: 'USER',
+                  passwordHash: testPassword,
+                },
+              });
+
+              await this.database.user.upsert({
+                where: { email: 'admin@example.com' },
+                update: {
+                  name: 'Admin User',
+                  role: 'ADMIN',
+                  passwordHash: adminPassword,
+                },
+                create: {
+                  email: 'admin@example.com',
+                  name: 'Admin User',
+                  role: 'ADMIN',
+                  passwordHash: adminPassword,
+                },
+              });
+
+              this.logger.info('Seeded development users for E2E');
+            }
+          }
+        } catch (seedErr) {
+          this.logger.warn('Dev user seeding skipped/failed', {
+            error:
+              seedErr instanceof Error
+                ? { message: seedErr.message, stack: seedErr.stack, name: seedErr.name }
+                : String(seedErr),
+          });
         }
+      }
+
+      // Initialize job queues
+      if (this.queuesEnabled()) {
+        try {
+          initializeQueues();
+          this.logger.info('Job queues initialized');
+        } catch (error) {
+          this.logger.error('Failed to initialize job queues', error as Error);
+          // Continue without queues in development
+          if (process.env['NODE_ENV'] === 'production') {
+            throw error;
+          }
+        }
+      } else {
+        this.logger.info('Job queues disabled (DISABLE_QUEUES=true)');
       }
 
       // Create HTTP server
       this.server = createServer(this.app);
 
       // Initialize WebSocket server
-      try {
-        this.websocket = container.resolve(WebSocketService);
-        await this.websocket.initialize(this.server);
-        this.logger.info('WebSocket server initialized');
-      } catch (error) {
-        this.logger.error('Failed to initialize WebSocket server', error as Error);
-        // Continue without WebSocket in development
-        if (process.env['NODE_ENV'] === 'production') {
-          throw error;
+      if (this.websocketsEnabled()) {
+        try {
+          this.websocket = container.resolve(WebSocketService);
+          await this.websocket.initialize(this.server);
+          this.logger.info('WebSocket server initialized');
+        } catch (error) {
+          this.logger.error('Failed to initialize WebSocket server', error as Error);
+          // Continue without WebSocket in development
+          if (process.env['NODE_ENV'] === 'production') {
+            throw error;
+          }
         }
+      } else {
+        this.logger.info('WebSockets disabled (DISABLE_WEBSOCKETS=true)');
       }
 
       // Start server

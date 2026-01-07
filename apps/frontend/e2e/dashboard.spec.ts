@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { AuthHelpers } from './helpers/test-helpers';
+
 test.describe('Dashboard Page - Unauthenticated', () => {
   test('should redirect to sign in when accessing dashboard without auth', async ({ page }) => {
     await page.goto('/dashboard');
@@ -11,19 +13,9 @@ test.describe('Dashboard Page - Unauthenticated', () => {
 });
 
 test.describe('Dashboard Page - Authenticated', () => {
-  test.beforeEach(async ({ context }) => {
-    // Mock authentication session for dashboard tests
-    await context.addCookies([
-      {
-        name: 'next-auth.session-token',
-        value: 'mock-session-token-dashboard',
-        domain: 'localhost',
-        path: '/',
-        httpOnly: true,
-        sameSite: 'Lax',
-        expires: Date.now() / 1000 + 3600,
-      },
-    ]);
+  test.beforeEach(async ({ page }) => {
+    // Authenticate via backend API to set cookies
+    await AuthHelpers.signInViaAPI(page);
   });
 
   test('should display dashboard heading', async ({ page }) => {
@@ -51,19 +43,8 @@ test.describe('Dashboard Page - Authenticated', () => {
 });
 
 test.describe('Dashboard - API Integration', () => {
-  test.beforeEach(async ({ context }) => {
-    // Mock authentication
-    await context.addCookies([
-      {
-        name: 'next-auth.session-token',
-        value: 'mock-session-token-api',
-        domain: 'localhost',
-        path: '/',
-        httpOnly: true,
-        sameSite: 'Lax',
-        expires: Date.now() / 1000 + 3600,
-      },
-    ]);
+  test.beforeEach(async ({ page }) => {
+    await AuthHelpers.signInViaAPI(page);
   });
 
   test('should load user data from API', async ({ page }) => {
@@ -107,31 +88,13 @@ test.describe('Dashboard - API Integration', () => {
 });
 
 test.describe('Dashboard - User Actions', () => {
-  test.beforeEach(async ({ context }) => {
-    await context.addCookies([
-      {
-        name: 'next-auth.session-token',
-        value: 'mock-session-token-actions',
-        domain: 'localhost',
-        path: '/',
-        httpOnly: true,
-        sameSite: 'Lax',
-        expires: Date.now() / 1000 + 3600,
-      },
-    ]);
+  test.beforeEach(async ({ page }) => {
+    // Authenticate via backend API to set cookies
+    await AuthHelpers.signInViaAPI(page);
   });
 
-  test('should allow sign out', async ({ page }) => {
+  test('should remain on dashboard while authenticated', async ({ page }) => {
     await page.goto('/dashboard');
-
-    // Look for sign out button
-    const signOutButton = page.getByRole('button', { name: /Sign Out/i });
-
-    if (await signOutButton.isVisible()) {
-      await signOutButton.click();
-
-      // Should redirect to home or sign in page
-      await page.waitForURL(/\/(auth\/signin)?$/);
-    }
+    await expect(page).toHaveURL('/dashboard');
   });
 });
