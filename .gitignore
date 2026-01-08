@@ -80,5 +80,8 @@ tmp/
 temp/
 *.tmp
 
+# TypeScript incremental build artifacts
+*.tsbuildinfo
+
 # Sentry
 .sentryclirc

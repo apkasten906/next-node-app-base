@@ -16,6 +16,8 @@ module.exports = [
       '**/.next/**',
       '**/.turbo/**',
       '**/coverage/**',
+      '**/*.tsbuildinfo',
+      '**/next-env.d.ts',
     ],
   },
 
@@ -132,6 +134,10 @@ module.exports = [
       ...tseslint.configs.recommended.rules,
       ...securityPlugin.configs.recommended.rules,
 
+      // TypeScript handles undefined identifiers better than ESLint's core rule.
+      // Keeping this on breaks common TS/TSX patterns (e.g. JSX namespace types).
+      'no-undef': 'off',
+
       // TypeScript
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/explicit-function-return-type': ['warn', { allowExpressions: true }],
@@ -210,6 +216,9 @@ module.exports = [
       ...eslint.configs.recommended.rules,
       ...tseslint.configs.recommended.rules,
       ...securityPlugin.configs.recommended.rules,
+
+      // TypeScript handles this; keep hooks stable on TS test files.
+      'no-undef': 'off',
 
       // TypeScript (without type-aware rules)
       '@typescript-eslint/no-explicit-any': 'error',
