@@ -27,9 +27,7 @@ export async function logError(error: Error, options: LogErrorOptions = {}): Pro
     level,
     context,
     tags,
-    // eslint-disable-next-line no-undef
     userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server',
-    // eslint-disable-next-line no-undef
     url: typeof window !== 'undefined' ? window.location.href : 'server',
   };
 

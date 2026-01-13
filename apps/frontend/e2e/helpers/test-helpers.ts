@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Locator, Page, Response, WebSocket } from '@playwright/test';
 
 /**
  * Test Data Utilities
@@ -24,6 +24,7 @@ export class TestData {
       email: 'admin@example.com',
       password: 'Admin123!',
       name: 'Admin User',
+      role: 'ADMIN',
     };
   }
 
@@ -44,7 +45,7 @@ export class TestData {
   /**
    * Get invalid credentials for testing error cases
    */
-  static getInvalidCredentials(): Array<{ email: string; password: string; error: string }> {
+  static getInvalidCredentials(): Array<{ email: string; password: string; expected: string }> {
     return [
       { email: 'test@example.com', password: 'wrong', expected: 'Invalid credentials' },
       { email: 'notanemail', password: 'Test123!', expected: 'Invalid email format' },
@@ -63,7 +64,7 @@ export class AuthHelpers {
    * Sign in as test user via API
    * Faster than UI login for setup
    */
-  static async signInViaAPI(page: Page) {
+  static async signInViaAPI(page: Page): Promise<void> {
     const user = TestData.getValidUser();
     const baseUrl = process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001';
 
@@ -110,9 +111,8 @@ export class AuthHelpers {
   static async clearAuth(page: Page): Promise<void> {
     await page.context().clearCookies();
     await page.evaluate(() => {
-      // eslint-disable-next-line no-undef
       localStorage.clear();
-      // eslint-disable-next-line no-undef
+
       sessionStorage.clear();
     });
   }
@@ -126,7 +126,11 @@ export class WaitHelpers {
   /**
    * Wait for API request to complete
    */
-  static async waitForAPIResponse(page: Page, urlPattern: string | RegExp, timeout = 10000) {
+  static async waitForAPIResponse(
+    page: Page,
+    urlPattern: string | RegExp,
+    timeout = 10000
+  ): Promise<Response> {
     return await page.waitForResponse(
       (response) => {
         const url = response.url();
@@ -142,21 +146,21 @@ export class WaitHelpers {
   /**
    * Wait for WebSocket connection
    */
-  static async waitForWebSocket(page: Page, timeout = 10000) {
+  static async waitForWebSocket(page: Page, timeout = 10000): Promise<WebSocket> {
     return await page.waitForEvent('websocket', { timeout });
   }
 
   /**
    * Wait for loading indicator to disappear
    */
-  static async waitForLoadingComplete(page: Page) {
+  static async waitForLoadingComplete(page: Page): Promise<void> {
     await page.waitForSelector('[data-loading="true"]', { state: 'hidden' });
   }
 
   /**
    * Wait for toast notification
    */
-  static async waitForToast(page: Page, message?: string) {
+  static async waitForToast(page: Page, message?: string): Promise<Locator> {
     const toast = page.getByRole('status').filter({ hasText: message });
     await toast.waitFor({ state: 'visible' });
     return toast;
@@ -171,7 +175,7 @@ export class ScreenshotHelpers {
   /**
    * Take full page screenshot
    */
-  static async takeFullPageScreenshot(page: Page, name: string) {
+  static async takeFullPageScreenshot(page: Page, name: string): Promise<void> {
     await page.screenshot({
       path: `test-results/screenshots/${name}-${Date.now()}.png`,
       fullPage: true,
@@ -181,7 +185,7 @@ export class ScreenshotHelpers {
   /**
    * Take element screenshot
    */
-  static async takeElementScreenshot(page: Page, selector: string, name: string) {
+  static async takeElementScreenshot(page: Page, selector: string, name: string): Promise<void> {
     const element = page.locator(selector);
     await element.screenshot({
       path: `test-results/screenshots/${name}-${Date.now()}.png`,
@@ -197,7 +201,10 @@ export class AccessibilityHelpers {
   /**
    * Check keyboard navigation
    */
-  static async testKeyboardNavigation(page: Page, expectedFocusableCount: number) {
+  static async testKeyboardNavigation(
+    page: Page,
+    expectedFocusableCount: number
+  ): Promise<boolean> {
     let focusableCount = 0;
 
     for (let i = 0; i < expectedFocusableCount * 2; i++) {

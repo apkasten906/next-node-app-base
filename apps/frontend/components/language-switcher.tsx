@@ -12,7 +12,6 @@ export function LanguageSwitcher(): JSX.Element {
 
   const handleLanguageChange = (newLocale: Locale): void => {
     // Store locale preference in cookie/localStorage
-    // eslint-disable-next-line no-undef -- document is available in client components
     document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000`;
 
     // Change i18n language

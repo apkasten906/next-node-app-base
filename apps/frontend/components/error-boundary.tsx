@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode, JSX, ErrorInfo } from 'react';
+import type { ErrorInfo, JSX, ReactNode } from 'react';
 import { Component } from 'react';
 
 import { logError } from '@/lib/error-logger';
@@ -114,7 +114,6 @@ export function RootErrorBoundary({ children }: { children: ReactNode }): JSX.El
               </button>
               <button
                 onClick={() => {
-                  // eslint-disable-next-line no-undef
                   window.location.reload();
                 }}
                 className="flex-1 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"

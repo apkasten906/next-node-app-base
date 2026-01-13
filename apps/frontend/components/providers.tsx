@@ -21,7 +21,6 @@ export function Providers({ children }: { children: ReactNode }): JSX.Element {
 
   // Initialize i18n locale from cookie
   useEffect(() => {
-    // eslint-disable-next-line no-undef -- document is available in client components
     const savedLocale = document.cookie
       .split('; ')
       .find((row) => row.startsWith('NEXT_LOCALE='))

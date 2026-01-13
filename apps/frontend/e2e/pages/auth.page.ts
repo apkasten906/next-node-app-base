@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 /**
  * Page Object Model for Authentication Pages
@@ -6,7 +6,7 @@ import { Page, Locator } from '@playwright/test';
  */
 export class AuthPage {
   readonly page: Page;
-  
+
   // Selectors
   readonly emailInput: Locator;
   readonly passwordInput: Locator;
@@ -14,7 +14,7 @@ export class AuthPage {
   readonly signOutButton: Locator;
   readonly errorMessage: Locator;
   readonly validationErrors: Locator;
-  
+
   constructor(page: Page) {
     this.page = page;
     this.emailInput = page.getByLabel('Email', { exact: true });
@@ -28,7 +28,7 @@ export class AuthPage {
   /**
    * Navigate to sign-in page
    */
-  async goto() {
+  async goto(): Promise<void> {
     await this.page.goto('/auth/signin');
     await this.page.waitForLoadState('networkidle');
   }
@@ -36,7 +36,7 @@ export class AuthPage {
   /**
    * Sign in with credentials
    */
-  async signIn(email: string, password: string) {
+  async signIn(email: string, password: string): Promise<void> {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
     await this.signInButton.click();
@@ -45,7 +45,7 @@ export class AuthPage {
   /**
    * Wait for authentication to complete
    */
-  async waitForAuth() {
+  async waitForAuth(): Promise<void> {
     await this.page.waitForURL('**/dashboard');
     await this.page.waitForLoadState('networkidle');
   }
@@ -53,7 +53,7 @@ export class AuthPage {
   /**
    * Sign out
    */
-  async signOut() {
+  async signOut(): Promise<void> {
     await this.signOutButton.click();
     await this.page.waitForURL('**/auth/signin');
   }
@@ -80,6 +80,6 @@ export class AuthPage {
    */
   async getAllErrors(): Promise<string[]> {
     const errors = await this.validationErrors.allTextContents();
-    return errors.filter(e => e.trim().length > 0);
+    return errors.filter((e) => e.trim().length > 0);
   }
 }

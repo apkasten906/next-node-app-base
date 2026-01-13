@@ -1,16 +1,16 @@
-import { Page, Locator } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 /**
  * Page Object Model for Dashboard
  */
 export class DashboardPage {
   readonly page: Page;
-  
+
   // Selectors
   readonly welcomeMessage: Locator;
   readonly profileAvatar: Locator;
   readonly navigationMenu: Locator;
-  
+
   constructor(page: Page) {
     this.page = page;
     this.welcomeMessage = page.getByRole('heading', { name: /welcome/i });
@@ -21,7 +21,7 @@ export class DashboardPage {
   /**
    * Navigate to dashboard
    */
-  async goto() {
+  async goto(): Promise<void> {
     await this.page.goto('/dashboard');
     await this.page.waitForLoadState('networkidle');
   }
@@ -29,8 +29,8 @@ export class DashboardPage {
   /**
    * Navigate to a specific section
    */
-  async navigateTo(section: string) {
-    await this.navigationMenu.getByRole('link', { name: new RegExp(section, 'i') }).click();
+  async navigateTo(section: string): Promise<void> {
+    await this.navigationMenu.getByRole('link', { name: section }).click();
   }
 
   /**

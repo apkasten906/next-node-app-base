@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseMutationResult,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 
 import { apiClient } from '@/lib/api-client';
 
@@ -24,7 +30,7 @@ interface User {
 }
 
 // Health check hook
-export function useHealthCheck() {
+export function useHealthCheck(): UseQueryResult<HealthCheck, unknown> {
   return useQuery({
     queryKey: ['health'],
     queryFn: () => apiClient.get<HealthCheck>('/health'),
@@ -33,7 +39,7 @@ export function useHealthCheck() {
 }
 
 // Readiness check hook
-export function useReadinessCheck() {
+export function useReadinessCheck(): UseQueryResult<ReadinessCheck, unknown> {
   return useQuery({
     queryKey: ['readiness'],
     queryFn: () => apiClient.get<ReadinessCheck>('/ready'),
@@ -42,14 +48,14 @@ export function useReadinessCheck() {
 }
 
 // User hooks
-export function useUsers() {
+export function useUsers(): UseQueryResult<User[], unknown> {
   return useQuery({
     queryKey: ['users'],
     queryFn: () => apiClient.get<User[]>('/api/users'),
   });
 }
 
-export function useUser(id: string) {
+export function useUser(id: string): UseQueryResult<User, unknown> {
   return useQuery({
     queryKey: ['users', id],
     queryFn: () => apiClient.get<User>(`/api/users/${id}`),
@@ -57,36 +63,38 @@ export function useUser(id: string) {
   });
 }
 
-export function useCreateUser() {
+export function useCreateUser(): UseMutationResult<User, unknown, Partial<User>, unknown> {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: Partial<User>) => apiClient.post<User>('/api/users', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      void queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 }
 
-export function useUpdateUser(id: string) {
+export function useUpdateUser(
+  id: string
+): UseMutationResult<User, unknown, Partial<User>, unknown> {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: Partial<User>) => apiClient.patch<User>(`/api/users/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['users', id] });
+      void queryClient.invalidateQueries({ queryKey: ['users'] });
+      void queryClient.invalidateQueries({ queryKey: ['users', id] });
     },
   });
 }
 
-export function useDeleteUser() {
+export function useDeleteUser(): UseMutationResult<unknown, unknown, string, unknown> {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => apiClient.delete(`/api/users/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      void queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 }
