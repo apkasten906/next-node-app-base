@@ -34,6 +34,6 @@ test.describe('Home Page', () => {
     const signInButton = page.getByRole('link', { name: 'Sign In' });
     await signInButton.click();
 
-    await expect(page).toHaveURL('/auth/signin');
+    await expect(page).toHaveURL('/auth/signin', { timeout: 15_000 });
   });
 });

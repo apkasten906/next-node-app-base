@@ -8,6 +8,8 @@ export default defineConfig({
   testDir: './e2e',
   testIgnore: ['**/tests/**'],
 
+  globalSetup: './e2e/global-setup.ts',
+
   /* Maximum time one test can run */
   timeout: 60 * 1000,
 
@@ -92,6 +94,8 @@ export default defineConfig({
         // Make E2E deterministic and avoid Redis/DI noise
         DISABLE_QUEUES: 'true',
         DISABLE_WEBSOCKETS: 'true',
+        // Token required for /api/e2e/seed
+        E2E_SEED_TOKEN: process.env['E2E_SEED_TOKEN'] || 'local-e2e-seed-token',
         // Use backend-only auth without DB dependency for E2E
         AUTH_ENABLE_DEV_FALLBACK: 'true',
         NODE_ENV: process.env['NODE_ENV'] || 'development',

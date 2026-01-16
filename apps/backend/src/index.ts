@@ -13,6 +13,7 @@ import { setupSwagger } from './config/swagger';
 import { apiVersionMiddleware } from './middleware/api-version.middleware';
 import { attachUserIfPresent } from './middleware/jwt.middleware';
 import authRouter from './routes/auth.routes';
+import e2eRouter from './routes/e2e.routes';
 import filesRouter from './routes/files.routes';
 import { usersRouter } from './routes/users-v2.routes';
 import { AuditLogService } from './services/audit/audit-log.service';
@@ -195,6 +196,7 @@ export class App {
 
     // Register API routes
     this.app.use('/api/auth', authRouter);
+    this.app.use('/api/e2e', e2eRouter);
     this.app.use('/api/users', usersRouter);
     this.app.use('/api/files', filesRouter);
 

@@ -34,6 +34,7 @@ Plan for next-node-app-base (updated)
 
 ### Next Priorities
 
+- ⬜ **Deterministic E2E seeding (WSJF 7.33)** - Add a dev-only, token-protected `POST /api/e2e/seed` endpoint to upsert persona users (idempotent), and call it once before Playwright runs to make E2E setup deterministic (see `plan-httpSeedEndpoint.prompt.md`).
 - ✅ **Code Quality** - ESLint improvements completed (0 errors, 0 warnings) - commits `8e94d79`, `59f4c95`, `3ccab31`, `06d74f6`
 - ✅ **Testing Infrastructure - Storage** - Storage Service tests completed (28 tests) - commit `646dfbb`
 - ✅ **Testing Infrastructure - Notifications** - NotificationService tests completed (24 tests) - commit `dc88870`
@@ -127,6 +128,10 @@ Plan for next-node-app-base (updated)
 
 ## Actionable steps (short-term)
 
+- ⬜ NEXT (WSJF 7.33): Implement HTTP E2E seed endpoint and wire Playwright to call it once pre-run.
+  - Backend: dev-only, token-protected `POST /api/e2e/seed` (block when `NODE_ENV==='production'`; require `x-e2e-seed-token` to match `E2E_SEED_TOKEN`), idempotently upsert persona users (start with `test@example.com` / `admin@example.com`).
+  - Frontend E2E: call seed endpoint from Playwright global setup (or existing runner) using the backend base URL already used by API auth helpers.
+  - Persona strategy: start minimal “user-only” fixtures; add domain fixtures (preferences/roles/orgs) as follow-ups only if tests need them.
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
 - ✅ DONE: Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — see `docs/adr/0001-artifact-registry-github-packages.md`.
