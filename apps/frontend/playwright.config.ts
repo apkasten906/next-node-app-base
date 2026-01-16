@@ -94,6 +94,9 @@ export default defineConfig({
         // Make E2E deterministic and avoid Redis/DI noise
         DISABLE_QUEUES: 'true',
         DISABLE_WEBSOCKETS: 'true',
+        // Avoid Redis connection/reconnect noise during E2E
+        REDIS_MOCK: 'true',
+        TEST_EXTERNAL_SERVICES: 'false',
         // Token required for /api/e2e/seed
         E2E_SEED_TOKEN: process.env['E2E_SEED_TOKEN'] || 'local-e2e-seed-token',
         // Use backend-only auth without DB dependency for E2E
