@@ -72,6 +72,8 @@ uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
 
 Optional: consider enabling Dependabot for `github-actions` updates to keep pins current.
 
+Review guidance for CI/workflow changes: `docs/Planning/WORKFLOW_CHANGE_REVIEW_PLAYBOOK.md`.
+
 ## Development Setup
 
 ### Using Dev Containers (Recommended)
@@ -125,7 +127,7 @@ pnpm dev
 
 We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>
@@ -239,7 +241,7 @@ If you discover a security vulnerability, please follow our [Security Policy](SE
 
 - **GitHub Issues**: For bugs and feature requests
 - **GitHub Discussions**: For questions and general discussions
-- **Slack**: [Join our Slack workspace](#)
+- **Slack**: (TBD)
 - **Email**: <contribute@example.com>
 
 ## Recognition
@@ -260,7 +262,7 @@ Feel free to reach out:
 
 - Create a [GitHub Discussion](https://github.com/your-org/next-node-app-base/discussions)
 - Email us at <contribute@example.com>
-- Join our [Slack workspace](#)
+- Join our Slack workspace (TBD)
 
 ---
 
