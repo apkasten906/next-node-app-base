@@ -1,0 +1,4 @@
+# CI / workflow ownership
+
+.github/workflows/ @apkasten906
+.github/dependabot.yml @apkasten906

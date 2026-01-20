@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [master]
 
+permissions:
+  contents: read
+
 jobs:
   dependency-check:
     name: OWASP Dependency-Check
@@ -35,7 +38,7 @@ jobs:
           docker run --rm \
             -v "${{ github.workspace }}:/src" \
             -v "${{ github.workspace }}/dependency-check-data:/usr/share/dependency-check/data" \
-            owasp/dependency-check:latest \
+            owasp/dependency-check:12.2.0 \
             --scan /src \
             --format "ALL" \
             --out /src/dependency-check-report \

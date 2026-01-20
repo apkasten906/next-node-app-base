@@ -7,6 +7,9 @@ on:
     branches: [master]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   e2e-tests:
     name: E2E Tests (${{ matrix.browser }}, ${{ matrix.os }})
@@ -88,6 +91,9 @@ jobs:
     needs: e2e-tests
     runs-on: ubuntu-latest
     if: always()
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
