@@ -30,7 +30,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ### Pull Requests
 
-1. **Fork the repository** and create your branch from `main`
+1. **Fork the repository** and create your branch from `master`
 2. **Set up your development environment** using Dev Containers (recommended) or local setup
 3. **Make your changes** following our coding standards
 4. **Add tests** for your changes
@@ -38,6 +38,39 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 6. **Update documentation** if needed
 7. **Commit your changes** using conventional commits
 8. **Push to your fork** and submit a pull request
+
+### GitHub Actions: SHA-Pinned Actions
+
+This repository pins GitHub Actions to **immutable commit SHAs** (instead of floating tags like `@v4`).
+
+Why:
+
+- **Reproducibility**: workflow behavior can’t change under your feet.
+- **Supply-chain hardening**: reduces risk from tag retargeting or compromised upstream releases.
+
+What it looks like:
+
+```yaml
+uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+```
+
+#### How to bump a pinned action
+
+1. Decide the target release/tag (example: `v4`).
+2. Resolve the tag to a commit SHA:
+
+   ```bash
+   git ls-remote https://github.com/actions/checkout.git "refs/tags/v4" "refs/tags/v4^{}"
+   ```
+
+   Notes:
+   - If the tag is annotated, you’ll see two lines; use the `^{}` (“peeled”) commit SHA.
+   - If you see only one line, that SHA is the commit.
+
+3. Update all occurrences in `.github/workflows/*.yml` to the new SHA and keep the `# vX` comment.
+4. Let CI validate the change (GitHub will refuse unknown SHAs / repos).
+
+Optional: consider enabling Dependabot for `github-actions` updates to keep pins current.
 
 ## Development Setup
 
