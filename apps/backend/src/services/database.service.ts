@@ -15,11 +15,26 @@ export class DatabaseService extends PrismaClient {
     const pool = new Pool({ connectionString });
     const adapter = new PrismaPg(pool);
 
+    const externalServicesEnabled = process.env['TEST_EXTERNAL_SERVICES'] !== 'false';
+
+    let prismaLog: Array<'query' | 'info' | 'warn' | 'error'>;
+    if (!externalServicesEnabled) {
+      // Intentionally quiet when running without DB (e.g., E2E)
+      prismaLog = ['warn'];
+    } else if (process.env['NODE_ENV'] === 'development') {
+      prismaLog = ['query', 'info', 'warn', 'error'];
+    } else {
+      prismaLog = ['error'];
+    }
+
+    const errorFormat = externalServicesEnabled ? 'pretty' : 'minimal';
+
     super({
       adapter,
-      log:
-        process.env['NODE_ENV'] === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-      errorFormat: 'pretty',
+      // When external services are intentionally disabled (e.g., E2E runs),
+      // avoid noisy Prisma query/error logs and keep errors minimal.
+      log: prismaLog,
+      errorFormat,
     });
   }
 
