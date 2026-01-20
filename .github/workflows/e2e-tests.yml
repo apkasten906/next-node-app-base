@@ -2,9 +2,9 @@ name: E2E Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master]
   pull_request:
-    branches: [main, develop]
+    branches: [master]
   workflow_dispatch:
 
 jobs:
@@ -25,73 +25,42 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
         with:
           version: 9
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24
+          node-version: 18
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright browsers
+      - name: Install Playwright browsers (Linux)
         run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
         working-directory: apps/frontend
+        if: runner.os == 'Linux'
 
-      - name: Build application
-        run: pnpm build
-        env:
-          NODE_ENV: production
-
-      - name: Start services
-        run: |
-          pnpm --filter backend start &
-          pnpm --filter frontend start &
-        env:
-          NODE_ENV: test
-          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: http://localhost:3000
-
-      - name: Wait for services
-        run: |
-          timeout 60 bash -c 'until curl -f http://localhost:3000 > /dev/null 2>&1; do sleep 2; done'
-          timeout 60 bash -c 'until curl -f http://localhost:4000/health > /dev/null 2>&1; do sleep 2; done'
-        if: runner.os != 'Windows'
-
-      - name: Wait for services (Windows)
-        run: |
-          $timeout = 60
-          $elapsed = 0
-          while ($elapsed -lt $timeout) {
-            try {
-              Invoke-WebRequest -Uri http://localhost:3000 -UseBasicParsing -ErrorAction Stop
-              Invoke-WebRequest -Uri http://localhost:4000/health -UseBasicParsing -ErrorAction Stop
-              break
-            } catch {
-              Start-Sleep -Seconds 2
-              $elapsed += 2
-            }
-          }
-        shell: pwsh
-        if: runner.os == 'Windows'
+      - name: Install Playwright browsers (non-Linux)
+        run: pnpm exec playwright install ${{ matrix.browser }}
+        working-directory: apps/frontend
+        if: runner.os != 'Linux'
 
       - name: Run E2E tests
         run: pnpm --filter frontend test:e2e --project=${{ matrix.browser }}
         env:
           E2E_BASE_URL: http://localhost:3000
-          API_BASE_URL: http://localhost:4000
+          API_BASE_URL: http://localhost:3001
+          E2E_SEED_TOKEN: local-e2e-seed-token
           CI: true
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: playwright-report-${{ matrix.browser }}-${{ matrix.os }}
@@ -99,7 +68,7 @@ jobs:
           retention-days: 30
 
       - name: Upload test videos
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: playwright-videos-${{ matrix.browser }}-${{ matrix.os }}
@@ -107,7 +76,7 @@ jobs:
           retention-days: 7
 
       - name: Upload trace files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: playwright-traces-${{ matrix.browser }}-${{ matrix.os }}
@@ -121,7 +90,7 @@ jobs:
     if: always()
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: artifacts
 
@@ -134,17 +103,17 @@ jobs:
 
       - name: Comment PR with test results
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const fs = require('fs');
             const comment = `## 🎭 E2E Test Results
-            
+
             E2E tests completed across multiple browsers.
-            
+
             Check the workflow artifacts for detailed reports, videos, and traces.
             `;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

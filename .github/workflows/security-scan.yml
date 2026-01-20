@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '18'
 
@@ -30,17 +30,20 @@ jobs:
 
       - name: Run OWASP Dependency-Check
         run: |
+          mkdir -p dependency-check-report
+          mkdir -p dependency-check-data
           docker run --rm \
             -v "${{ github.workspace }}:/src" \
             -v "${{ github.workspace }}/dependency-check-data:/usr/share/dependency-check/data" \
             owasp/dependency-check:latest \
+            --scan /src \
+            --format "ALL" \
+            --out /src/dependency-check-report \
+            --project "${{ github.repository }}"
+
       - name: Upload dependency-check report
-        uses: actions/upload-artifact@v4
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: dependency-check-report
           path: dependency-check-report/**
-      - name: Upload dependency-check report
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report
-          path: dependency-check-report* || .
