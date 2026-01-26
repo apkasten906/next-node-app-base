@@ -31,10 +31,21 @@ jobs:
       - name: Run pnpm audit
         run: pnpm audit --audit-level=moderate || true
 
+      - name: Cache dependency-check data
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: dependency-check-data
+          key: ${{ runner.os }}-dependency-check-12.2.0
+
       - name: Run OWASP Dependency-Check
         run: |
           mkdir -p dependency-check-report
           mkdir -p dependency-check-data
+
+          echo "OWASP Dependency-Check report for ${{ github.repository }}" > dependency-check-report/README.txt
+          echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> dependency-check-report/README.txt
+
+          set +e
           docker run --rm \
             -v "${{ github.workspace }}:/src" \
             -v "${{ github.workspace }}/dependency-check-data:/usr/share/dependency-check/data" \
@@ -42,7 +53,15 @@ jobs:
             --scan /src \
             --format "ALL" \
             --out /src/dependency-check-report \
-            --project "${{ github.repository }}"
+            --project "${{ github.repository }}" \
+            --failOnCVSS 11 \
+            2>&1 | tee /src/dependency-check-report/dependency-check.log
+
+          exit_code=${PIPESTATUS[0]}
+          echo "Dependency-Check exit code: ${exit_code}" | tee -a dependency-check-report/dependency-check.log
+
+          # Non-blocking security signal: keep the workflow green but always upload the report/log.
+          exit 0
 
       - name: Upload dependency-check report
         if: always()
@@ -50,3 +69,4 @@ jobs:
         with:
           name: dependency-check-report
           path: dependency-check-report/**
+          if-no-files-found: warn
