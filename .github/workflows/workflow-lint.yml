@@ -27,12 +27,18 @@ jobs:
 
           version="1.7.10"
           tarball="actionlint_${version}_linux_amd64.tar.gz"
+          checksums="actionlint_${version}_checksums.txt"
 
-          curl -sSL -o "$tarball" "https://github.com/rhysd/actionlint/releases/download/v${version}/${tarball}"
-          curl -sSL -o checksums.txt "https://github.com/rhysd/actionlint/releases/download/v${version}/checksums.txt"
+          curl -fsSL -o "$tarball" "https://github.com/rhysd/actionlint/releases/download/v${version}/${tarball}"
+          curl -fsSL -o "$checksums" "https://github.com/rhysd/actionlint/releases/download/v${version}/${checksums}"
 
-          grep " ${tarball}$" checksums.txt > actionlint.sha256
-          sha256sum -c actionlint.sha256
+          expected_sha256="$(awk -v f="$tarball" '$2==f {print $1; exit}' "$checksums")"
+          if [ -z "$expected_sha256" ]; then
+            echo "Could not find SHA256 for $tarball in $checksums" >&2
+            head -n 50 "$checksums" >&2 || true
+            exit 1
+          fi
+          echo "${expected_sha256}  ${tarball}" | sha256sum -c -
 
           tar -xzf "$tarball" actionlint
           sudo mv actionlint /usr/local/bin/actionlint
