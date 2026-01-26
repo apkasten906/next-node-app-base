@@ -2,6 +2,18 @@
 
 This playbook is for reviewing changes under `.github/workflows/` and `.github/dependabot.yml`.
 
+## Branch protection baseline (recommended)
+
+Configure this in GitHub: `Settings → Branches → Branch protection rules`.
+
+- Require pull request before merging
+- Require approvals: **1**
+- Require review from Code Owners
+- Require conversation resolution
+- Require status checks to pass (recommended minimum): `Workflow Lint / actionlint`, `Backend Unit Tests / Backend Unit Tests`
+
+E2E is usually best kept non-required until it proves stable; if you do require it, prefer requiring only the Linux/Chromium leg.
+
 ## For GitHub Action bumps (Dependabot PRs)
 
 1. Confirm the action repository is expected (owner/repo) and still maintained.
