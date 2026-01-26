@@ -2,19 +2,16 @@ name: Workflow Lint
 
 on:
   pull_request:
-    paths:
-      - .github/workflows/**/*.yml
+    branches: [master]
   push:
     branches: [master]
-    paths:
-      - .github/workflows/**/*.yml
 
 permissions:
   contents: read
 
 jobs:
   actionlint:
-    name: actionlint
+    name: Workflow Lint (actionlint)
     runs-on: ubuntu-latest
 
     steps:
