@@ -32,7 +32,7 @@ jobs:
         run: pnpm audit --audit-level=moderate || true
 
       - name: Cache dependency-check data
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v4
         with:
           path: dependency-check-data
           key: ${{ runner.os }}-dependency-check-12.2.0
