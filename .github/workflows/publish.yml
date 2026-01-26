@@ -20,15 +20,6 @@ on:
         type: string
         default: ''
 
-  # Automatic trigger on version tags
-  push:
-    tags:
-      - 'v*.*.*'
-
-  # Automatic trigger on GitHub releases
-  release:
-    types: [published]
-
 # Required permissions for GitHub Packages
 permissions:
   contents: read
