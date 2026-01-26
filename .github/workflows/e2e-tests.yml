@@ -33,12 +33,12 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
         with:
-          version: 9
+          version: 8.15.0
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 18
+          node-version: 25.x
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -69,6 +69,7 @@ jobs:
           name: playwright-report-${{ matrix.browser }}-${{ matrix.os }}
           path: apps/frontend/playwright-report/
           retention-days: 30
+          if-no-files-found: warn
 
       - name: Upload test videos
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -77,6 +78,7 @@ jobs:
           name: playwright-videos-${{ matrix.browser }}-${{ matrix.os }}
           path: apps/frontend/test-results/
           retention-days: 7
+          if-no-files-found: warn
 
       - name: Upload trace files
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -85,6 +87,7 @@ jobs:
           name: playwright-traces-${{ matrix.browser }}-${{ matrix.os }}
           path: apps/frontend/test-results/**/*.zip
           retention-days: 7
+          if-no-files-found: warn
 
   test-summary:
     name: Test Summary

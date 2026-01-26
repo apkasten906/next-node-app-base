@@ -74,6 +74,15 @@ Optional: consider enabling Dependabot for `github-actions` updates to keep pins
 
 Review guidance for CI/workflow changes: `docs/Planning/WORKFLOW_CHANGE_REVIEW_PLAYBOOK.md`.
 
+### GitHub Actions: CI Toolchain Versions (Node + pnpm)
+
+Our CI workflows are expected to match the repository toolchain declared in the root `package.json`:
+
+- Node: follow `engines.node` (currently `>=25.0.0`)
+- pnpm: follow `packageManager` (currently `pnpm@8.15.0`)
+
+When updating `.github/workflows/*.yml`, keep these in sync to avoid “works locally, fails in CI” drift.
+
 ## Development Setup
 
 ### Using Dev Containers (Recommended)

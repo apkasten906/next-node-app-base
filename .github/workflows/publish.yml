@@ -35,8 +35,11 @@ permissions:
   packages: write
 
 env:
-  NODE_VERSION: '18'
-  PNPM_VERSION: '8'
+  NODE_VERSION: '25.x'
+  PNPM_VERSION: '8.15.0'
+  REGISTRY_URL_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['registry-url'] || '' }}
+  DRY_RUN_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['dry-run'] || '' }}
+  PACKAGES_FILTER_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['packages-filter'] || '' }}
 
 jobs:
   build:
@@ -109,8 +112,8 @@ jobs:
       - name: Determine registry URL
         id: registry
         run: |
-          if [ -n "${{ inputs.registry-url }}" ]; then
-            echo "url=${{ inputs.registry-url }}" >> $GITHUB_OUTPUT
+          if [ -n "$REGISTRY_URL_INPUT" ]; then
+            echo "url=$REGISTRY_URL_INPUT" >> $GITHUB_OUTPUT
           else
             echo "url=https://npm.pkg.github.com" >> $GITHUB_OUTPUT
           fi
@@ -120,7 +123,7 @@ jobs:
         run: |
           # Manual dispatch: use input
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "enabled=${{ inputs.dry-run }}" >> $GITHUB_OUTPUT
+            echo "enabled=$DRY_RUN_INPUT" >> $GITHUB_OUTPUT
           # Tag/release: always publish for real
           else
             echo "enabled=false" >> $GITHUB_OUTPUT
@@ -133,7 +136,7 @@ jobs:
           REGISTRY_URL: ${{ steps.registry.outputs.url }}
           NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: 'true'
-          PACKAGES_FILTER: ${{ inputs.packages-filter }}
+          PACKAGES_FILTER: ${{ env.PACKAGES_FILTER_INPUT }}
 
       - name: Publish packages (production)
         if: steps.dry-run.outputs.enabled == 'false'
@@ -141,7 +144,7 @@ jobs:
         env:
           REGISTRY_URL: ${{ steps.registry.outputs.url }}
           NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PACKAGES_FILTER: ${{ inputs.packages-filter }}
+          PACKAGES_FILTER: ${{ env.PACKAGES_FILTER_INPUT }}
 
       - name: Create publish summary
         if: always()
@@ -151,8 +154,8 @@ jobs:
           echo "- **Registry:** ${{ steps.registry.outputs.url }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Dry Run:** ${{ steps.dry-run.outputs.enabled }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          if [ -n "${{ inputs.packages-filter }}" ]; then
-            echo "- **Packages Filter:** ${{ inputs.packages-filter }}" >> $GITHUB_STEP_SUMMARY
+          if [ -n "$PACKAGES_FILTER_INPUT" ]; then
+            echo "- **Packages Filter:** $PACKAGES_FILTER_INPUT" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Published Packages" >> $GITHUB_STEP_SUMMARY

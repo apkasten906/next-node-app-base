@@ -15,3 +15,4 @@
 - [ ] Actions are pinned to commit SHAs (keep the `# vX` comment)
 - [ ] No `:latest` Docker images (prefer pinned versions)
 - [ ] `Workflow Lint` check passes
+- [ ] CI toolchain matches root `package.json` (`engines.node`, `packageManager`)

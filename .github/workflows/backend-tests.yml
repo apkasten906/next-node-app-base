@@ -23,10 +23,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '18'
+          node-version: '25.x'
 
       - name: Install pnpm
-        run: npm install -g pnpm@8
+        run: npm install -g pnpm@8.15.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -42,3 +42,4 @@ jobs:
           path: |
             apps/backend/reports/**
             apps/backend/coverage/**
+          if-no-files-found: warn

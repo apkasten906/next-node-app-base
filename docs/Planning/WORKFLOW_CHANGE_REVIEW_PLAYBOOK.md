@@ -36,7 +36,10 @@ E2E is usually best kept non-required until it proves stable; if you do require 
    - Avoid GitHub Actions tags (`@v4`) unless explicitly allowed.
 3. Keep changes scoped:
    - Restrict triggers with `branches:` and `paths:` where applicable.
-4. Validate with linting:
+4. Keep the CI toolchain aligned:
+   - Node version should match root `package.json` `engines.node`.
+   - pnpm version should match root `package.json` `packageManager`.
+5. Validate with linting:
    - The `Workflow Lint` check (actionlint) should pass.
 
 ## Common “safe” permission patterns
