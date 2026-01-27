@@ -101,7 +101,7 @@ cp .env.example .env.development
 # Edit .env.development with your configuration
 
 # Start development services (PostgreSQL, Redis, etc.)
-docker-compose up -d
+docker compose up -d
 
 # Run database migrations
 cd apps/backend
@@ -114,6 +114,8 @@ pnpm prisma db seed
 cd ../..
 pnpm dev
 ```
+
+Note: By default, Postgres/Redis are not published to localhost ports (to avoid conflicts with existing local services). See `docs/DOCKER.md` for how to expose ports via an override file if you need host access.
 
 ## 📁 Project Structure
 
@@ -195,6 +197,7 @@ See [TEST_EXPLORER_GUIDE.md](docs/TEST_EXPLORER_GUIDE.md) for VSCode Test Explor
 
 pnpm lint # Lint all code
 pnpm lint:fix # Fix linting issues
+pnpm lint:workflows # Lint GitHub Actions workflows (actionlint)
 pnpm format # Format code with Prettier
 pnpm typecheck # Run TypeScript type checking
 

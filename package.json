@@ -28,6 +28,7 @@
     "test:load": "k6 run load-tests/scenarios/api-load.js",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint -- --fix",
+    "lint:workflows": "node scripts/lint-workflows.js",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md,yml,yaml}\"",
     "typecheck": "turbo run typecheck",
@@ -40,7 +41,7 @@
     "db:reset": "pnpm --filter=backend prisma migrate reset",
     "prisma:downgrade": "cd apps/backend && pnpm add -D prisma@6.19.0 && pnpm add @prisma/client@6.19.0 && pnpm add @prisma/adapter-pg@6.19.0",
     "prisma:upgrade": "cd apps/backend && pnpm add -D prisma@7.1.0 && pnpm add @prisma/client@7.1.0 @prisma/adapter-pg@7.1.0",
-    "prepare": "husky install",
+    "prepare": "node -e \"if (process.env.HUSKY === '0' || process.env.CI) process.exit(0); require('child_process').execSync('husky install', { stdio: 'inherit' });\"",
     "ci:backend-tests": "node ./scripts/run-backend-tests-ci.js",
     "publish:packages": "node ./scripts/publish-packages.js",
     "publish:dry-run": "DRY_RUN=true node ./scripts/publish-packages.js"
