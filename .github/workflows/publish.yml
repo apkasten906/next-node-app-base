@@ -52,7 +52,7 @@ jobs:
       - name: Get pnpm store directory
         id: pnpm-cache
         run: |
-          echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+          echo "pnpm_cache_dir=$(pnpm store path)" >> "$GITHUB_OUTPUT"
 
       - name: Setup pnpm cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
@@ -104,9 +104,9 @@ jobs:
         id: registry
         run: |
           if [ -n "$REGISTRY_URL_INPUT" ]; then
-            echo "url=$REGISTRY_URL_INPUT" >> $GITHUB_OUTPUT
+            echo "url=$REGISTRY_URL_INPUT" >> "$GITHUB_OUTPUT"
           else
-            echo "url=https://npm.pkg.github.com" >> $GITHUB_OUTPUT
+            echo "url=https://npm.pkg.github.com" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Determine dry-run mode
@@ -114,10 +114,10 @@ jobs:
         run: |
           # Manual dispatch: use input
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "enabled=$DRY_RUN_INPUT" >> $GITHUB_OUTPUT
+            echo "enabled=$DRY_RUN_INPUT" >> "$GITHUB_OUTPUT"
           # Tag/release: always publish for real
           else
-            echo "enabled=false" >> $GITHUB_OUTPUT
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Publish packages (dry-run)
@@ -140,18 +140,20 @@ jobs:
       - name: Create publish summary
         if: always()
         run: |
-          echo "## Publish Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Registry:** ${{ steps.registry.outputs.url }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Dry Run:** ${{ steps.dry-run.outputs.enabled }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          if [ -n "$PACKAGES_FILTER_INPUT" ]; then
-            echo "- **Packages Filter:** $PACKAGES_FILTER_INPUT" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Published Packages" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Check the logs above for detailed publish results." >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Publish Summary"
+            echo ""
+            echo "- **Registry:** ${{ steps.registry.outputs.url }}"
+            echo "- **Dry Run:** ${{ steps.dry-run.outputs.enabled }}"
+            echo "- **Trigger:** ${{ github.event_name }}"
+            if [ -n "$PACKAGES_FILTER_INPUT" ]; then
+              echo "- **Packages Filter:** $PACKAGES_FILTER_INPUT"
+            fi
+            echo ""
+            echo "### Published Packages"
+            echo ""
+            echo "Check the logs above for detailed publish results."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # Optional: Create GitHub release notes with published packages
   release-notes:
@@ -169,7 +171,7 @@ jobs:
         run: |
           # Extract package names and versions from packages/*
           packages=$(find packages -name 'package.json' -not -path '*/node_modules/*' -exec jq -r 'select(.private == false) | "\(.name)@\(.version)"' {} \; | paste -sd "," -)
-          echo "list=$packages" >> $GITHUB_OUTPUT
+          echo "list=$packages" >> "$GITHUB_OUTPUT"
 
       - name: Add packages to release notes
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
