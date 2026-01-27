@@ -4,6 +4,8 @@
 
 **Accepted** - November 20, 2025
 
+Date: 2025-11-20
+
 ## Context
 
 Security must be a first-class concern from the project's inception. We need to:
@@ -356,7 +358,7 @@ OWASP compliance helps with:
 
 ## Related
 
-- [ADR-007: Passport.js Authentication Abstraction](007-passport-authentication.md)
+- [ADR-007: Passport.js Authentication Abstraction](007-passport-js-authentication.md)
 - [SECURITY.md](../../SECURITY.md)
 - [Security Architecture](../architecture/security-architecture.md) (planned)
 

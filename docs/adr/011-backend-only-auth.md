@@ -1,4 +1,4 @@
-# ADR 010: Backend-Only Authentication
+# ADR 011: Backend-Only Authentication
 
 Status: Accepted
 Date: 2025-12-16

@@ -4,6 +4,8 @@
 
 **Accepted** - November 20, 2025
 
+Date: 2025-11-20
+
 ## Context
 
 The application requires flexible authentication supporting multiple strategies:

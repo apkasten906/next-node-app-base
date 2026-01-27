@@ -1,4 +1,4 @@
-# ADR-001: Migration to Prisma 7 with Adapter Pattern
+# ADR 008: Migration to Prisma 7 with Adapter Pattern
 
 ## Status
 

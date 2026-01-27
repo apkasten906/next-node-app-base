@@ -241,7 +241,7 @@ Comprehensive documentation is available in the [docs/](docs/) directory:
 
 - **Architecture Decision Records (ADRs)**: [docs/adr/](docs/adr/)
   - [ADR-001: Node.js 25 for Native TypeScript](docs/adr/001-node-js-25-native-typescript.md)
-  - [ADR-008: Artifact Registry — GitHub Packages](docs/adr/008-artifact-registry-github-packages.md)
+  - [ADR-009: Artifact Registry — GitHub Packages](docs/adr/009-artifact-registry-github-packages.md)
 - [Architecture Overview](docs/architecture/overview.md)
 - [Security Architecture](docs/architecture/security-architecture.md)
 - [Service Mesh (Istio)](docs/architecture/service-mesh.md)

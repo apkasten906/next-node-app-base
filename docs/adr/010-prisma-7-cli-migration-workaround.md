@@ -1,4 +1,4 @@
-# ADR-009: Prisma 7 CLI Migration Workaround Strategy
+# ADR 010: Prisma 7 CLI Migration Workaround Strategy
 
 ## Status
 
@@ -56,7 +56,7 @@ export default defineConfig({
 
 ### Current Workaround in Place
 
-The project has been using manual SQL initialization (`apps/backend/prisma/init.sql`) to bypass broken CLI commands, as documented in ADR-001.
+The project has been using manual SQL initialization (`apps/backend/prisma/init.sql`) to bypass broken CLI commands, as documented in ADR-008.
 
 ## Decision
 
@@ -232,7 +232,7 @@ export default defineConfig({
 - [Prisma Config Documentation](https://www.prisma.io/docs/orm/prisma-schema/overview/prisma-config)
 - [Database Adapters](https://www.prisma.io/docs/orm/overview/databases/database-drivers#driver-adapters)
 - [Prisma GitHub - @prisma/config Examples](https://github.com/prisma/prisma/tree/main/packages/config)
-- [ADR-001: Prisma 7 Migration](001-prisma-7-migration.md)
+- [ADR-008: Prisma 7 Migration](008-prisma-7-migration.md)
 
 ## Notes
 

@@ -4,6 +4,8 @@
 
 **Accepted** - November 20, 2025
 
+Date: 2025-11-20
+
 ## Context
 
 The project requires a package manager to handle dependencies across multiple workspaces in a monorepo structure. The choice of package manager significantly impacts:

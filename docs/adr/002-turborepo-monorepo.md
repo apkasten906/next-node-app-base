@@ -4,6 +4,8 @@
 
 **Accepted** - November 20, 2025
 
+Date: 2025-11-20
+
 ## Context
 
 This project requires managing multiple applications (frontend, backend) and shared packages (types, utils, constants, config) in a single repository. A monorepo approach was chosen to:

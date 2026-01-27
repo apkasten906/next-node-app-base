@@ -55,7 +55,7 @@ Plan for next-node-app-base (updated)
   - Implemented hybrid migration strategy (manual SQL + Prisma 6 fallback)
   - Created helper scripts (db:migrate:manual, db:schema:diff, prisma:downgrade, prisma:upgrade)
   - Runtime with adapter pattern working perfectly (all 204 tests passing)
-  - See ADR-009 for comprehensive analysis and alternatives evaluated
+  - See ADR-010 for comprehensive analysis and alternatives evaluated
 - ✅ **Frontend i18n Integration (WSJF 6.92)** - Implemented complete internationalization support - commit `8495821`
   - Created i18n configuration with i18next and react-i18next
   - Added translation files for 4 languages: English, Spanish, French, German
@@ -124,7 +124,7 @@ Plan for next-node-app-base (updated)
 
 1. ✅ **B (COMPLETED)**: Convert `@security` BDD scenarios to integration tests and make tests resilient to external services (MockRedis, toggles). All 15 critical security scenarios now covered.
 2. ✅ **C (COMPLETED)**: Finalize artifact registry and publishing flow (GitHub Packages default), add `scripts/publish-packages.js`, `.npmrc.template`, and GitHub Actions publish workflow. Make publish flow registry-agnostic via `REGISTRY_URL` so we can route to an internal registry through the service mesh. All components verified and tested.
-3. ✅ **A (COMPLETED)**: Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy. Upgraded to Prisma 7.1.0, documented CLI config parsing bug, implemented hybrid migration strategy (manual SQL + Prisma 6 fallback). See ADR-009.
+3. ✅ **A (COMPLETED)**: Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy. Upgraded to Prisma 7.1.0, documented CLI config parsing bug, implemented hybrid migration strategy (manual SQL + Prisma 6 fallback). See ADR-010.
 
 ## Actionable steps (short-term)
 
@@ -134,7 +134,7 @@ Plan for next-node-app-base (updated)
   - Persona strategy: start minimal “user-only” fixtures; add domain fixtures (preferences/roles/orgs) as follow-ups only if tests need them.
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
-- ✅ DONE: Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — see `docs/adr/0001-artifact-registry-github-packages.md`.
+- ✅ DONE: Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — see `docs/adr/009-artifact-registry-github-packages.md`.
 - ✅ DONE: Add an optional `test-setup` (Vitest `setupFiles`) to set `REDIS_MOCK=true` and `TEST_EXTERNAL_SERVICES=false` for local/CI fast gates.
 - ✅ DONE: Fix all TypeScript compilation errors (29 errors resolved - test files + frontend tsconfig)
 - ✅ DONE: Auto-fix ESLint issues (75 issues fixed - import ordering, missing globals, parser config)

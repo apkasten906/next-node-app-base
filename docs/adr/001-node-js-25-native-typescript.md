@@ -4,6 +4,8 @@
 
 **Accepted** - November 20, 2025
 
+Date: 2025-11-20
+
 ## Context
 
 The backend application is built with TypeScript, which traditionally requires transpilation to JavaScript before execution. This adds complexity to the development workflow:

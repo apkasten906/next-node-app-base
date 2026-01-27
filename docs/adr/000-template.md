@@ -1,8 +1,7 @@
-# ADR Template
+# ADR {{NUMBER}}: {{TITLE}}
 
-## Status
-
-[Proposed | Accepted | Deprecated | Superseded by [ADR-XXXX](XXXX-title.md)]
+Status: {{STATUS}}
+Date: {{DATE}}
 
 ## Context
 

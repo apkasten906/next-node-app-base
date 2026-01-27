@@ -1,4 +1,4 @@
-# ADR 0008: Artifact registry — GitHub Packages (default), registry-agnostic publish flow
+# ADR 009: Artifact registry — GitHub Packages (default), registry-agnostic publish flow
 
 Status: Accepted
 
