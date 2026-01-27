@@ -5,7 +5,10 @@ import type { JSX } from 'react';
 import { DashboardClient } from '@/components/dashboard-client';
 
 export default async function DashboardPage(): Promise<JSX.Element> {
-  const baseUrl = process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001';
+  const baseUrl =
+    process.env['API_URL_INTERNAL'] ||
+    process.env['NEXT_PUBLIC_API_URL'] ||
+    'http://localhost:3001';
   const cookieStore = await cookies();
   const cookieHeader = cookieStore
     .getAll()

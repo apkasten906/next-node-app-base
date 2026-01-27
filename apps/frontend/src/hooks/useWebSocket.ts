@@ -2,7 +2,6 @@
 
 import type {
   ClientToServerEvents,
-  ConnectionState,
   JoinRoomRequest,
   JoinRoomResponse,
   LeaveRoomRequest,
@@ -11,8 +10,8 @@ import type {
   PresenceStatus,
   ServerToClientEvents,
   WebSocketError,
-  WebSocketEvent,
 } from '@repo/types';
+import { ConnectionState, WebSocketEvent } from '@repo/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
@@ -104,7 +103,7 @@ export interface UseWebSocketReturn {
  */
 export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketReturn {
   const {
-    url = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'http://localhost:3001',
+    url = process.env['NEXT_PUBLIC_WEBSOCKET_URL'] || 'http://localhost:3001',
     path = '/socket.io',
     autoConnect = true,
     reconnection = true,

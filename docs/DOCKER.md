@@ -49,17 +49,50 @@ Access the applications:
 
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:3001
-- **PostgreSQL**: localhost:5432
-- **Redis**: localhost:6379
+- **PostgreSQL**: internal-only (reachable as `postgres:5432` from other containers)
+- **Redis**: internal-only (reachable as `redis:6379` from other containers)
+
+#### Optional: expose Postgres/Redis on localhost
+
+By default, Postgres/Redis ports are not published to the host to avoid common conflicts when you already have local services running on `5432`/`6379`.
+
+If you want host access (e.g., for a local DB GUI), create a `docker-compose.override.yml`:
+
+```yml
+services:
+  postgres:
+    ports:
+      - '5432:5432'
+  redis:
+    ports:
+      - '6379:6379'
+```
+
+Without publishing ports, you can still access them via:
+
+```bash
+docker compose exec postgres psql -U devuser -d nextnode_dev
+docker compose exec redis redis-cli -a devredis
+```
 
 ### Build Individual Images
 
 ```bash
 # Frontend
-docker build -f apps/frontend/Dockerfile -t next-node-frontend .
+docker build \
+  --build-arg NODE_VERSION=25 \
+  --build-arg PNPM_VERSION=8.15.0 \
+  --build-arg NEXT_PUBLIC_API_URL=http://localhost:3001 \
+  --build-arg NEXT_PUBLIC_WEBSOCKET_URL=http://localhost:3001 \
+  -f apps/frontend/Dockerfile \
+  -t next-node-frontend .
 
 # Backend
-docker build -f apps/backend/Dockerfile -t next-node-backend .
+docker build \
+  --build-arg NODE_VERSION=25 \
+  --build-arg PNPM_VERSION=8.15.0 \
+  -f apps/backend/Dockerfile \
+  -t next-node-backend .
 ```
 
 ## Production Dockerfiles
@@ -72,7 +105,7 @@ docker build -f apps/backend/Dockerfile -t next-node-backend .
 
 - Multi-stage build (deps, builder, runner)
 - Next.js standalone output mode
-- Node.js 20 Alpine (minimal base)
+- Node.js (configurable; defaults to 25) Alpine (minimal base)
 - Non-root user (nextjs:nodejs)
 - Health checks
 - Build cache optimization with BuildKit
@@ -87,7 +120,8 @@ docker build -f apps/frontend/Dockerfile -t frontend:latest .
 
 ```bash
 docker run -p 3000:3000 \
-  -e NEXT_PUBLIC_API_URL=http://backend:3001 \
+  # Note: NEXT_PUBLIC_* values are baked into the client bundle at build time.
+  # For Docker builds, prefer passing these as build args.
   -e NEXTAUTH_URL=http://localhost:3000 \
   -e NEXTAUTH_SECRET=your-secret \
   frontend:latest
@@ -104,7 +138,7 @@ docker run -p 3000:3000 \
 - Multi-stage build (deps, builder, prod-deps, runner)
 - Prisma client generation
 - Production dependencies only in final stage
-- Node.js 20 Alpine
+- Node.js (configurable; defaults to 25) Alpine
 - Non-root user (nodejs)
 - OpenSSL for Prisma
 - Health checks
@@ -147,27 +181,31 @@ Both frontend and backend have `.dockerignore` files to reduce build context:
 **docker-compose.yml** includes:
 
 1. **PostgreSQL** (postgres:16-alpine)
-   - Port: 5432
-   - Volume: postgres_data
-   - Health checks
-   - Init script support
+
+- Internal port: 5432 (not published to host by default)
+- Volume: postgres_data
+- Health checks
+- Init script support
 
 2. **Redis** (redis:7-alpine)
-   - Port: 6379
-   - Password protected
-   - Volume: redis_data
-   - Health checks
+
+- Internal port: 6379 (not published to host by default)
+- Password protected
+- Volume: redis_data
+- Health checks
 
 3. **Backend** (Node.js API)
    - Port: 3001
    - Depends on: postgres, redis
    - Auto-runs migrations
-   - Volume mounts for development
+
+- Runs `prisma migrate deploy` on startup
 
 4. **Frontend** (Next.js)
    - Port: 3000
    - Depends on: backend
-   - Volume mounts for development
+
+- Uses build-time `NEXT_PUBLIC_*` args for client-side config
 
 ### Configuration
 
@@ -178,11 +216,9 @@ Both frontend and backend have `.dockerignore` files to reduce build context:
 POSTGRES_USER=devuser
 POSTGRES_PASSWORD=devpassword
 POSTGRES_DB=nextnode_dev
-POSTGRES_PORT=5432
 
 # Redis
 REDIS_PASSWORD=devredis
-REDIS_PORT=6379
 
 # Application
 NODE_ENV=development
@@ -192,6 +228,15 @@ JWT_SECRET=dev-jwt-secret-change-in-production
 JWT_REFRESH_SECRET=dev-jwt-refresh-secret-change-in-production
 SESSION_SECRET=dev-session-secret-change-in-production
 NEXTAUTH_SECRET=dev-nextauth-secret-change-in-production
+
+# Frontend API URLs
+# - NEXT_PUBLIC_API_URL is used by the browser
+# - API_URL_INTERNAL is used by server components/SSR when running inside Docker networks
+NEXT_PUBLIC_API_URL=http://localhost:3001
+API_URL_INTERNAL=http://backend:3001
+
+# WebSocket URL (browser)
+NEXT_PUBLIC_WEBSOCKET_URL=http://localhost:3001
 ```
 
 ### Common Commands

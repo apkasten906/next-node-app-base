@@ -13,7 +13,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@repo/types": ["../../packages/types/src"],
       "@repo/utils": ["../../packages/utils/src"],
       "@repo/constants": ["../../packages/constants/src"]
     },

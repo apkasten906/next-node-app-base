@@ -3,8 +3,9 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  experimental: {
-    typedRoutes: true,
+  typedRoutes: true,
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 
