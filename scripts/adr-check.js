@@ -3,6 +3,36 @@ const path = require('node:path');
 
 const { getAdrDir, listAdrEntries, parseAdrFilename, generateIndexTable } = require('./adr-utils');
 
+function normalizeIndexBlock(block) {
+  const normalizedLines = block
+    .replace(/\r\n/g, '\n')
+    .trim()
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      if (!line.startsWith('|')) return line;
+
+      // Prettier may align markdown tables by adding extra spaces; canonicalize pipe spacing.
+      const compact = line.replace(/\s*\|\s*/g, '|');
+
+      // Normalize markdown table separator rows regardless of dash count/colons.
+      // Examples:
+      // | --- | ----- | ---- |
+      // | :--- | ---: | :---: |
+      const parts = compact.split('|');
+      const cells = parts.slice(1, -1);
+      const isSeparatorRow = cells.length > 0 && cells.every((cell) => /^:?-+:?$/.test(cell));
+
+      if (!isSeparatorRow) return compact;
+
+      const normalizedCells = cells.map(() => '---');
+      return `|${normalizedCells.join('|')}|`;
+    });
+
+  return normalizedLines.join('\n');
+}
+
 function fail(errors) {
   console.error('\nADR check failed:\n');
   for (const error of errors) {
@@ -95,7 +125,7 @@ function main() {
     const currentBlock = readme.slice(startIdx + start.length, endIdx);
     const expectedTable = `\n\n${generateIndexTable(entries)}\n\n`;
 
-    if (currentBlock !== expectedTable) {
+    if (normalizeIndexBlock(currentBlock) !== normalizeIndexBlock(expectedTable)) {
       errors.push('docs/adr/README.md index table is out of date (run pnpm adr:index).');
     }
   }
