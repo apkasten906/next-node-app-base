@@ -1,6 +1,6 @@
 # Normalize line endings and avoid CRLF/LF churn across platforms.
 #
-# Store text files with LF in the repository, and check them out with LF.
+# Store text files with LF in the repository, and check them out with LF by default (unless overridden below).
 * text=auto eol=lf
 
 # Windows command scripts should stay CRLF on checkout.
