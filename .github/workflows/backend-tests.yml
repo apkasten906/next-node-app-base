@@ -11,8 +11,8 @@ jobs:
     name: Backend Unit Tests
     runs-on: ubuntu-latest
     env:
-      TEST_EXTERNAL_SERVICES: 'false'
-      REDIS_MOCK: 'true'
+      TEST_EXTERNAL_SERVICES: "false"
+      REDIS_MOCK: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '25.x'
+          node-version: "25.x"
 
       - name: Install pnpm
         run: npm install -g pnpm@8.15.0
