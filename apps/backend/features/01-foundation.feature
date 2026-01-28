@@ -69,6 +69,28 @@ Feature: Project Foundation and Governance
     And peer dependencies should be satisfied
     And there should be no duplicate packages
 
+  @foundation @dependabot @workflows
+  Scenario: Automated dependency updates (Dependabot) are configured
+    Given Dependabot configuration exists at ".github/dependabot.yml"
+    When Dependabot opens an update pull request
+    Then the pull request should be labeled correctly
+    And CI should run automatically
+
+  @foundation @governance @workflows
+  Scenario: Workflow changes require lightweight review
+    Given CODEOWNERS is configured for ".github/workflows/**" and ".github/dependabot.yml"
+    When a pull request changes workflow files
+    Then a human review should be required before merge
+    And workflow permissions changes should be reviewed explicitly
+
+  @foundation @governance @dependabot
+  Scenario: Action-bump review playbook and optional auto-merge policy exists
+    Given a review playbook exists for GitHub Actions dependency bumps
+    When a Dependabot PR updates a GitHub Action
+    Then reviewers should verify the action repository and release notes
+    And reviewers should confirm permissions did not broaden unexpectedly
+    And auto-merge should be enabled only when policy and CI requirements are met
+
   @foundation @scripts
   Scenario: Unified npm scripts across workspaces
     Given package.json scripts are defined

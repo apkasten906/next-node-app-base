@@ -36,6 +36,16 @@ Feature: Testing Infrastructure
       | user login        |
       | dashboard access  |
 
+  @testing @e2e @seeding
+  Scenario: Deterministic E2E seeding via HTTP endpoint
+    Given the backend exposes a dev-only seed endpoint at "POST /api/e2e/seed"
+    And the endpoint is blocked when NODE_ENV is "production"
+    And the endpoint requires header "x-e2e-seed-token" matching "E2E_SEED_TOKEN"
+    When Playwright global setup calls the seed endpoint once before tests
+    Then persona users should be upserted idempotently
+    And E2E tests should not rely on manual database setup
+    And the seeded state should be consistent across runs
+
   @testing @coverage
   Scenario: Code coverage thresholds
     Given coverage thresholds are configured
