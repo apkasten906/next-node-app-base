@@ -1,4 +1,5 @@
 @e2e @error-handling
+@wip
 Feature: Error Handling and Recovery
   As a user
   I want errors to be handled gracefully

@@ -1,0 +1,305 @@
+/* eslint-disable no-console */
+
+const fs = require('node:fs');
+const path = require('node:path');
+
+const STATUS_TAGS = /** @type {const} */ ({
+  ready: '@ready',
+  wip: '@wip',
+  manual: '@manual',
+  skip: '@skip',
+});
+
+const PRIMARY_STATUS_TAGS = /** @type {const} */ ([
+  STATUS_TAGS.ready,
+  STATUS_TAGS.wip,
+  STATUS_TAGS.manual,
+]);
+
+/**
+ * @param {string} line
+ * @returns {string[]}
+ */
+function parseTagsLine(line) {
+  return line
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.startsWith('@'));
+}
+
+/**
+ * @param {string} line
+ * @returns {string}
+ */
+function parseScenarioName(line) {
+  return line.split(':').slice(1).join(':').trim() || '(unnamed)';
+}
+
+/**
+ * @typedef {Object} StatusCounts
+ * @property {number} total
+ * @property {number} ready
+ * @property {number} wip
+ * @property {number} manual
+ * @property {number} skip
+ * @property {number} other
+ */
+
+/** @returns {StatusCounts} */
+function createEmptyCounts() {
+  return { total: 0, ready: 0, wip: 0, manual: 0, skip: 0, other: 0 };
+}
+
+/**
+ * @param {string[]} tags
+ */
+function classify(tags) {
+  if (tags.includes(STATUS_TAGS.skip)) return 'skip';
+  if (tags.includes(STATUS_TAGS.manual)) return 'manual';
+  if (tags.includes(STATUS_TAGS.ready)) return 'ready';
+  if (tags.includes(STATUS_TAGS.wip)) return 'wip';
+  return 'other';
+}
+
+/**
+ * Parse a single .feature file and return scenario status counts.
+ *
+ * Rules:
+ * - Tags can appear above Feature or Scenario lines.
+ * - Feature-level tags apply to all scenarios unless overridden/augmented.
+ * - We count "Scenario" and "Scenario Outline".
+ *
+ * @param {string} filePath
+ * @param {string} fileContent
+ * @param {Array<{filePath: string, scenarioName: string, tags: string[]}>} missingStatus
+ * @param {Array<{filePath: string, scenarioName: string, tags: string[], primaryStatusTags: string[]}>} conflictingStatus
+ * @returns {StatusCounts}
+ */
+function parseFeatureFile(filePath, fileContent, missingStatus, conflictingStatus) {
+  const counts = createEmptyCounts();
+
+  /** @type {string[]} */
+  let pendingTags = [];
+  /** @type {string[]} */
+  let featureTags = [];
+
+  const lines = fileContent.split(/\r?\n/);
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    if (line.startsWith('#')) continue;
+
+    if (line.startsWith('@')) {
+      pendingTags = pendingTags.concat(parseTagsLine(line));
+      continue;
+    }
+
+    if (/^Feature:/i.test(line)) {
+      featureTags = pendingTags;
+      pendingTags = [];
+      continue;
+    }
+
+    if (/^Scenario( Outline)?:/i.test(line)) {
+      const scenarioName = parseScenarioName(line);
+      const scenarioTags = Array.from(new Set([...featureTags, ...pendingTags]));
+      pendingTags = [];
+
+      const primaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => scenarioTags.includes(t));
+      if (primaryStatusTags.length > 1) {
+        conflictingStatus.push({ filePath, scenarioName, tags: scenarioTags, primaryStatusTags });
+      }
+
+      // Require at least one primary status tag OR @skip.
+      // (We allow "skip-only" so a scenario can be temporarily disabled without changing its intent tags.)
+      if (primaryStatusTags.length === 0 && !scenarioTags.includes(STATUS_TAGS.skip)) {
+        missingStatus.push({ filePath, scenarioName, tags: scenarioTags });
+      }
+
+      counts.total += 1;
+      const status = classify(scenarioTags);
+      counts[status] += 1;
+      continue;
+    }
+
+    pendingTags = [];
+  }
+
+  return counts;
+}
+
+/**
+ * @param {string} dir
+ * @param {(p: string) => boolean} shouldSkipDir
+ * @returns {string[]}
+ */
+function findFeatureFiles(dir, shouldSkipDir) {
+  /** @type {string[]} */
+  const results = [];
+  if (!fs.existsSync(dir)) return results;
+
+  /** @type {string[]} */
+  const stack = [dir];
+  while (stack.length) {
+    const current = stack.pop();
+    if (!current) break;
+
+    const entries = readDirEntriesSafe(current);
+    for (const entry of entries) {
+      handleDirEntry(entry, current, stack, results, shouldSkipDir);
+    }
+  }
+
+  return results;
+}
+
+/**
+ * @param {string} dir
+ * @returns {import('node:fs').Dirent[]}
+ */
+function readDirEntriesSafe(dir) {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * @param {import('node:fs').Dirent} entry
+ * @param {string} parentDir
+ * @param {string[]} stack
+ * @param {string[]} results
+ * @param {(p: string) => boolean} shouldSkipDir
+ */
+function handleDirEntry(entry, parentDir, stack, results, shouldSkipDir) {
+  const fullPath = path.join(parentDir, entry.name);
+  if (entry.isDirectory()) {
+    if (!shouldSkipDir(fullPath)) stack.push(fullPath);
+    return;
+  }
+  if (entry.isFile() && entry.name.endsWith('.feature')) {
+    results.push(fullPath);
+  }
+}
+
+/**
+ * @param {StatusCounts} into
+ * @param {StatusCounts} add
+ */
+function addCounts(into, add) {
+  into.total += add.total;
+  into.ready += add.ready;
+  into.wip += add.wip;
+  into.manual += add.manual;
+  into.skip += add.skip;
+  into.other += add.other;
+}
+
+function main() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const appsDir = path.join(repoRoot, 'apps');
+
+  if (!fs.existsSync(appsDir)) {
+    console.error(`No apps/ directory found at: ${appsDir}`);
+    process.exitCode = 2;
+    return;
+  }
+
+  const appDirs = fs
+    .readdirSync(appsDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name)
+    .sort();
+
+  const overall = createEmptyCounts();
+  let anyFeatures = false;
+  /** @type {Array<{filePath: string, scenarioName: string, tags: string[]}>} */
+  const missingStatus = [];
+  /** @type {Array<{filePath: string, scenarioName: string, tags: string[], primaryStatusTags: string[]}>} */
+  const conflictingStatus = [];
+
+  for (const appName of appDirs) {
+    const featuresDir = path.join(appsDir, appName, 'features');
+    if (!fs.existsSync(featuresDir)) continue;
+
+    const featureFiles = findFeatureFiles(featuresDir, (p) => {
+      const base = path.basename(p);
+      return (
+        base === 'node_modules' ||
+        base === 'dist' ||
+        base === 'build' ||
+        base === '.turbo' ||
+        base === '.next' ||
+        base === 'coverage'
+      );
+    });
+
+    if (featureFiles.length === 0) continue;
+    anyFeatures = true;
+
+    const appCounts = createEmptyCounts();
+    for (const filePath of featureFiles) {
+      const content = fs.readFileSync(filePath, 'utf8');
+      addCounts(appCounts, parseFeatureFile(filePath, content, missingStatus, conflictingStatus));
+    }
+
+    addCounts(overall, appCounts);
+    console.log(
+      `${appName.padEnd(10)} total=${appCounts.total} ready=${appCounts.ready} wip=${appCounts.wip} manual=${appCounts.manual} skip=${appCounts.skip} other=${appCounts.other}`
+    );
+  }
+
+  if (!anyFeatures) {
+    console.log('No .feature files found under apps/*/features/.');
+    return;
+  }
+
+  console.log('---');
+  console.log(
+    `overall    total=${overall.total} ready=${overall.ready} wip=${overall.wip} manual=${overall.manual} skip=${overall.skip} other=${overall.other}`
+  );
+
+  if (conflictingStatus.length > 0) {
+    const maxShown = 50;
+    console.error('');
+    console.error(
+      `ERROR: ${conflictingStatus.length} scenario(s) have conflicting status tags. Choose exactly one of: ${PRIMARY_STATUS_TAGS.join(
+        ', '
+      )} (you may optionally add ${STATUS_TAGS.skip}).`
+    );
+    for (const v of conflictingStatus.slice(0, maxShown)) {
+      const rel = path.relative(repoRoot, v.filePath).replaceAll('\\', '/');
+      console.error(
+        `- ${rel} :: ${v.scenarioName} (primary: ${v.primaryStatusTags.join(
+          ', '
+        )}; tags: ${v.tags.join(' ') || '(none)'})`
+      );
+    }
+    if (conflictingStatus.length > maxShown) {
+      console.error(`...and ${conflictingStatus.length - maxShown} more`);
+    }
+    process.exitCode = 1;
+  }
+
+  if (missingStatus.length > 0) {
+    const maxShown = 50;
+    console.error('');
+    console.error(
+      `ERROR: ${missingStatus.length} scenario(s) missing a status tag. Add one of: ${Object.values(
+        STATUS_TAGS
+      ).join(', ')}`
+    );
+    for (const v of missingStatus.slice(0, maxShown)) {
+      const rel = path.relative(repoRoot, v.filePath).replaceAll('\\', '/');
+      console.error(`- ${rel} :: ${v.scenarioName} (tags: ${v.tags.join(' ') || '(none)'})`);
+    }
+    if (missingStatus.length > maxShown) {
+      console.error(`...and ${missingStatus.length - maxShown} more`);
+    }
+    process.exitCode = 1;
+  }
+}
+
+main();

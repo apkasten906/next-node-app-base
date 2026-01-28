@@ -247,7 +247,15 @@ export class CacheService {
    * Disconnect from Redis
    */
   async disconnect(): Promise<void> {
-    await this.client.quit();
+    try {
+      await this.client.quit();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes('Connection is closed')) {
+        return;
+      }
+      this.logger.warn('Cache disconnect error', { message });
+    }
   }
 
   /**

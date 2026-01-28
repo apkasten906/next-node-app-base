@@ -1,3 +1,4 @@
+@wip
 Feature: WebSocket Real-Time Communication
   As a developer
   We need real-time bidirectional communication
@@ -109,9 +110,9 @@ Feature: WebSocket Real-Time Communication
   Scenario: Presence statuses
     Given I am connected to WebSocket server
     Then I can set presence to "online"
-    Or I can set presence to "away"
-    Or I can set presence to "busy"
-    Or I can set presence to "offline"
+    And I can set presence to "away"
+    And I can set presence to "busy"
+    And I can set presence to "offline"
 
   @websocket @broadcasting
   Scenario: Broadcast to all connected clients

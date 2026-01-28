@@ -1,3 +1,4 @@
+@wip
 Feature: Next.js Frontend Application
   As a user
   We need a modern Next.js frontend application

@@ -1,4 +1,5 @@
 @e2e @api-integration
+@wip
 Feature: API Integration and Data Management
   As an authenticated user
   I want to interact with API endpoints

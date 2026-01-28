@@ -17,7 +17,12 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "test:contract": "echo 'Frontend contract tests - Pact to be configured'"
+    "test:contract": "echo 'Frontend contract tests - Pact to be configured'",
+    "test:bdd": "cucumber-js",
+    "test:bdd:all": "cucumber-js -p all",
+    "test:bdd:wip": "cucumber-js -p wip",
+    "test:bdd:manual": "cucumber-js -p manual",
+    "test:bdd:watch": "cucumber-js --watch"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
@@ -49,6 +54,7 @@
     "prisma": "^7.0.0",
     "supertest": "^7.1.4",
     "tailwindcss": "^4.1.17",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
 }

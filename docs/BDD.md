@@ -372,16 +372,34 @@ cucumber-js --format json:reports/cucumber-report.json
 
 ## Tags Strategy
 
-| Tag           | Purpose                      |
-| ------------- | ---------------------------- |
-| `@wip`        | Work in progress, skip in CI |
-| `@smoke`      | Critical paths, run first    |
-| `@regression` | Regression suite             |
-| `@api`        | API tests                    |
-| `@frontend`   | Frontend tests               |
-| `@security`   | Security-focused tests       |
-| `@slow`       | Long-running tests           |
-| `@flaky`      | Known flaky tests to fix     |
+### Status tags (required)
+
+Every `Scenario` / `Scenario Outline` must include at least one status tag so we can treat the feature files as both requirements and a status dashboard.
+
+| Tag       | Meaning                                   | When to use                                                                                     | Expectations                                                                                                             |
+| --------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `@wip`    | Requirement captured, not implemented yet | The scenario is the spec/acceptance criteria but isn’t passing in automation                    | Default BDD runs should _not_ execute it; steps may be missing; keep it up-to-date as the requirement evolves            |
+| `@ready`  | Implemented and runnable                  | The scenario is automated and should pass deterministically                                     | Must be stable in CI, not flaky, and not depend on manual setup; steps + assertions exist                                |
+| `@manual` | Tracked requirement, validated manually   | Automation is not worth it yet (or not feasible) but we still want explicit acceptance criteria | Must include clear Given/When/Then and manual verification notes in steps/text; should not be part of automated CI gates |
+| `@skip`   | Temporarily disabled                      | The scenario _used to_ run or is blocked temporarily                                            | Use sparingly; include a short reason in a comment near the tag and remove ASAP; should not become “permanent WIP”       |
+
+Promotion guideline:
+
+- Promote `@wip`  `@ready` only when the scenario has real step definitions, asserts meaningful outcomes (not just “Then it works”), and runs deterministically in CI.
+- Use `@manual` when you want the requirement tracked but you explicitly accept it won’t run in CI.
+- Use `@skip` for short-lived suppression (e.g., external outage, known flaky path) with a documented follow-up.
+
+### Suite/attribute tags (optional)
+
+| Tag           | Purpose                   |
+| ------------- | ------------------------- |
+| `@smoke`      | Critical paths, run first |
+| `@regression` | Regression suite          |
+| `@api`        | API tests                 |
+| `@frontend`   | Frontend tests            |
+| `@security`   | Security-focused tests    |
+| `@slow`       | Long-running tests        |
+| `@flaky`      | Known flaky tests to fix  |
 
 ## Debugging
 

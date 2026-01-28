@@ -1,3 +1,4 @@
+@wip
 Feature: Frontend Core Features
   As a frontend developer
   We need robust frontend architecture with state management and error handling

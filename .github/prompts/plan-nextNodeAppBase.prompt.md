@@ -18,6 +18,16 @@ This document has two parts:
 - E2E tests are deterministic (seeded) and can run without manual setup.
 - Publish flow works in dry-run and real mode, and is registry-agnostic via env.
 
+## BDD Governance (Requirements + Status)
+
+- Every major capability in this repo should have a corresponding Cucumber scenario as the source of truth for the requirement.
+- Status is governed by tags:
+  - `@wip`: requirement captured but not implemented yet (disabled by default)
+  - `@ready`: implemented and runnable in CI
+  - `@manual`: requirement tracked but validated manually
+  - `@skip`: temporarily disabled
+- Default BDD runs execute only `@ready` scenarios; use `pnpm bdd:status` for an at-a-glance status summary.
+
 ---
 
 ## Current Focus (Execution Status)

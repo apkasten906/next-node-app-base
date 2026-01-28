@@ -342,7 +342,7 @@ export class App {
       });
     } catch (error) {
       this.logger.error('Failed to start server', error as Error);
-      process.exit(1);
+      throw error;
     }
   }
 
@@ -374,10 +374,9 @@ export class App {
       await this.database.disconnect();
       await this.cache.disconnect();
       this.logger.info('Connections closed');
-      process.exit(0);
     } catch (error) {
       this.logger.error('Error during shutdown', error as Error);
-      process.exit(1);
+      throw error;
     }
   }
 }
@@ -398,16 +397,33 @@ container.registerSingleton(WebSocketService);
 registerNotificationProviders();
 registerStorageProvider();
 
-// Create and start app
-const app = new App();
+// Only start the HTTP server when this module is executed directly.
+// This prevents side effects when importing `App` in tests (Vitest/Cucumber/etc).
 
-// Graceful shutdown handlers
-process.on('SIGTERM', () => {
-  void app.shutdown();
-});
-process.on('SIGINT', () => {
-  void app.shutdown();
-});
+if (require.main === module) {
+  const app = new App();
 
-// Start server
-void app.start();
+  let shuttingDown = false;
+
+  const shutdownAndExit = (signal: string): void => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+
+    void app
+      .shutdown()
+      .then(() => process.exit(0))
+      .catch((err) => {
+        // Avoid relying on DI logger during teardown.
+        console.error(`Shutdown failed after ${signal}`, err);
+        process.exit(1);
+      });
+  };
+
+  process.on('SIGTERM', () => shutdownAndExit('SIGTERM'));
+  process.on('SIGINT', () => shutdownAndExit('SIGINT'));
+
+  void app.start().catch((err) => {
+    console.error('Server failed to start', err);
+    process.exit(1);
+  });
+}

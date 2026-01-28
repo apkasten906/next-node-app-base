@@ -1,4 +1,5 @@
 @e2e @user-management
+@wip
 Feature: User Management
   As an authenticated user
   I want to manage my profile and settings

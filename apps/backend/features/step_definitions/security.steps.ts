@@ -345,6 +345,9 @@ Then('an audit log entry should be created with:', async function (this: World, 
   expect(logs.length).toBeGreaterThan(0);
 
   const entry = logs[0];
+  if (!entry) {
+    throw new Error('Expected at least one audit log entry, but none were returned');
+  }
   if (expected.user) {
     expect(entry.userId).toBeDefined();
   }
@@ -354,7 +357,6 @@ Then('an audit log entry should be created with:', async function (this: World, 
 
 // Security headers (Helmet) checks
 Then('security headers should be present:', async function (this: World, dataTable: any) {
-  const projectRoot = path.join(process.cwd(), '../..');
   const endpointsToTry = ['/health', '/api/health', '/'];
   let res: any = null;
 

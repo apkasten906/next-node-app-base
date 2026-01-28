@@ -36,6 +36,14 @@
       "outputs": ["pact/**"],
       "dependsOn": ["^build"]
     },
+    "test:bdd": {
+      "outputs": ["reports/**"],
+      "dependsOn": ["^build"]
+    },
+    "test:bdd:all": {
+      "outputs": ["reports/**"],
+      "dependsOn": ["^build"]
+    },
     "test:security": {
       "outputs": []
     },
