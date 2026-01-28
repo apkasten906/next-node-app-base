@@ -5,20 +5,20 @@ on:
   workflow_dispatch:
     inputs:
       dry-run:
-        description: 'Run in dry-run mode (no actual publish)'
+        description: "Run in dry-run mode (no actual publish)"
         required: false
         type: boolean
         default: true
       registry-url:
-        description: 'Registry URL (leave empty for GitHub Packages default)'
+        description: "Registry URL (leave empty for GitHub Packages default)"
         required: false
         type: string
-        default: ''
+        default: ""
       packages-filter:
-        description: 'Comma-separated list of package names to publish (empty = all)'
+        description: "Comma-separated list of package names to publish (empty = all)"
         required: false
         type: string
-        default: ''
+        default: ""
 
 # Required permissions for GitHub Packages
 permissions:
@@ -26,8 +26,8 @@ permissions:
   packages: write
 
 env:
-  NODE_VERSION: '25.x'
-  PNPM_VERSION: '8.15.0'
+  NODE_VERSION: "25.x"
+  PNPM_VERSION: "8.15.0"
   REGISTRY_URL_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['registry-url'] || '' }}
   DRY_RUN_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['dry-run'] || '' }}
   PACKAGES_FILTER_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['packages-filter'] || '' }}
@@ -126,7 +126,7 @@ jobs:
         env:
           REGISTRY_URL: ${{ steps.registry.outputs.url }}
           NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: 'true'
+          DRY_RUN: "true"
           PACKAGES_FILTER: ${{ env.PACKAGES_FILTER_INPUT }}
 
       - name: Publish packages (production)
