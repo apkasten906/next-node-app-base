@@ -56,7 +56,7 @@ This document has two parts:
 
 ### Next Priorities
 
-- ⬜ **Deterministic E2E seeding (WSJF 7.33)** - Add a dev-only, token-protected `POST /api/e2e/seed` endpoint to upsert persona users (idempotent), and call it once before Playwright runs to make E2E setup deterministic (see `docs/Planning/plan-httpSeedEndpoint.prompt.md`).
+- ⬜ **Deterministic E2E seeding (WSJF 7.33)** - Core dev-only, token-protected `POST /api/e2e/seed` endpoint and Playwright global setup are implemented; remaining work: wire seeding into CI runs, extend seeded personas, and document the deterministic E2E flow (see `docs/Planning/plan-httpSeedEndpoint.prompt.md`).
 - 📌 **Deployable template WSJF backlog (2026-01-25)** - If/when we shift focus to “deployable template” hardening, use `/docs/Planning/wsjf-deployable-template.md` as the WSJF-scored sub-backlog to avoid expanding this plan with lots of sub-bullets.
 - ✅ **Code Quality** - ESLint improvements completed (0 errors, 0 warnings) - commits `8e94d79`, `59f4c95`, `3ccab31`, `06d74f6`
 - ✅ **Testing Infrastructure - Storage** - Storage Service tests completed (28 tests) - commit `646dfbb`
