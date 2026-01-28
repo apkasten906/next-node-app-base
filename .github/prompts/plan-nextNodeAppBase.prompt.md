@@ -1,10 +1,32 @@
-Plan for next-node-app-base (updated)
+# Plan: Full-Stack Monorepo Base Template
 
-## Overview
+This document has two parts:
+
+1. **Current Focus (Execution Status)**: what’s done, what’s next, and what’s risky.
+2. **Target Blueprint**: the full template plan (architecture + capabilities).
+
+---
+
+## Goals / Non-goals
+
+- **Goals**: Production-ready developer workflows + CI, deterministic tests (unit/integration/E2E), secure-by-default patterns (OWASP-aligned), and a configurable artifact publishing flow.
+- **Non-goals**: Avoid expanding into app-specific product features unless they directly support the repo’s “template” purpose.
+
+## Success Criteria (Definition of Done)
+
+- A clean checkout can run `pnpm -w install`, `pnpm -w lint`, and core tests successfully.
+- E2E tests are deterministic (seeded) and can run without manual setup.
+- Publish flow works in dry-run and real mode, and is registry-agnostic via env.
+
+---
+
+## Current Focus (Execution Status)
+
+### Overview
 
 - Goal: Make this monorepo production-ready with reliable developer workflows and CI, hardened pre-push checks, deterministic integration tests, and a simple, configurable artifact publishing flow.
 
-## Recent changes (delta)
+### Recent changes (delta)
 
 - Hardened `pre-push` to run a fast backend test gate and added `scripts/run-backend-tests-ci.js` to force mocks for external services in local dev.
 - Converted many high-value `@security` BDD scenarios into integration tests and wired Cucumber step-definitions to use in-memory services (AuditLogService, AuthorizationService, CacheService). Added cache-backed rate limiter tests and mock Redis support.
@@ -13,7 +35,7 @@ Plan for next-node-app-base (updated)
 - **✅ COMPLETED (Dec 2024)**: Implemented owner-based authorization (`:own` semantics), integrated audit logging into AuthorizationService, added test helpers (`clear()`, `resetForTests()`).
 - **✅ COMPLETED (Dec 2024)**: Made integration tests resilient to external services - tests skip gracefully when `TEST_EXTERNAL_SERVICES=false` or dependencies unavailable. Test suite runs in ~11s without external connections.
 
-## Completed Work (WSJF Prioritized)
+### Completed Work (WSJF Prioritized)
 
 ### High Priority (WSJF > 4.3)
 
@@ -41,93 +63,25 @@ Plan for next-node-app-base (updated)
 - ✅ **Testing Infrastructure - Notifications** - NotificationService tests completed (24 tests) - commit `dc88870`
 - ✅ **Testing Infrastructure - Webhooks** - WebhookService tests completed (25 tests) - commit `8a03485`
 - ✅ **Testing Infrastructure - Secrets** - SecretsManagerService tests completed (35 tests) - commit `b8d2566`
-- ✅ **BDD Scenario Coverage** - All 15 @security scenarios converted to integration tests (100% coverage) - commit `f90746d`
-  - JWT token generation and validation (6 tests)
-  - OWASP Top 10 protection headers (12 tests)
-  - See `docs/bdd-coverage-analysis.md` for complete mapping
-- ✅ **Artifact Registry Publishing** - Complete registry-agnostic publishing flow verified and tested - commit `d422d55`
-  - Publish script tested successfully in dry-run mode
-  - GitHub Actions workflow complete and documented
-  - Package scoping verified (@apkasten906/types publishable, @repo/\* private)
-  - Documentation updated in `docs/PUBLISHING.md`
-- ✅ **Prisma 7 CLI Migration Workaround** - Investigated and resolved Prisma 7 CLI configuration issues - commit `d394653`
-  - Upgraded to Prisma 7.1.0 (@prisma/client, @prisma/adapter-pg, prisma, @prisma/config)
-  - Documented CLI config parsing bug in Prisma 7.0.x and 7.1.0
-  - Implemented hybrid migration strategy (manual SQL + Prisma 6 fallback)
-  - Created helper scripts (db:migrate:manual, db:schema:diff, prisma:downgrade, prisma:upgrade)
-  - Runtime with adapter pattern working perfectly (all 204 tests passing)
-  - See ADR-010 for comprehensive analysis and alternatives evaluated
-- ✅ **Frontend i18n Integration (WSJF 6.92)** - Implemented complete internationalization support - commit `8495821`
-  - Created i18n configuration with i18next and react-i18next
-  - Added translation files for 4 languages: English, Spanish, French, German
-  - Implemented LanguageSwitcher component with cookie-based persistence
-  - Created client components (HomeClient, DashboardClient, SignInClient) using translations
-  - Organized translations into namespaces (common, home, dashboard, auth)
-  - Integrated language switcher into app layout header
-  - Comprehensive documentation in apps/frontend/docs/INTERNATIONALIZATION.md
-  - All pages now use translation keys instead of hardcoded text
-- ✅ **Frontend Error Boundaries & API Client (WSJF 5.85)** - Implemented comprehensive error handling - commit `e09febf`
-  - Created React Error Boundaries (RootErrorBoundary, RouteErrorBoundary, custom ErrorBoundary)
-  - Enhanced API client with retry logic, exponential backoff, timeout handling
-  - Implemented specialized error types (ApiError, NetworkError, ValidationError, AuthenticationError, AuthorizationError, NotFoundError)
-  - Added error display components with i18n support (ErrorDisplay, ErrorAlert, ErrorMessage, ErrorFallback)
-  - Created error logging service with structured logging and Sentry integration ready
-  - Updated all translation files with error messages for EN/ES/FR/DE
-  - Integrated RootErrorBoundary into app layout for global error catching
-  - Comprehensive documentation in apps/frontend/docs/ERROR_HANDLING.md
-  - TypeScript strict error handling with proper type guards
-- ✅ **Production Docker Infrastructure (WSJF 5.38 + 5.00)** - Implemented complete containerization - commit `c7f7c2e`
-  - Production-ready multi-stage Dockerfiles for frontend (Next.js standalone) and backend (Node.js + Prisma)
-  - Frontend: 4-stage build (deps, builder, runner), non-root nextjs user, health checks, ~150MB image
-  - Backend: 4-stage build with Prisma generation, prod-deps separation, non-root nodejs user, ~200MB image
-  - Docker Compose orchestration with PostgreSQL 16-alpine, Redis 7-alpine, health check dependencies
-  - GitHub Actions workflow for automated multi-platform builds (amd64/arm64) with Trivy security scanning
-  - Security hardening: Alpine base images, non-root users (UID 1001), .dockerignore for secrets/size optimization
-  - Environment variable configuration with .env.docker.example template
-  - GitHub Container Registry (ghcr.io) integration with semantic versioning tags
-  - Build cache optimization with BuildKit and GitHub Actions cache
-  - Comprehensive documentation in docs/DOCKER.md with usage, troubleshooting, production deployment guide
-- ✅ **Message Queue BullMQ Integration (WSJF 4.62)** - Implemented comprehensive Redis-backed job queue system - commit `c201cb5`
-  - QueueService with full queue management API (add, remove, pause, resume, drain, clean)
-  - 8 queue types: email, sms, push, webhook, file-processing, data-export, report-generation, cleanup
-  - Job processors with progress tracking and metadata (EmailProcessor, SmsProcessor, PushProcessor, WebhookProcessor)
-  - Bull Board monitoring dashboard at /admin/queues (dev mode or ENABLE_QUEUE_DASHBOARD=true)
-  - Integration with NotificationService and WebhookService (optional with graceful fallback)
-  - Per-queue retry strategies with exponential backoff (1-5 retries, 1s-5s delays)
-  - Rate limiting: concurrency (1-20) and rate limits (100-500 jobs/min)
-  - Dependencies: bullmq@5.65.1, @bull-board/api@6.14.2, @bull-board/express@6.14.2
-  - 145 lines of unit tests, 700+ line documentation in docs/QUEUE_SYSTEM.md
-- ✅ **WebSocket Support (WSJF 4.15)** - Implemented production-ready Socket.io WebSocket system - commit `cb2f5c4`
-  - WebSocket type definitions (310 lines, 14 interfaces, 5 enums) in @repo/types
-  - WebSocketService with token authentication, room management, Redis Pub/Sub scaling (631 lines)
-  - Features: join/leave rooms, real-time messaging, typing indicators, presence updates, broadcasting
-  - Rate limiting (max connections, event throttling), health checks, graceful shutdown
-  - Frontend useWebSocket React hook with auto-reconnection, event subscriptions (400+ lines)
-  - Horizontal scaling via Redis adapter for multi-instance deployment
-  - Comprehensive unit tests (600+ lines, 20 test cases covering auth, rooms, messaging, broadcasting)
-  - Production documentation in docs/WEBSOCKET.md (500+ lines) with architecture, API reference, best practices
-  - Docker environment configuration (WEBSOCKET_PORT, WEBSOCKET_CORS_ORIGIN, NEXT_PUBLIC_WEBSOCKET_URL)
-  - Dependencies: socket.io@4.8.1, socket.io-client@4.8.1, socket.io-redis-adapter@8.4.6
-  - Integration with backend HTTP server and /ready health endpoint
-- **Test Status (December 14, 2025)**:
-  - ✅ Queue Service: 10/10 tests passing (stateful BullMQ/IORedis mocks)
-  - ✅ Storage Service: 28/28 tests passing (FileMetadata type fixes)
-  - ✅ Unit Tests: 170/186 passing (91% success rate)
-  - ⚠️ WebSocket: 20 tests skipped (require HTTP server, expected in isolation)
-  - ⚠️ Integration: 108 tests skipped (TEST_EXTERNAL_SERVICES=false by default)
-  - 📊 Total: 278 test cases (170 passing, 108 skipped)
-  - 🐛 Known Issues: Winston logger cleanup in WebSocket tests (cosmetic, not blocking)
-  - ✅ BDD Scenarios: 47 Cucumber feature files created (17 queue + 30 websocket)
-- **Current Status**: Core features complete with comprehensive testing, i18n (4 languages), error handling, production Docker infrastructure, BullMQ queue system, WebSocket real-time communication
+- ✅ **BDD Scenario Coverage** - All 15 `@security` scenarios converted to integration tests (commit `f90746d`); mapping: `docs/bdd-coverage-analysis.md`
+- ✅ **Artifact Registry Publishing** - Registry-agnostic publish flow verified (commit `d422d55`); docs: `docs/PUBLISHING.md`, ADR-009
+- ✅ **Prisma 7 CLI Migration Workaround** - Hybrid migration approach documented (commit `d394653`); docs: ADR-010
+- ✅ **Frontend i18n (WSJF 6.92)** - Internationalization in 4 languages (commit `8495821`); docs: `apps/frontend/docs/INTERNATIONALIZATION.md`
+- ✅ **Frontend error handling (WSJF 5.85)** - Error boundaries + resilient API client (commit `e09febf`); docs: `apps/frontend/docs/ERROR_HANDLING.md`
+- ✅ **Docker infrastructure (WSJF 5.38 + 5.00)** - Production-ready Docker + Compose (commit `c7f7c2e`); docs: `docs/DOCKER.md`
+- ✅ **Queue system (WSJF 4.62)** - BullMQ queues + dashboard (commit `c201cb5`); docs: `docs/QUEUE_SYSTEM.md`
+- ✅ **WebSocket support (WSJF 4.15)** - Socket.io auth + scaling (commit `cb2f5c4`); docs: `docs/WEBSOCKET.md`
+- **Test Status (2025-12-14)**: 170 passing / 108 skipped (skips expected when `TEST_EXTERNAL_SERVICES=false`)
+- **Current Status**: Core features complete with comprehensive testing, i18n, error handling, Docker, queues, and WebSockets
 - **Next**: Continue with next highest WSJF priority items (Enhanced CI/CD 4.38)
 
-## Priorities (A / B / C from original plan)
+### Priorities (A / B / C from original plan)
 
 1. ✅ **B (COMPLETED)**: Convert `@security` BDD scenarios to integration tests and make tests resilient to external services (MockRedis, toggles). All 15 critical security scenarios now covered.
 2. ✅ **C (COMPLETED)**: Finalize artifact registry and publishing flow (GitHub Packages default), add `scripts/publish-packages.js`, `.npmrc.template`, and GitHub Actions publish workflow. Make publish flow registry-agnostic via `REGISTRY_URL` so we can route to an internal registry through the service mesh. All components verified and tested.
 3. ✅ **A (COMPLETED)**: Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy. Upgraded to Prisma 7.1.0, documented CLI config parsing bug, implemented hybrid migration strategy (manual SQL + Prisma 6 fallback). See ADR-010.
 
-## Actionable steps (short-term)
+### Actionable steps (short-term)
 
 - ⬜ NEXT (WSJF 7.33): Implement HTTP E2E seed endpoint and wire Playwright to call it once pre-run.
   - Backend: dev-only, token-protected `POST /api/e2e/seed` (block when `NODE_ENV==='production'`; require `x-e2e-seed-token` to match `E2E_SEED_TOKEN`), idempotently upsert persona users (start with `test@example.com` / `admin@example.com`).
@@ -146,17 +100,18 @@ Plan for next-node-app-base (updated)
 - ✅ DONE: Replace remaining `any` types with `unknown` and type aliases (query-helpers, policy-engine) - improved type safety with runtime guards
 - ✅ DONE: Complete BDD @security scenario integration test coverage (JWT generation/validation, OWASP headers) - 18 new tests added
 
-## Notes on service-mesh friendliness
+### Notes on service-mesh friendliness
 
 - The publish flow will be registry-agnostic. To swap in an internal registry that lives inside the cluster (Verdaccio, Artifactory, Nexus), set CI `REGISTRY_URL` to a stable internal address (e.g. `http://npm-registry.svc.cluster.local:4873`) and provide `NPM_AUTH_TOKEN` in secrets. The service mesh can expose/secure that endpoint; the CI/publish scripts remain unchanged.
 
-## Next check-in
+### Next check-in
 
-- After ADR is added, implement the `scripts/publish-packages.js`, `.github/workflows/publish.yml`, and `.npmrc.template` files. Then update `packages/*` to be scoped where appropriate (e.g., `@apkasten906/<pkg>`).
+- Next: Implement deterministic E2E seeding (`POST /api/e2e/seed`) and wire Playwright pre-run (see `docs/Planning/plan-httpSeedEndpoint.prompt.md`).
+- If focus shifts to “deployable template” hardening, track WSJF items in `docs/Planning/wsjf-deployable-template.md` and keep this plan as a short pointer.
 
-If you want me to proceed: I can implement the publish script and workflow next, or draft a Kubernetes manifest for an internal Verdaccio registry fronted by the mesh. Which would you like?
+---
 
-# Plan: Full-Stack Monorepo Base Template
+## Target Blueprint
 
 Create a production-ready base repository for rapidly starting new web applications with a Next.js frontend, Node.js backend, comprehensive testing, and DevOps infrastructure. The setup follows SOLID principles with dependency injection, includes logging/monitoring, PostgreSQL database support, OWASP security standards, Istio service mesh for infrastructure concerns, and is Kubernetes and CI/CD ready.
 
@@ -256,7 +211,7 @@ For OAuth 2.0 + OpenID Connect implementation, I recommend:
 ## Technology Stack Summary
 
 | Category                   | Technology                         | Rationale                                    |
-| -------------------------- | ---------------------------------- | -------------------------------------------- | ---------------------------- |
+| -------------------------- | ---------------------------------- | -------------------------------------------- |
 | **Monorepo**               | Turborepo                          | Best Next.js integration, simple, fast       |
 | **Package Manager**        | pnpm                               | Fast, efficient, workspace support ✅        |
 | **Service Mesh**           | Istio                              | mTLS, traffic management, observability ✅   |
@@ -301,7 +256,9 @@ For OAuth 2.0 + OpenID Connect implementation, I recommend:
 | **i18n**                   | next-i18next                       | Internationalization support ✅              |
 | **Feature Flags**          | Custom with DI                     | Gradual rollouts, A/B testing                |
 | **Dev Containers**         | VSCode devcontainer.json           | Consistent development environment ✅        |
-| **Security Governance**    | OWASP Standards                    | Industry best practices ✅                   | ## OWASP Security Governance |
+| **Security Governance**    | OWASP Standards                    | Industry best practices ✅                   |
+
+## OWASP Security Governance
 
 ### Security Standards & Compliance
 
