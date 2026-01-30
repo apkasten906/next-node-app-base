@@ -1,6 +1,56 @@
 import { Given, Then, When } from '@cucumber/cucumber';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { expect } from '../support/assertions';
 import { World } from '../support/world';
+
+function getRepoRoot(cwd: string): string {
+  // Backend Cucumber runs with cwd = apps/backend
+  return path.resolve(cwd, '..', '..');
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function readJson<T>(filePath: string): Promise<T> {
+  const content = await fs.readFile(filePath, 'utf8');
+  return JSON.parse(content) as T;
+}
+
+Given('testing frameworks are installed and configured', async function (this: World) {
+  const repoRoot = getRepoRoot(process.cwd());
+
+  const backendPkgPath = path.resolve(repoRoot, 'apps', 'backend', 'package.json');
+  const frontendPkgPath = path.resolve(repoRoot, 'apps', 'frontend', 'package.json');
+
+  const backendVitestConfigPath = path.resolve(repoRoot, 'apps', 'backend', 'vitest.config.ts');
+  const backendCucumberConfigPath = path.resolve(repoRoot, 'apps', 'backend', 'cucumber.js');
+  const frontendPlaywrightConfigPath = path.resolve(
+    repoRoot,
+    'apps',
+    'frontend',
+    'playwright.config.ts'
+  );
+
+  expect(await fileExists(backendPkgPath)).toBe(true);
+  expect(await fileExists(frontendPkgPath)).toBe(true);
+  expect(await fileExists(backendVitestConfigPath)).toBe(true);
+  expect(await fileExists(backendCucumberConfigPath)).toBe(true);
+  expect(await fileExists(frontendPlaywrightConfigPath)).toBe(true);
+
+  const backendPkg = await readJson<{ devDependencies?: Record<string, string> }>(backendPkgPath);
+  const backendDevDeps = backendPkg.devDependencies ?? {};
+
+  // Backend unit/integration + BDD.
+  expect(backendDevDeps['vitest']).toBeDefined();
+  expect(backendDevDeps['@cucumber/cucumber']).toBeDefined();
+});
 
 // Vitest Configuration
 Given('Vitest is configured for unit tests', async function (this: World) {
