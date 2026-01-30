@@ -20,9 +20,18 @@ on:
         type: string
         default: ""
 
+  # Publish on tags (for release automation)
+  push:
+    tags:
+      - "v*"
+
+  # Publish on GitHub releases
+  release:
+    types: [published]
+
 # Required permissions for GitHub Packages
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 env:

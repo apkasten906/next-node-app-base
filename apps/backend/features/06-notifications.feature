@@ -9,6 +9,7 @@ Feature: Notification Service Abstraction
     And environment variables specify providers
 
   @notifications @email
+  @ready
   Scenario: Send email notification
     Given email provider is configured
     When I send an email to "user@example.com" with subject "Welcome"
@@ -100,6 +101,7 @@ Feature: Notification Service Abstraction
     And email should be delivered successfully
 
   @notifications @retry
+  @ready
   Scenario: Notification delivery retry logic
     Given a notification fails to deliver
     When the initial delivery attempt fails
@@ -108,6 +110,7 @@ Feature: Notification Service Abstraction
     And maximum retry limit should be respected
 
   @notifications @health-check
+  @ready
   Scenario: Notification service health check
     Given notification providers are configured
     When I check notification service health

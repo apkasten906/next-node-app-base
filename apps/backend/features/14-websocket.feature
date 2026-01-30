@@ -9,6 +9,13 @@ Feature: WebSocket Real-Time Communication
     And Redis adapter is configured for scaling
     And authentication middleware is active
 
+  @websocket @ready
+  Scenario: WebSocket service wiring is configured
+    Given the backend WebSocket service is implemented
+    Then WebSockets should be gated by "DISABLE_WEBSOCKETS"
+    And WebSocket service should use Socket.io with Redis adapter support
+    And WebSocket service should default to path "/socket.io"
+
   @websocket @connection
   Scenario: Client connects with valid token
     Given I have a valid authentication token

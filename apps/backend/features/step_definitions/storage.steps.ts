@@ -7,6 +7,14 @@ Given('the storage service is configured', async function (this: World) {
   this.setData('storageServiceConfigured', true);
 });
 
+Given('storage service is configured', async function (this: World) {
+  this.setData('storageServiceConfigured', true);
+});
+
+Given('environment variables specify the provider', async function (this: World) {
+  this.setData('providerFromEnv', true);
+});
+
 Given('storage provider is {string}', async function (this: World, provider: string) {
   this.setData('storageProvider', provider);
 });
@@ -194,14 +202,47 @@ Then('size validation should return {string}', async function (this: World, expe
 
 // Filename Sanitization
 When('I sanitize filename {string}', async function (this: World, filename: string) {
-  // Simple sanitization
-  const sanitized = filename
+  const parts = filename
+    .replace(/\\/g, '/')
+    .split('/')
+    .filter((p) => p && p !== '.' && p !== '..');
+
+  const sanitized = parts
+    .join('_')
     .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .replace(/_+/g, '_')
     .replace(/\.+/g, '.')
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/^[._]+/, '');
 
   this.setData('sanitizedFilename', sanitized);
 });
+
+When('I upload a file with filename {string}', async function (this: World, filename: string) {
+  const parts = filename
+    .replace(/\\/g, '/')
+    .split('/')
+    .filter((p) => p && p !== '.' && p !== '..');
+
+  const sanitized = parts
+    .join('_')
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/\.+/g, '.')
+    .toLowerCase()
+    .replace(/^[._]+/, '');
+
+  this.setData('originalFilename', filename);
+  this.setData('sanitizedFilename', sanitized);
+});
+
+Then(
+  'the filename should be sanitized to {string}',
+  async function (this: World, expected: string) {
+    const sanitized = this.getData<string>('sanitizedFilename');
+    expect(sanitized).toBe(expected);
+  }
+);
 
 Then('the sanitized filename should be {string}', async function (this: World, expected: string) {
   const sanitized = this.getData<string>('sanitizedFilename');

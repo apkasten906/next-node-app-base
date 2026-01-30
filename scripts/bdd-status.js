@@ -103,17 +103,45 @@ function parseFeatureFile(filePath, fileContent, missingStatus, conflictingStatu
 
     if (/^Scenario( Outline)?:/i.test(line)) {
       const scenarioName = parseScenarioName(line);
-      const scenarioTags = Array.from(new Set([...featureTags, ...pendingTags]));
+      const featurePrimaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => featureTags.includes(t));
+      const scenarioPrimaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => pendingTags.includes(t));
+
+      // Scenario-level status tags override feature-level status tags.
+      // This allows gradual promotion within a feature that still defaults to @wip.
+      const effectivePrimaryStatusTags =
+        scenarioPrimaryStatusTags.length > 0 ? scenarioPrimaryStatusTags : featurePrimaryStatusTags;
+
+      const scenarioTags = Array.from(
+        new Set([
+          // Keep all non-status tags from both scopes.
+          ...featureTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
+          ...pendingTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
+          // Apply the effective status tags.
+          ...effectivePrimaryStatusTags,
+        ])
+      );
       pendingTags = [];
 
-      const primaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => scenarioTags.includes(t));
-      if (primaryStatusTags.length > 1) {
-        conflictingStatus.push({ filePath, scenarioName, tags: scenarioTags, primaryStatusTags });
+      // Conflicts are only within the same scope (scenario overrides feature).
+      if (scenarioPrimaryStatusTags.length > 1) {
+        conflictingStatus.push({
+          filePath,
+          scenarioName,
+          tags: scenarioTags,
+          primaryStatusTags: scenarioPrimaryStatusTags,
+        });
+      } else if (scenarioPrimaryStatusTags.length === 0 && featurePrimaryStatusTags.length > 1) {
+        conflictingStatus.push({
+          filePath,
+          scenarioName,
+          tags: scenarioTags,
+          primaryStatusTags: featurePrimaryStatusTags,
+        });
       }
 
       // Require at least one primary status tag OR @skip.
       // (We allow "skip-only" so a scenario can be temporarily disabled without changing its intent tags.)
-      if (primaryStatusTags.length === 0 && !scenarioTags.includes(STATUS_TAGS.skip)) {
+      if (effectivePrimaryStatusTags.length === 0 && !scenarioTags.includes(STATUS_TAGS.skip)) {
         missingStatus.push({ filePath, scenarioName, tags: scenarioTags });
       }
 

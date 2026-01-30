@@ -138,7 +138,7 @@ Feature: Backend Core Services
     And allowed methods should be specified
     And credentials should be allowed for trusted origins
 
-  @backend @webhooks
+  @ready @backend @webhooks
   Scenario: Webhook event publishing
     Given a webhook service is configured
     And a webhook subscriber is registered for event "<event>"
@@ -153,7 +153,7 @@ Feature: Backend Core Services
       | user.updated    |
       | order.completed |
 
-  @backend @webhooks @security
+  @ready @backend @webhooks @security
   Scenario: Webhook signature verification
     Given webhooks have signature verification enabled
     When a webhook is received with a valid signature

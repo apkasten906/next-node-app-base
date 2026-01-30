@@ -11,6 +11,10 @@ test-results/
 playwright-report/
 playwright/.cache/
 
+# Generated reports (Cucumber/Playwright/etc)
+apps/**/reports/
+apps/**/playwright-report/
+
 # Production
 dist/
 build/

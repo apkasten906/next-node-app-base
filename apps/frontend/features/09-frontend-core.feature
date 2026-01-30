@@ -32,6 +32,7 @@ Feature: Frontend Core Features
     And TypeScript should catch type errors
 
   @frontend @api-client @error-handling
+  @ready
   Scenario: API client error handling
     Given the API client is configured
     When an API request fails with status "<status>"
@@ -47,12 +48,20 @@ Feature: Frontend Core Features
       | 500    |
 
   @frontend @error-boundary
+  @ready
   Scenario: React error boundary
     Given an error boundary is configured
     When a component throws an error
     Then the error should be caught by error boundary
     And a fallback UI should be displayed
     And the error should be logged
+
+  @frontend @websocket @ready
+  Scenario: WebSocket hook wiring
+    Given the WebSocket hook is implemented
+    Then it should use socket.io-client
+    And it should default to NEXT_PUBLIC_WEBSOCKET_URL
+    And it should support reconnection state transitions
 
   @frontend @error-boundary @recovery
   Scenario: Error boundary recovery

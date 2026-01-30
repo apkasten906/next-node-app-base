@@ -176,6 +176,7 @@ Feature: Security Framework
       | ../../../etc/passwd                     |
 
   @security @secrets-management
+  @ready
   Scenario: Environment-based secrets management
     Given secrets are stored in environment variables
     When the application starts

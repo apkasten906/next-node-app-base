@@ -122,6 +122,25 @@ Feature: Advanced Testing Strategies
     And tests should complete in < 2 minutes
     And deployment readiness should be determined
 
+  @publishing @registry
+  @ready
+  Scenario: Registry-agnostic publish flow is wired
+    Given a registry-agnostic publish script exists
+    And an npmrc template exists for local publishing
+    And a GitHub Actions publish workflow is configured
+    Then the publish script should accept registry and token via environment variables
+    And the publish workflow should run the publish script with a token
+
+  @database @prisma @migrations
+  @ready
+  Scenario: Prisma 7 CLI migration workaround is documented and wired
+    Given Prisma CLI configuration is maintained at the monorepo root
+    And the backend Prisma schema should not embed a datasource URL
+    And a manual SQL initialization script exists for Prisma migrations
+    Then Docker build should generate Prisma client using the root prisma config
+    And Docker Compose should apply migrations using the root prisma config
+    And ADR-010 should document the Prisma 7 migration workaround
+
   @testing @regression
   Scenario: Regression test suite
     Given regression tests cover existing features

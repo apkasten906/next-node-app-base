@@ -140,13 +140,38 @@ Feature: Kubernetes and DevOps Infrastructure
     Then Docker image should be built
     And image should be pushed to registry
 
+  @cicd @github-actions
+  @ready
+  Scenario: Workflow linting is wired with actionlint
+    Given workflow lint tooling is present
+    Then root package.json should expose a workflows lint command
+    And a workflow-lint GitHub Actions workflow should exist
+    And the workflow-lint workflow should run actionlint
+
   @cicd @build
+  @ready
   Scenario: Multi-stage Docker build
     Given a multi-stage Dockerfile exists
     When I build the Docker image
     Then build should use caching
     And final image should be optimized
     And image size should be minimal
+
+  @k8s @verdaccio
+  @ready
+  Scenario: Verdaccio in-cluster registry manifests are present
+    Given Verdaccio Kubernetes manifests are available
+    Then Verdaccio manifests should include a Deployment, Service, PVC, and ConfigMap
+    And Verdaccio manifests should include Istio traffic management
+    And Verdaccio manifests should include basic security hardening
+
+  @docker @compose
+  @ready
+  Scenario: Docker Compose development environment is configured
+    Given Docker Compose configuration exists
+    Then the Compose file should define required services
+    And backend service should build from the backend Dockerfile
+    And frontend service should build from the frontend Dockerfile
 
   @cicd @test-stage
   Scenario: CI pipeline test stage

@@ -178,6 +178,7 @@ Feature: File Storage Abstraction
       | 10MB | rejected |
 
   @storage @validation @filename
+  @ready
   Scenario: Filename sanitization
     When I upload a file with filename "<filename>"
     Then the filename should be sanitized to "<sanitized>"
