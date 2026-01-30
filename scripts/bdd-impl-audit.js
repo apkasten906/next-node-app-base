@@ -165,15 +165,48 @@ function parseScenarios(filePath, content) {
 
 /**
  * @param {string[]} argv
- * @returns {{format: 'text'|'json', checkReadyImpl: boolean, failOnMissingReadyImpl: boolean}}
+ * @returns {{format: 'text'|'json', checkReadyImpl: boolean, failOnMissingReadyImpl: boolean, outPath?: string}}
  */
 function parseArgs(argv) {
   const wantsJson = argv.includes('--format') && argv.includes('json');
+  const outIndex = argv.indexOf('--out');
+  const outPath = outIndex >= 0 ? argv[outIndex + 1] : undefined;
+
   return {
     format: wantsJson ? 'json' : 'text',
     checkReadyImpl: argv.includes('--check-ready-impl'),
     failOnMissingReadyImpl: argv.includes('--fail-on-missing-ready-impl'),
+    outPath: outPath && !outPath.startsWith('-') ? outPath : undefined,
   };
+}
+
+/**
+ * @param {{keys: string[], byImpl: any, missingReadyImpl: Array<{filePath: string, scenarioName: string}>, includeReadyImplSummary: boolean}} input
+ * @returns {string}
+ */
+function buildTextReport({ keys, byImpl, missingReadyImpl, includeReadyImplSummary }) {
+  const lines = [];
+  lines.push(`impl-tags total=${keys.length}`);
+
+  for (const impl of keys) {
+    const v = byImpl[impl];
+    lines.push(
+      `${impl} ready=${v.ready} wip=${v.wip} manual=${v.manual} skip=${v.skip} other=${v.other}`
+    );
+  }
+
+  if (includeReadyImplSummary) {
+    if (missingReadyImpl.length === 0) {
+      lines.push('ready-without-impl total=0');
+    } else {
+      lines.push(`ready-without-impl total=${missingReadyImpl.length}`);
+      for (const row of missingReadyImpl) {
+        lines.push(`- ${row.filePath}: ${row.scenarioName}`);
+      }
+    }
+  }
+
+  return lines.join('\n');
 }
 
 function main() {
@@ -223,46 +256,49 @@ function main() {
   }
 
   const keys = Object.keys(byImpl).sort();
+  const includeReadyImplSummary = args.checkReadyImpl || args.failOnMissingReadyImpl;
+  const shouldFail = args.failOnMissingReadyImpl && missingReadyImpl.length > 0;
 
   if (args.format === 'json') {
-    console.log(
-      JSON.stringify(
-        {
-          totalImplTags: keys.length,
-          missingReadyImplCount: missingReadyImpl.length,
-          missingReadyImpl,
-          byImpl,
-        },
-        null,
-        2
-      )
+    const jsonString = JSON.stringify(
+      {
+        totalImplTags: keys.length,
+        missingReadyImplCount: missingReadyImpl.length,
+        missingReadyImpl,
+        byImpl,
+      },
+      null,
+      2
     );
-    process.exitCode = args.failOnMissingReadyImpl && missingReadyImpl.length ? 1 : 0;
+
+    if (args.outPath) {
+      const outFile = path.resolve(process.cwd(), args.outPath);
+      fs.writeFileSync(outFile, jsonString + '\n', 'utf8');
+      console.log(`wrote ${path.relative(process.cwd(), outFile).replace(/\\/g, '/')}`);
+    } else {
+      console.log(jsonString);
+    }
+
+    process.exitCode = shouldFail ? 1 : 0;
     return;
   }
 
-  console.log(`impl-tags total=${keys.length}`);
-  for (const impl of keys) {
-    const v = byImpl[impl];
-    console.log(
-      `${impl} ready=${v.ready} wip=${v.wip} manual=${v.manual} skip=${v.skip} other=${v.other}`
-    );
+  const textReport = buildTextReport({
+    keys,
+    byImpl,
+    missingReadyImpl,
+    includeReadyImplSummary,
+  });
+
+  if (args.outPath) {
+    const outFile = path.resolve(process.cwd(), args.outPath);
+    fs.writeFileSync(outFile, textReport + '\n', 'utf8');
+    console.log(`wrote ${path.relative(process.cwd(), outFile).replace(/\\/g, '/')}`);
+  } else {
+    console.log(textReport);
   }
 
-  if (args.checkReadyImpl || args.failOnMissingReadyImpl) {
-    if (missingReadyImpl.length === 0) {
-      console.log('ready-without-impl total=0');
-    } else {
-      console.log(`ready-without-impl total=${missingReadyImpl.length}`);
-      for (const row of missingReadyImpl) {
-        console.log(`- ${row.filePath}: ${row.scenarioName}`);
-      }
-    }
-  }
-
-  if (args.failOnMissingReadyImpl && missingReadyImpl.length) {
-    process.exitCode = 1;
-  }
+  process.exitCode = shouldFail ? 1 : 0;
 }
 
 main();

@@ -40,7 +40,7 @@ jobs:
         run: node scripts/bdd-impl-audit.js --fail-on-missing-ready-impl
 
       - name: Generate implementation audit report
-        run: node scripts/bdd-impl-audit.js --format json > impl-audit.json
+        run: node scripts/bdd-impl-audit.js --format json --out impl-audit.json
 
       - name: Upload implementation audit report
         if: always()

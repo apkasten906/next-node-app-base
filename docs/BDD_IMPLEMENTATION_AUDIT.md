@@ -26,6 +26,14 @@ This provides:
 - Status totals: `node scripts/bdd-status.js --format json`
 - Implementation mapping: `node scripts/bdd-impl-audit.js --format json`
 
+### Generating a JSON file (Windows-safe)
+
+PowerShell redirection (`>`) writes UTF-16 by default, which can make `impl-audit.json` look corrupted in tools expecting UTF-8.
+
+Prefer writing via the script:
+
+- `node scripts/bdd-impl-audit.js --format json --out impl-audit.json`
+
 ### Enforce `@impl_*` coverage for `@ready`
 
 To prevent untraceable “ready” scenarios from slipping in, you can have the audit fail when any `@ready` scenario is missing an `@impl_*` tag:
