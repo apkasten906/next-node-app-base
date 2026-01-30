@@ -35,3 +35,6 @@ jobs:
 
       - name: Validate BDD status tags
         run: pnpm -s bdd:status
+
+      - name: Validate @impl_* tags for @ready scenarios
+        run: node scripts/bdd-impl-audit.js --fail-on-missing-ready-impl
