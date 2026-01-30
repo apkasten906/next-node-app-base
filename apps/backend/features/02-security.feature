@@ -184,7 +184,7 @@ Feature: Security Framework
       | '; DROP TABLE users; --                 |
       | ../../../etc/passwd                     |
 
-  @security @secrets-management
+  @security @secrets-management @impl_secrets_management_env
   @ready
   Scenario: Environment-based secrets management
     Given secrets are stored in environment variables
