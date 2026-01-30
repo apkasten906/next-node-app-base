@@ -15,6 +15,9 @@ playwright/.cache/
 apps/**/reports/
 apps/**/playwright-report/
 
+# Local BDD implementation audit output
+impl-audit.json
+
 # Production
 dist/
 build/
