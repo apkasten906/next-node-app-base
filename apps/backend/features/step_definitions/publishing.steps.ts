@@ -75,7 +75,7 @@ Then(
     // The plan claims tag/release publishing. Enforce triggers exist.
     expect(workflow).toContain('push:');
     expect(workflow).toContain('tags:');
-    expect(workflow).toContain("- 'v*'");
+    expect(workflow).toMatch(/-\s*['"]v\*['"]/);
     expect(workflow).toContain('release:');
     expect(workflow).toContain('types: [published]');
 

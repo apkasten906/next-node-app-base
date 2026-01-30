@@ -92,6 +92,15 @@ Feature: Security Framework
       | user      | content-review  | denied  |
       | admin     | system-settings | granted |
 
+  @security @authorization @audit-log
+  @ready
+  Scenario: Owner-based authorization and audit logging
+    Given AuthorizationService and AuditLogService are configured
+    When user "user-123" is granted permission "posts:update:own"
+    Then user "user-123" should be allowed to access "posts" "update" when ownerId is "user-123"
+    And user "user-123" should be denied to access "posts" "update" when ownerId is "someone-else"
+    And audit logs for "user-123" should include both granted and denied decisions
+
   @security @abac
   Scenario: Attribute-Based Access Control (ABAC)
     Given a user with attributes:
