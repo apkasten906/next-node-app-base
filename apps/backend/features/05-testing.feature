@@ -7,7 +7,7 @@ Feature: Testing Infrastructure
   Background:
     Given testing frameworks are installed and configured
 
-  @testing @resilience @external-services
+  @testing @resilience @external-services @impl_test_resilience_external_services
   @ready
   Scenario: Backend tests are resilient without external services
     Given backend test setup forces external service mocks

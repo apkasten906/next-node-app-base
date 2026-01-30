@@ -7,7 +7,7 @@ Feature: Project Foundation and Governance
     Given the project is initialized with Turborepo
     And pnpm workspaces are configured
 
-  @ready @foundation @monorepo
+  @ready @foundation @monorepo @impl_monorepo_foundation
   Scenario: Turborepo monorepo structure
     Given I am in the project root directory
     When I check the project structure
@@ -24,14 +24,14 @@ Feature: Project Foundation and Governance
     Then all TypeScript files should pass linting rules
     And shared ESLint configuration should be used
 
-  @ready @foundation @formatting
+  @ready @foundation @formatting @impl_code_formatting_prettier
   Scenario: Prettier code formatting
     Given Prettier is configured
     When I check code formatting
     Then all files should follow Prettier rules
     And formatting should be consistent across all packages
 
-  @ready @foundation @git-hooks
+  @ready @foundation @git-hooks @impl_husky_commitlint_hooks
   Scenario: Husky Git hooks for commit validation
     Given Husky is installed and configured
     When I make a Git commit
@@ -61,7 +61,7 @@ Feature: Project Foundation and Governance
     And strict null checks should be enabled
     And no implicit any should be allowed
 
-  @ready @foundation @dependencies
+  @ready @foundation @dependencies @impl_pnpm_dependency_management
   Scenario: Dependency management with pnpm
     Given pnpm is used as the package manager
     When I install dependencies
@@ -91,7 +91,7 @@ Feature: Project Foundation and Governance
     And reviewers should confirm permissions did not broaden unexpectedly
     And auto-merge should be enabled only when policy and CI requirements are met
 
-  @ready @foundation @scripts
+  @ready @foundation @scripts @impl_unified_workspace_scripts
   Scenario: Unified npm scripts across workspaces
     Given package.json scripts are defined
     When I run "pnpm build"

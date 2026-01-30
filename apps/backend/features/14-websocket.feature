@@ -9,7 +9,7 @@ Feature: WebSocket Real-Time Communication
     And Redis adapter is configured for scaling
     And authentication middleware is active
 
-  @websocket @ready
+  @websocket @ready @impl_websocket_support
   Scenario: WebSocket service wiring is configured
     Given the backend WebSocket service is implemented
     Then WebSockets should be gated by "DISABLE_WEBSOCKETS"

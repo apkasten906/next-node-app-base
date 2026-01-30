@@ -9,7 +9,7 @@ Feature: Message Queue System with BullMQ
     And QueueService is initialized
     And Bull Board dashboard is configured
 
-  @ready @queue @email
+  @ready @queue @email @impl_queue_system
   Scenario: Queue email notification job
     Given email queue is configured
     When I add an email job with recipient "user@example.com"
@@ -34,28 +34,28 @@ Feature: Message Queue System with BullMQ
     And retry count should increment
     And backoff delay should be exponential
 
-  @ready @queue @sms
+  @ready @queue @sms @impl_queue_system
   Scenario: Queue SMS notification job
     Given SMS queue is configured
     When I add an SMS job with phone "+1234567890"
     Then the job should be queued successfully
     And the job should respect rate limits
 
-  @ready @queue @webhook
+  @ready @queue @webhook @impl_queue_system
   Scenario: Queue webhook delivery job
     Given webhook queue is configured
     When I add a webhook job with URL "https://api.example.com/webhook"
     Then the job should be queued successfully
     And the job should include payload and headers
 
-  @ready @queue @file-processing
+  @ready @queue @file-processing @impl_queue_system
   Scenario: Queue file processing job
     Given file-processing queue is configured
     When I add a file processing job for "document.pdf"
     Then the job should be queued successfully
     And the job should include file metadata
 
-  @ready @queue @monitoring
+  @ready @queue @monitoring @impl_queue_system
   Scenario: Bull Board dashboard route is configured
     Given Bull Board dashboard is configured
     Then the queue monitoring dashboard should be available at "/admin/queues"

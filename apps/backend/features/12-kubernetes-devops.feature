@@ -140,7 +140,7 @@ Feature: Kubernetes and DevOps Infrastructure
     Then Docker image should be built
     And image should be pushed to registry
 
-  @cicd @github-actions
+  @cicd @github-actions @impl_workflow_lint_actionlint
   @ready
   Scenario: Workflow linting is wired with actionlint
     Given workflow lint tooling is present
@@ -148,7 +148,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And a workflow-lint GitHub Actions workflow should exist
     And the workflow-lint workflow should run actionlint
 
-  @cicd @build
+  @cicd @build @impl_docker_multistage_build
   @ready
   Scenario: Multi-stage Docker build
     Given a multi-stage Dockerfile exists
@@ -157,7 +157,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And final image should be optimized
     And image size should be minimal
 
-  @k8s @verdaccio
+  @k8s @verdaccio @impl_verdaccio_k8s_manifests
   @ready
   Scenario: Verdaccio in-cluster registry manifests are present
     Given Verdaccio Kubernetes manifests are available
@@ -165,7 +165,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And Verdaccio manifests should include Istio traffic management
     And Verdaccio manifests should include basic security hardening
 
-  @docker @compose
+  @docker @compose @impl_docker_compose_dev
   @ready
   Scenario: Docker Compose development environment is configured
     Given Docker Compose configuration exists

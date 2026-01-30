@@ -92,7 +92,7 @@ Feature: Security Framework
       | user      | content-review  | denied  |
       | admin     | system-settings | granted |
 
-  @security @authorization @audit-log
+  @security @authorization @audit-log @impl_authz_own_audit
   @ready
   Scenario: Owner-based authorization and audit logging
     Given AuthorizationService and AuditLogService are configured
