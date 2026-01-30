@@ -38,6 +38,14 @@ function parseScenarioName(line) {
 
 /**
  * @param {string[]} tags
+ * @returns {string[]}
+ */
+function extractImplTags(tags) {
+  return tags.filter((t) => t.startsWith('@impl_'));
+}
+
+/**
+ * @param {string[]} tags
  * @returns {'ready'|'wip'|'manual'|'skip'|'other'}
  */
 function classify(tags) {
@@ -94,7 +102,7 @@ function findFeatureFiles(dir) {
  * @param {string} content
  * @returns {Array<{filePath: string, scenarioName: string, implTags: string[], status: string, tags: string[]}>}
  */
-function parseImplScenarios(filePath, content) {
+function parseScenarios(filePath, content) {
   /** @type {Array<{filePath: string, scenarioName: string, implTags: string[], status: string, tags: string[]}>} */
   const rows = [];
 
@@ -137,16 +145,13 @@ function parseImplScenarios(filePath, content) {
         ])
       );
 
-      const implTags = tags.filter((t) => t.startsWith('@impl_'));
-      if (implTags.length) {
-        rows.push({
-          filePath,
-          scenarioName,
-          implTags,
-          status: classify(tags),
-          tags,
-        });
-      }
+      rows.push({
+        filePath,
+        scenarioName,
+        implTags: extractImplTags(tags),
+        status: classify(tags),
+        tags,
+      });
 
       pendingTags = [];
       continue;
@@ -158,7 +163,21 @@ function parseImplScenarios(filePath, content) {
   return rows;
 }
 
+/**
+ * @param {string[]} argv
+ * @returns {{format: 'text'|'json', checkReadyImpl: boolean, failOnMissingReadyImpl: boolean}}
+ */
+function parseArgs(argv) {
+  const wantsJson = argv.includes('--format') && argv.includes('json');
+  return {
+    format: wantsJson ? 'json' : 'text',
+    checkReadyImpl: argv.includes('--check-ready-impl'),
+    failOnMissingReadyImpl: argv.includes('--fail-on-missing-ready-impl'),
+  };
+}
+
 function main() {
+  const args = parseArgs(process.argv);
   const repoRoot = path.resolve(__dirname, '..');
   const appsDir = path.join(repoRoot, 'apps');
 
@@ -168,8 +187,15 @@ function main() {
   const scenarios = [];
   for (const featurePath of featureFiles) {
     const content = fs.readFileSync(featurePath, 'utf8');
-    scenarios.push(...parseImplScenarios(featurePath, content));
+    scenarios.push(...parseScenarios(featurePath, content));
   }
+
+  const missingReadyImpl = scenarios
+    .filter((s) => s.status === 'ready' && s.implTags.length === 0)
+    .map((s) => ({
+      filePath: path.relative(repoRoot, s.filePath).replace(/\\/g, '/'),
+      scenarioName: s.scenarioName,
+    }));
 
   /** @type {Record<string, {ready: number, wip: number, manual: number, skip: number, other: number, scenarios: Array<{filePath: string, scenarioName: string, status: string}>}>} */
   const byImpl = {};
@@ -198,8 +224,20 @@ function main() {
 
   const keys = Object.keys(byImpl).sort();
 
-  if (process.argv.includes('--format') && process.argv.includes('json')) {
-    console.log(JSON.stringify({ totalImplTags: keys.length, byImpl }, null, 2));
+  if (args.format === 'json') {
+    console.log(
+      JSON.stringify(
+        {
+          totalImplTags: keys.length,
+          missingReadyImplCount: missingReadyImpl.length,
+          missingReadyImpl,
+          byImpl,
+        },
+        null,
+        2
+      )
+    );
+    process.exitCode = args.failOnMissingReadyImpl && missingReadyImpl.length ? 1 : 0;
     return;
   }
 
@@ -209,6 +247,21 @@ function main() {
     console.log(
       `${impl} ready=${v.ready} wip=${v.wip} manual=${v.manual} skip=${v.skip} other=${v.other}`
     );
+  }
+
+  if (args.checkReadyImpl || args.failOnMissingReadyImpl) {
+    if (missingReadyImpl.length === 0) {
+      console.log('ready-without-impl total=0');
+    } else {
+      console.log(`ready-without-impl total=${missingReadyImpl.length}`);
+      for (const row of missingReadyImpl) {
+        console.log(`- ${row.filePath}: ${row.scenarioName}`);
+      }
+    }
+  }
+
+  if (args.failOnMissingReadyImpl && missingReadyImpl.length) {
+    process.exitCode = 1;
   }
 }
 

@@ -26,6 +26,13 @@ This provides:
 - Status totals: `node scripts/bdd-status.js --format json`
 - Implementation mapping: `node scripts/bdd-impl-audit.js --format json`
 
+### Enforce `@impl_*` coverage for `@ready`
+
+To prevent untraceable “ready” scenarios from slipping in, you can have the audit fail when any `@ready` scenario is missing an `@impl_*` tag:
+
+- Report only (does not fail): `node scripts/bdd-impl-audit.js --check-ready-impl`
+- Fail when missing: `node scripts/bdd-impl-audit.js --fail-on-missing-ready-impl`
+
 ## Current mapping (high-level)
 
 These `@impl_*` tags currently exist in features:
@@ -37,7 +44,12 @@ These `@impl_*` tags currently exist in features:
 - `@impl_unified_workspace_scripts` (unified scripts)
 
 - `@impl_authz_own_audit` (owner-based authorization + audit logging)
+- `@impl_secrets_management_env` (environment-based secrets management)
 - `@impl_test_resilience_external_services` (tests resilient when external services disabled)
+
+- `@impl_webhooks` (webhook publishing + signature verification)
+- `@impl_notifications` (notification send + retry + health)
+- `@impl_storage_filename_sanitization` (filename sanitization)
 
 - `@impl_publish_flow` (registry-agnostic publish wiring)
 - `@impl_prisma7_migration_workaround` (Prisma 7 migration workaround wired)
