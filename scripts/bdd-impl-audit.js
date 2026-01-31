@@ -181,7 +181,7 @@ function parseArgs(argv) {
 }
 
 /**
- * @param {{keys: string[], byImpl: any, missingReadyImpl: Array<{filePath: string, scenarioName: string}>, includeReadyImplSummary: boolean}} input
+ * @param {{keys: string[], byImpl: Map<string, {ready: number, wip: number, manual: number, skip: number, other: number, scenarios: Array<{filePath: string, scenarioName: string, status: string}>}>, missingReadyImpl: Array<{filePath: string, scenarioName: string}>, includeReadyImplSummary: boolean}} input
  * @returns {string}
  */
 function buildTextReport({ keys, byImpl, missingReadyImpl, includeReadyImplSummary }) {
@@ -189,7 +189,8 @@ function buildTextReport({ keys, byImpl, missingReadyImpl, includeReadyImplSumma
   lines.push(`impl-tags total=${keys.length}`);
 
   for (const impl of keys) {
-    const v = byImpl[impl];
+    const v = byImpl.get(impl);
+    if (!v) continue;
     lines.push(
       `${impl} ready=${v.ready} wip=${v.wip} manual=${v.manual} skip=${v.skip} other=${v.other}`
     );
@@ -209,77 +210,185 @@ function buildTextReport({ keys, byImpl, missingReadyImpl, includeReadyImplSumma
   return lines.join('\n');
 }
 
-function main() {
-  const args = parseArgs(process.argv);
-  const repoRoot = path.resolve(__dirname, '..');
-  const appsDir = path.join(repoRoot, 'apps');
+function resolveOutFilePath(outPath) {
+  const cwd = process.cwd();
+  const resolved = path.resolve(cwd, outPath);
+  const rel = path.relative(cwd, resolved);
 
-  const featureFiles = findFeatureFiles(appsDir);
+  // Disallow writing outside the current working directory
+  if (rel.startsWith('..') || path.isAbsolute(rel)) {
+    throw new Error(`Invalid --out path (must be within ${cwd}): ${outPath}`);
+  }
 
+  return resolved;
+}
+
+function resolveReadFilePath(baseDir, filePath) {
+  const base = path.resolve(baseDir);
+  const resolved = path.resolve(filePath);
+  const rel = path.relative(base, resolved);
+
+  // Disallow reading outside the expected directory
+  if (rel.startsWith('..') || path.isAbsolute(rel)) {
+    throw new Error(`Invalid feature file path (must be within ${base}): ${filePath}`);
+  }
+
+  if (!resolved.endsWith('.feature')) {
+    throw new Error(`Invalid feature file extension (expected .feature): ${filePath}`);
+  }
+
+  return resolved;
+}
+
+/**
+ * Read a UTF-8 file from a validated path.
+ *
+ * NOTE: The path is dynamic (discovered via directory traversal), so we validate it before reading.
+ *
+ * @param {string} filePath
+ * @returns {string}
+ */
+function readUtf8File(filePath) {
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
+  return fs.readFileSync(filePath, 'utf8');
+}
+
+/**
+ * Write a UTF-8 file to a validated path.
+ *
+ * NOTE: The path is dynamic (from CLI args), so we validate it before writing.
+ *
+ * @param {string} filePath
+ * @param {string} content
+ */
+function writeUtf8File(filePath, content) {
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
+  fs.writeFileSync(filePath, content, 'utf8');
+}
+
+function toPosixRelativePath(repoRoot, filePath) {
+  return path.relative(repoRoot, filePath).replaceAll('\\', '/');
+}
+
+/**
+ * @param {string[]} featureFiles
+ * @param {string} featureRootDir
+ * @returns {Array<{filePath: string, scenarioName: string, implTags: string[], status: string, tags: string[]}>}
+ */
+function collectScenarios(featureFiles, featureRootDir) {
   /** @type {Array<{filePath: string, scenarioName: string, implTags: string[], status: string, tags: string[]}>} */
   const scenarios = [];
   for (const featurePath of featureFiles) {
-    const content = fs.readFileSync(featurePath, 'utf8');
-    scenarios.push(...parseScenarios(featurePath, content));
+    const safePath = resolveReadFilePath(featureRootDir, featurePath);
+    const content = readUtf8File(safePath);
+    scenarios.push(...parseScenarios(safePath, content));
   }
+  return scenarios;
+}
 
-  const missingReadyImpl = scenarios
+/**
+ * @param {Array<{filePath: string, scenarioName: string, implTags: string[], status: string, tags: string[]}>} scenarios
+ * @param {string} repoRoot
+ * @returns {Array<{filePath: string, scenarioName: string}>}
+ */
+function findMissingReadyImpl(scenarios, repoRoot) {
+  return scenarios
     .filter((s) => s.status === 'ready' && s.implTags.length === 0)
     .map((s) => ({
-      filePath: path.relative(repoRoot, s.filePath).replace(/\\/g, '/'),
+      filePath: toPosixRelativePath(repoRoot, s.filePath),
       scenarioName: s.scenarioName,
     }));
+}
 
-  /** @type {Record<string, {ready: number, wip: number, manual: number, skip: number, other: number, scenarios: Array<{filePath: string, scenarioName: string, status: string}>}>} */
-  const byImpl = {};
+function createImplBucket() {
+  return {
+    ready: 0,
+    wip: 0,
+    manual: 0,
+    skip: 0,
+    other: 0,
+    scenarios: [],
+  };
+}
+
+/**
+ * @param {string} status
+ * @returns {'ready'|'wip'|'manual'|'skip'|'other'}
+ */
+function normalizeStatus(status) {
+  if (status === 'ready' || status === 'wip' || status === 'manual' || status === 'skip')
+    return status;
+  return 'other';
+}
+
+/**
+ * @param {Array<{filePath: string, scenarioName: string, implTags: string[], status: string, tags: string[]}>} scenarios
+ * @param {string} repoRoot
+ * @returns {Map<string, {ready: number, wip: number, manual: number, skip: number, other: number, scenarios: Array<{filePath: string, scenarioName: string, status: string}>}>}
+ */
+function groupScenariosByImpl(scenarios, repoRoot) {
+  /** @type {Map<string, {ready: number, wip: number, manual: number, skip: number, other: number, scenarios: Array<{filePath: string, scenarioName: string, status: string}>}>} */
+  const byImpl = new Map();
 
   for (const row of scenarios) {
     for (const impl of row.implTags) {
-      if (!byImpl[impl]) {
-        byImpl[impl] = {
-          ready: 0,
-          wip: 0,
-          manual: 0,
-          skip: 0,
-          other: 0,
-          scenarios: [],
-        };
+      const bucket = byImpl.get(impl) ?? createImplBucket();
+      if (!byImpl.has(impl)) byImpl.set(impl, bucket);
+
+      const key = normalizeStatus(row.status);
+      switch (key) {
+        case 'ready':
+          bucket.ready += 1;
+          break;
+        case 'wip':
+          bucket.wip += 1;
+          break;
+        case 'manual':
+          bucket.manual += 1;
+          break;
+        case 'skip':
+          bucket.skip += 1;
+          break;
+        default:
+          bucket.other += 1;
+          break;
       }
 
-      byImpl[impl][row.status] += 1;
-      byImpl[impl].scenarios.push({
-        filePath: path.relative(repoRoot, row.filePath).replace(/\\/g, '/'),
+      bucket.scenarios.push({
+        filePath: toPosixRelativePath(repoRoot, row.filePath),
         scenarioName: row.scenarioName,
         status: row.status,
       });
     }
   }
 
-  const keys = Object.keys(byImpl).sort();
-  const includeReadyImplSummary = args.checkReadyImpl || args.failOnMissingReadyImpl;
-  const shouldFail = args.failOnMissingReadyImpl && missingReadyImpl.length > 0;
+  return byImpl;
+}
 
+function printOrWriteReport(args, content) {
+  if (args.outPath) {
+    const outFile = resolveOutFilePath(args.outPath);
+    writeUtf8File(outFile, content + '\n');
+    console.log(`wrote ${path.relative(process.cwd(), outFile).replaceAll('\\', '/')}`);
+  } else {
+    console.log(content);
+  }
+}
+
+function outputReport({ args, keys, byImpl, missingReadyImpl, includeReadyImplSummary }) {
   if (args.format === 'json') {
     const jsonString = JSON.stringify(
       {
         totalImplTags: keys.length,
         missingReadyImplCount: missingReadyImpl.length,
         missingReadyImpl,
-        byImpl,
+        byImpl: Object.fromEntries(byImpl.entries()),
       },
       null,
       2
     );
 
-    if (args.outPath) {
-      const outFile = path.resolve(process.cwd(), args.outPath);
-      fs.writeFileSync(outFile, jsonString + '\n', 'utf8');
-      console.log(`wrote ${path.relative(process.cwd(), outFile).replace(/\\/g, '/')}`);
-    } else {
-      console.log(jsonString);
-    }
-
-    process.exitCode = shouldFail ? 1 : 0;
+    printOrWriteReport(args, jsonString);
     return;
   }
 
@@ -290,13 +399,25 @@ function main() {
     includeReadyImplSummary,
   });
 
-  if (args.outPath) {
-    const outFile = path.resolve(process.cwd(), args.outPath);
-    fs.writeFileSync(outFile, textReport + '\n', 'utf8');
-    console.log(`wrote ${path.relative(process.cwd(), outFile).replace(/\\/g, '/')}`);
-  } else {
-    console.log(textReport);
-  }
+  printOrWriteReport(args, textReport);
+}
+
+function main() {
+  const args = parseArgs(process.argv);
+  const repoRoot = path.resolve(__dirname, '..');
+  const appsDir = path.join(repoRoot, 'apps');
+
+  const featureFiles = findFeatureFiles(appsDir);
+  const scenarios = collectScenarios(featureFiles, appsDir);
+
+  const missingReadyImpl = findMissingReadyImpl(scenarios, repoRoot);
+  const byImpl = groupScenariosByImpl(scenarios, repoRoot);
+  const keys = Array.from(byImpl.keys()).sort();
+
+  const includeReadyImplSummary = args.checkReadyImpl || args.failOnMissingReadyImpl;
+  const shouldFail = args.failOnMissingReadyImpl && missingReadyImpl.length > 0;
+
+  outputReport({ args, keys, byImpl, missingReadyImpl, includeReadyImplSummary });
 
   process.exitCode = shouldFail ? 1 : 0;
 }

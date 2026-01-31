@@ -11,7 +11,7 @@ import {
   SmsJobData,
   SmsOptions,
 } from '@repo/types';
-import { injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 
 import { LoggerService } from '../logger.service';
 import { QueueService } from '../queue/queue.service';
@@ -21,13 +21,14 @@ import { QueueService } from '../queue/queue.service';
  */
 @injectable()
 export class NotificationService {
-  private queueService?: QueueService;
+  readonly queueService?: QueueService;
 
   constructor(
-    private logger: LoggerService,
-    private emailProvider: IEmailProvider,
-    private smsProvider: ISmsProvider,
-    private pushProvider: IPushNotificationProvider
+    @inject(LoggerService) readonly logger: LoggerService,
+    @inject('IEmailProvider') readonly emailProvider: IEmailProvider,
+    @inject('ISmsProvider') readonly smsProvider: ISmsProvider,
+    @inject('IPushNotificationProvider')
+    readonly pushProvider: IPushNotificationProvider
   ) {
     // Try to resolve QueueService for async notifications
     try {

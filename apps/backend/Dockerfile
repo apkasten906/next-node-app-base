@@ -118,6 +118,11 @@ COPY --chown=nodejs:nodejs apps/backend/package.json ./apps/backend/
 COPY --chown=nodejs:nodejs package.json ./
 COPY --chown=nodejs:nodejs prisma.config.ts ./
 
+# Include workspace marker + feature files so the BDD governance snapshot can be computed in Docker.
+COPY --from=builder --chown=nodejs:nodejs /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/features ./apps/backend/features
+COPY --from=builder --chown=nodejs:nodejs /app/apps/frontend/features ./apps/frontend/features
+
 # Ensure runtime-writable directories exist for non-root user
 RUN mkdir -p /app/apps/backend/logs && chown -R nodejs:nodejs /app/apps/backend/logs
 

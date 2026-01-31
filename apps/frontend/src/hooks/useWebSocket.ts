@@ -308,7 +308,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
   const on = useCallback(
     <K extends keyof ServerToClientEvents>(event: K, handler: ServerToClientEvents[K]) => {
       if (socketRef.current) {
-        socketRef.current.on(event, handler);
+        // socket.io-client's listener typing includes reserved events; for our strongly-typed
+        // custom events this generic wrapper is safe but needs a cast to satisfy TS.
+        socketRef.current.on(event as never, handler as never);
       }
     },
     []
@@ -319,9 +321,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     <K extends keyof ServerToClientEvents>(event: K, handler?: ServerToClientEvents[K]) => {
       if (socketRef.current) {
         if (handler) {
-          socketRef.current.off(event, handler);
+          socketRef.current.off(event as never, handler as never);
         } else {
-          socketRef.current.off(event);
+          socketRef.current.off(event as never);
         }
       }
     },

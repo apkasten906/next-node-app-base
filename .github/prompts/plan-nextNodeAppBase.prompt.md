@@ -28,6 +28,10 @@ This document has two parts:
   - `@skip`: temporarily disabled
 - Default BDD runs execute only `@ready` scenarios; use `pnpm bdd:status` for an at-a-glance status summary.
 
+### Reporting note
+
+- TODO: Backend Cucumber JSON report output is currently disabled (HTML is self-contained but `apps/backend/reports/cucumber-report.json` can appear empty). We should fix/clarify this later to avoid confusion.
+
 ---
 
 ## Current Focus (Execution Status)
