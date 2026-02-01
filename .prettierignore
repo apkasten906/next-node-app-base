@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 pnpm-lock.yaml
+.venv/
 
 # Build outputs
 dist/
@@ -11,6 +12,11 @@ build/
 # Testing
 coverage/
 test-results/
+
+# Generated reports
+eslint-report.json
+eslint-output.json
+apps/**/eslint-results.json
 
 # Misc
 *.log
