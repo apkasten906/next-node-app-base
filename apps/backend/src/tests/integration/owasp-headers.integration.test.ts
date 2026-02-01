@@ -77,16 +77,10 @@ describe('OWASP Top 10 Protection with Helmet.js', () => {
   it('should include all required security headers together', async () => {
     const res = await request(app).get('/api/test').expect(200);
 
-    const requiredHeaders = [
-      'x-content-type-options',
-      'x-frame-options',
-      'strict-transport-security',
-      'content-security-policy',
-    ];
-
-    requiredHeaders.forEach((header) => {
-      expect(res.headers[header]).toBeDefined();
-    });
+    expect(res.headers['x-content-type-options']).toBeDefined();
+    expect(res.headers['x-frame-options']).toBeDefined();
+    expect(res.headers['strict-transport-security']).toBeDefined();
+    expect(res.headers['content-security-policy']).toBeDefined();
   });
 
   it('should prevent clickjacking with X-Frame-Options', async () => {

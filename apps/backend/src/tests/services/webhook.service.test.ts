@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import crypto from 'crypto';
 
 import { container } from 'tsyringe';
