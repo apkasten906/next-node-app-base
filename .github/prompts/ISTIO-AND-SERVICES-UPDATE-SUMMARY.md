@@ -98,12 +98,12 @@
 
 **Needs Complete Rewrite** to include:
 
-**Phase 1: Foundation & Governance**
+#### Phase 1: Foundation & Governance
 
 - Add Istio installation in local Kubernetes cluster (minikube/kind)
 - Add Kiali setup
 
-**Phase 1.5: Istio Service Mesh Setup** (NEW)
+#### Phase 1.5: Istio Service Mesh Setup (NEW)
 
 - Install Istio in development cluster
 - Configure mTLS policies
@@ -111,28 +111,28 @@
 - Configure distributed tracing
 - Set up Kiali visualization
 
-**Phase 2: Security Framework**
+#### Phase 2: Security Framework
 
 - Add Istio RequestAuthentication configuration
 - Add Istio AuthorizationPolicies
 - Remove custom service-to-service auth (use Istio mTLS)
 
-**Phase 3: Backend Core**
+#### Phase 3: Backend Core
 
 - Simplify correlation ID middleware (leverage Istio headers)
 - Remove circuit breaker libraries (use Istio)
 
-**Phase 4: Infrastructure Services**
+#### Phase 4: Infrastructure Services
 
 - Keep all existing
 - No changes needed
 
-**Phase 5: API Design**
+#### Phase 5: API Design
 
 - Add Istio VirtualService for header-based versioning
 - Simplify retry/timeout logic (use Istio)
 
-**Phase 5.5: Additional Service Abstractions** (NEW)
+#### Phase 5.5: Additional Service Abstractions (NEW)
 
 - Implement notification services with DI
 - Implement search services with DI
@@ -141,27 +141,27 @@
 - Implement analytics services with DI
 - Configure secrets management (Vault/cloud)
 
-**Phase 6: File Storage & i18n**
+#### Phase 6: File Storage & i18n
 
 - Keep existing
 
-**Phase 7: Frontend Core**
+#### Phase 7: Frontend Core
 
 - Keep existing
 
-**Phase 8: Testing Infrastructure**
+#### Phase 8: Testing Infrastructure
 
 - Add load testing with k6
 - Keep all existing
 
-**Phase 9: DevOps & Security**
+#### Phase 9: DevOps & Security
 
 - Add Kubernetes manifest creation
 - Add Istio configuration deployment
 - Update to reflect K8s deployment
 - Keep all security scanning
 
-**Phase 10: Observability** (NEW or merged with Phase 9)
+#### Phase 10: Observability (NEW or merged with Phase 9)
 
 - Configure Prometheus + Grafana
 - Configure Jaeger tracing
@@ -169,7 +169,7 @@
 - Integrate APM (Datadog/New Relic)
 - Configure alerting (PagerDuty/OpsGenie)
 
-**Phase 11: Documentation & Polish**
+#### Phase 11: Documentation & Polish
 
 - Add Istio documentation
 - Add service integration guides
