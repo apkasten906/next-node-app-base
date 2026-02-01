@@ -87,15 +87,14 @@ FROM node:${NODE_VERSION}-alpine AS runner
 
 WORKDIR /app
 
-# Install OpenSSL for Prisma
-RUN apk add --no-cache openssl
-
-# Install pnpm (needed for runtime commands like `pnpm exec prisma migrate deploy`)
-RUN npm install -g pnpm@${PNPM_VERSION}
-
-# Create non-root user
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nodejs
+# Install OpenSSL for Prisma, install pnpm (needed for runtime commands like `pnpm exec prisma migrate deploy`),
+# create a non-root user, and prep runtime-writable dirs.
+RUN apk add --no-cache openssl \
+    && npm install -g pnpm@${PNPM_VERSION} \
+    && addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nodejs \
+    && mkdir -p /app/apps/backend/logs \
+    && chown -R nodejs:nodejs /app/apps/backend/logs
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -122,9 +121,6 @@ COPY --chown=nodejs:nodejs prisma.config.ts ./
 COPY --from=builder --chown=nodejs:nodejs /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/features ./apps/backend/features
 COPY --from=builder --chown=nodejs:nodejs /app/apps/frontend/features ./apps/frontend/features
-
-# Ensure runtime-writable directories exist for non-root user
-RUN mkdir -p /app/apps/backend/logs && chown -R nodejs:nodejs /app/apps/backend/logs
 
 # Switch to non-root user
 USER nodejs
