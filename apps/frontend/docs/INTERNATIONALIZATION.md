@@ -64,7 +64,7 @@ import { useTranslation } from 'react-i18next';
 
 export function MyComponent() {
   const { t } = useTranslation('namespace');
-  
+
   return (
     <div>
       <h1>{t('title')}</h1>
@@ -198,6 +198,7 @@ i18n: {
 ### 1. Identify the Namespace
 
 Determine which namespace your translation belongs to:
+
 - UI elements → `common`
 - Page-specific → create or use appropriate namespace
 
@@ -206,6 +207,7 @@ Determine which namespace your translation belongs to:
 Add the key to **all** language files to maintain consistency:
 
 **en/common.json:**
+
 ```json
 {
   "newFeature": {
@@ -216,6 +218,7 @@ Add the key to **all** language files to maintain consistency:
 ```
 
 **es/common.json:**
+
 ```json
 {
   "newFeature": {
@@ -233,7 +236,7 @@ const { t } = useTranslation('common');
 <div>
   <h2>{t('newFeature.title')}</h2>
   <p>{t('newFeature.description')}</p>
-</div>
+</div>;
 ```
 
 ## Best Practices
@@ -329,7 +332,7 @@ test('renders with translation', () => {
       <MyComponent />
     </I18nextProvider>
   );
-  
+
   expect(getByText('Expected Translation')).toBeInTheDocument();
 });
 ```
