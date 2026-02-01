@@ -28,13 +28,13 @@ export function attachUserIfPresent(req: Request, _res: Response, next: NextFunc
 
   // Try Authorization header first
   const authHeader = req.get('authorization') || req.get('Authorization');
-  const bearer =
-    authHeader && authHeader.startsWith('Bearer ')
-      ? authHeader.substring('Bearer '.length)
-      : undefined;
+  const bearer = authHeader?.startsWith('Bearer ')
+    ? authHeader.substring('Bearer '.length)
+    : undefined;
 
   // Then cookie
-  const cookies = parseCookies(req.headers['cookie'] as string | undefined);
+  const cookieHeader = req.headers['cookie'];
+  const cookies = parseCookies(typeof cookieHeader === 'string' ? cookieHeader : undefined);
   const cookieToken = cookies.get('access_token');
 
   const token = bearer || cookieToken;

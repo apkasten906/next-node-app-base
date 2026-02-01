@@ -74,7 +74,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     const jwt = container.resolve<JwtService>('JwtService');
     try {
       const user = await db.user.findUnique({ where: { email } });
-      if (!user || !user.passwordHash) {
+      if (!user?.passwordHash) {
         res.status(401).json({ error: 'Invalid credentials' });
         return;
       }
@@ -103,10 +103,10 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         authenticated: true,
         tokenType: tokens.tokenType,
       });
-    } catch (dbErr) {
+    } catch (error_) {
       // Fallback for dev/test when DB is unavailable
       if (!devFallbackEnabled()) {
-        throw dbErr;
+        throw error_;
       }
 
       const fallbackUsers = new Map<
