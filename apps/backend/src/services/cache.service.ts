@@ -23,7 +23,7 @@ interface IRedisClient {
 
 // Minimal in-memory mock implementing the Redis subset used in tests
 class MockRedis implements IRedisClient {
-  private store = new Map<string, string>();
+  private readonly store = new Map<string, string>();
 
   async get(key: string): Promise<string | null> {
     return this.store.get(key) ?? null;
@@ -81,9 +81,9 @@ class MockRedis implements IRedisClient {
  */
 @singleton()
 export class CacheService {
-  private client: IRedisClient;
+  private readonly client: IRedisClient;
 
-  constructor(@inject(LoggerService) private logger: LoggerService) {
+  constructor(@inject(LoggerService) private readonly logger: LoggerService) {
     const disableExternal =
       process.env['TEST_EXTERNAL_SERVICES'] === 'false' || process.env['REDIS_MOCK'] === 'true';
 

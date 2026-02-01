@@ -22,9 +22,7 @@ export class InMemoryPolicyStore implements IPolicyStore {
   /**
    * Create a new policy
    */
-  async createPolicy(
-    policy: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>,
-  ): Promise<Policy> {
+  async createPolicy(policy: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>): Promise<Policy> {
     const now = new Date();
     const newPolicy: Policy = {
       ...policy,
@@ -71,7 +69,7 @@ export class InMemoryPolicyStore implements IPolicyStore {
    */
   async updatePolicy(
     id: string,
-    updates: Partial<Omit<Policy, 'id' | 'createdAt'>>,
+    updates: Partial<Omit<Policy, 'id' | 'createdAt'>>
   ): Promise<Policy> {
     const existing = this.policies.get(id);
     if (!existing) {

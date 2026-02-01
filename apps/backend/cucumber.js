@@ -1,5 +1,5 @@
 // Set TS_NODE_PROJECT before requiring modules
-process.env.TS_NODE_PROJECT = require('path').resolve(__dirname, 'tsconfig.json');
+process.env.TS_NODE_PROJECT = require('node:path').resolve(__dirname, 'tsconfig.json');
 process.env.TS_NODE_FILES = 'true';
 
 // Keep BDD runs deterministic and isolated by default.
