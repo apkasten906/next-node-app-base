@@ -1,5 +1,6 @@
 'use client';
 
+import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState, type JSX } from 'react';
 
@@ -130,7 +131,7 @@ export function BddFeatureScenarioOverview({
       else nextSearch.set('states', desiredParam);
 
       const qs = nextSearch.toString();
-      const href = qs ? `${pathname}?${qs}` : pathname;
+      const href = (qs ? `${pathname}?${qs}` : pathname) as Route;
       router.replace(href, { scroll: false });
     }
   }, [pathname, router, searchParams, selectedStatuses, urlStatesParam]);
