@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 import { container } from 'tsyringe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -36,12 +36,12 @@ describe('WebhookService', () => {
     webhookService = container.resolve(WebhookService);
 
     // Store original fetch
-    originalFetch = global.fetch;
+    originalFetch = globalThis.fetch;
   });
 
   afterEach(() => {
     // Restore original fetch
-    global.fetch = originalFetch;
+    globalThis.fetch = originalFetch;
     vi.restoreAllMocks();
   });
 
@@ -55,14 +55,14 @@ describe('WebhookService', () => {
       };
 
       // Mock successful response
-      global.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
+      globalThis.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
 
       const result = await webhookService.send(event);
 
       expect(result.success).toBe(true);
       expect(result.statusCode).toBe(200);
       expect(result.attempts).toBe(1);
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     });
 
     it('should include correct headers in webhook request', async () => {
@@ -74,7 +74,7 @@ describe('WebhookService', () => {
       };
 
       let capturedHeaders: Record<string, string> | undefined;
-      global.fetch = vi
+      globalThis.fetch = vi
         .fn()
         .mockImplementation((_url, options: { headers?: Record<string, string> }) => {
           capturedHeaders = options?.headers;
@@ -91,16 +91,17 @@ describe('WebhookService', () => {
     });
 
     it('should include signature when secret is provided', async () => {
+      const signingSecret = crypto.randomBytes(32).toString('hex');
       const event: WebhookEvent = {
         id: 'webhook-3',
         url: 'https://example.com/webhook',
         event: 'payment.received',
         payload: { amount: 100 },
-        secret: 'my-secret-key',
+        secret: signingSecret,
       };
 
       let capturedSignature: string | undefined;
-      global.fetch = vi
+      globalThis.fetch = vi
         .fn()
         .mockImplementation((_url, options: { headers?: Record<string, string> }) => {
           const headers = options?.headers;
@@ -125,7 +126,7 @@ describe('WebhookService', () => {
       };
 
       let capturedBody: string | undefined;
-      global.fetch = vi.fn().mockImplementation((_url, options: { body?: string }) => {
+      globalThis.fetch = vi.fn().mockImplementation((_url, options: { body?: string }) => {
         capturedBody = options?.body;
         return Promise.resolve(new MockResponse(true, 200));
       });
@@ -152,7 +153,7 @@ describe('WebhookService', () => {
       };
 
       let callCount = 0;
-      global.fetch = vi.fn().mockImplementation(() => {
+      globalThis.fetch = vi.fn().mockImplementation(() => {
         callCount++;
         if (callCount < 3) {
           return Promise.resolve(new MockResponse(false, 500));
@@ -181,7 +182,7 @@ describe('WebhookService', () => {
         maxRetries: 2,
       };
 
-      global.fetch = vi.fn().mockResolvedValue(new MockResponse(false, 500));
+      globalThis.fetch = vi.fn().mockResolvedValue(new MockResponse(false, 500));
 
       const sleepSpy = vi
         .spyOn(webhookService as unknown as { sleep: (ms: number) => Promise<void> }, 'sleep')
@@ -192,7 +193,7 @@ describe('WebhookService', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe('Max retries exceeded');
       expect(result.attempts).toBe(2);
-      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2);
       expect(sleepSpy).toHaveBeenCalledTimes(1);
     });
 
@@ -205,7 +206,7 @@ describe('WebhookService', () => {
         maxRetries: 2,
       };
 
-      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const sleepSpy = vi
         .spyOn(webhookService as unknown as { sleep: (ms: number) => Promise<void> }, 'sleep')
@@ -228,7 +229,7 @@ describe('WebhookService', () => {
         // No maxRetries specified
       };
 
-      global.fetch = vi.fn().mockResolvedValue(new MockResponse(false, 500));
+      globalThis.fetch = vi.fn().mockResolvedValue(new MockResponse(false, 500));
 
       // Mock sleep to speed up test
       vi.spyOn(
@@ -240,7 +241,7 @@ describe('WebhookService', () => {
 
       expect(result.success).toBe(false);
       expect(result.attempts).toBe(3); // Default is 3
-      expect(global.fetch).toHaveBeenCalledTimes(3);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(3);
     });
 
     it('should use exponential backoff delays', async () => {
@@ -252,7 +253,7 @@ describe('WebhookService', () => {
         maxRetries: 3,
       };
 
-      global.fetch = vi.fn().mockResolvedValue(new MockResponse(false, 500));
+      globalThis.fetch = vi.fn().mockResolvedValue(new MockResponse(false, 500));
 
       const sleepSpy = vi
         .spyOn(webhookService as unknown as { sleep: (ms: number) => Promise<void> }, 'sleep')
@@ -268,7 +269,7 @@ describe('WebhookService', () => {
   describe('Signature Verification', () => {
     it('should generate correct HMAC signature', () => {
       const payload = '{"test":"data"}';
-      const secret = 'my-secret';
+      const secret = crypto.randomBytes(32).toString('hex');
 
       const signature = (
         webhookService as unknown as { generateSignature: (p: string, s: string) => string }
@@ -285,7 +286,7 @@ describe('WebhookService', () => {
 
     it('should verify correct signature', () => {
       const payload = '{"event":"test"}';
-      const secret = 'secret-key';
+      const secret = crypto.randomBytes(32).toString('hex');
 
       const signature = (
         webhookService as unknown as { generateSignature: (p: string, s: string) => string }
@@ -297,7 +298,7 @@ describe('WebhookService', () => {
 
     it('should reject incorrect signature', () => {
       const payload = '{"event":"test"}';
-      const secret = 'secret-key';
+      const secret = crypto.randomBytes(32).toString('hex');
       const wrongSignature =
         'sha256=wrong1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
 
@@ -308,8 +309,8 @@ describe('WebhookService', () => {
 
     it('should reject signature with wrong secret', () => {
       const payload = '{"event":"test"}';
-      const secret = 'correct-secret';
-      const wrongSecret = 'wrong-secret';
+      const secret = crypto.randomBytes(32).toString('hex');
+      const wrongSecret = crypto.randomBytes(32).toString('hex');
 
       const signature = (
         webhookService as unknown as { generateSignature: (p: string, s: string) => string }
@@ -322,7 +323,7 @@ describe('WebhookService', () => {
     it('should reject signature for modified payload', () => {
       const originalPayload = '{"event":"test","data":"original"}';
       const modifiedPayload = '{"event":"test","data":"modified"}';
-      const secret = 'secret-key';
+      const secret = crypto.randomBytes(32).toString('hex');
 
       const signature = (
         webhookService as unknown as { generateSignature: (p: string, s: string) => string }
@@ -357,14 +358,14 @@ describe('WebhookService', () => {
         payload: { async: true },
       };
 
-      global.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
+      globalThis.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
 
       await webhookService.queue(event);
 
       // Wait for async processing
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(global.fetch).toHaveBeenCalled();
+      expect(globalThis.fetch).toHaveBeenCalled();
     });
   });
 
@@ -391,13 +392,13 @@ describe('WebhookService', () => {
         },
       ];
 
-      global.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
+      globalThis.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
 
       const results = await webhookService.sendBatch(events);
 
       expect(results).toHaveLength(3);
       expect(results.every((r) => r.success)).toBe(true);
-      expect(global.fetch).toHaveBeenCalledTimes(3);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(3);
     });
 
     it('should handle partial batch failures', async () => {
@@ -419,7 +420,7 @@ describe('WebhookService', () => {
       ];
 
       let callCount = 0;
-      global.fetch = vi.fn().mockImplementation(() => {
+      globalThis.fetch = vi.fn().mockImplementation(() => {
         callCount++;
         // First webhook succeeds, second fails
         if (callCount === 1) {
@@ -460,7 +461,7 @@ describe('WebhookService', () => {
         },
       };
 
-      global.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
+      globalThis.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
 
       const result = await webhookService.send(event);
 
@@ -482,7 +483,7 @@ describe('WebhookService', () => {
         },
       };
 
-      global.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
+      globalThis.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
 
       const result = await webhookService.send(event);
 
@@ -496,13 +497,13 @@ describe('WebhookService', () => {
         event: 'payment.completed',
         payload: {
           paymentId: 'pay-789',
-          amount: 250.0,
+          amount: 250,
           currency: 'USD',
         },
-        secret: 'payment-webhook-secret',
+        secret: crypto.randomBytes(32).toString('hex'),
       };
 
-      global.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
+      globalThis.fetch = vi.fn().mockResolvedValue(new MockResponse(true, 200));
 
       const result = await webhookService.send(event);
 
@@ -520,7 +521,7 @@ describe('WebhookService', () => {
         maxRetries: 1,
       };
 
-      global.fetch = vi.fn().mockRejectedValue(new Error('Request timeout'));
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('Request timeout'));
 
       const result = await webhookService.send(event);
 
@@ -537,7 +538,7 @@ describe('WebhookService', () => {
         maxRetries: 1,
       };
 
-      global.fetch = vi.fn().mockRejectedValue(new Error('DNS resolution failed'));
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('DNS resolution failed'));
 
       const result = await webhookService.send(event);
 
@@ -554,7 +555,7 @@ describe('WebhookService', () => {
         maxRetries: 1,
       };
 
-      global.fetch = vi.fn().mockRejectedValue(new Error('Invalid URL'));
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('Invalid URL'));
 
       const result = await webhookService.send(event);
 

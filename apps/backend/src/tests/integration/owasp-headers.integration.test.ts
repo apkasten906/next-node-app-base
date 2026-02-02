@@ -109,7 +109,7 @@ describe('OWASP Top 10 Protection with Helmet.js', () => {
     expect(maxAgeMatch).toBeTruthy();
 
     if (maxAgeMatch) {
-      const maxAge = parseInt(maxAgeMatch[1], 10);
+      const maxAge = Number.parseInt(maxAgeMatch[1], 10);
       expect(maxAge).toBeGreaterThanOrEqual(31536000);
     }
   });
