@@ -141,8 +141,7 @@ function classify(tags: string[]): StatusKey {
 
 function resolveRepoRoot(startDir: string): string {
   let current = path.resolve(startDir);
-  // Hard cap on traversal to avoid odd infinite loops on unusual fs setups.
-  for (let i = 0; i < 20; i += 1) {
+  while (true) {
     const candidate = current;
     const workspaceMarker = path.join(candidate, 'pnpm-workspace.yaml');
     const appsDir = path.join(candidate, 'apps');

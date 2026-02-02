@@ -1,3 +1,5 @@
+import './bootstrap';
+
 import fs from 'node:fs';
 import { createServer, type Server as HttpServer } from 'node:http';
 import path from 'node:path';
@@ -8,8 +10,6 @@ import express, { type Express, type NextFunction, type Request, type Response }
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { container } from 'tsyringe';
-
-import './bootstrap';
 
 import { setupSwagger } from './config/swagger';
 import { apiVersionMiddleware } from './middleware/api-version.middleware';
@@ -282,7 +282,7 @@ export class App {
 
     try {
       const reachable = await this.database.healthCheck();
-      if (reachable !== true) {
+      if (!reachable) {
         this.logger.warn('Skipping dev seeding: database not reachable');
         return;
       }

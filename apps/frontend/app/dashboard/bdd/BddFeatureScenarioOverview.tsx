@@ -131,7 +131,7 @@ export function BddFeatureScenarioOverview({
 
       const qs = nextSearch.toString();
       const href = qs ? `${pathname}?${qs}` : pathname;
-      router.replace(href as unknown as Parameters<typeof router.replace>[0], { scroll: false });
+      router.replace(href, { scroll: false });
     }
   }, [pathname, router, searchParams, selectedStatuses, urlStatesParam]);
 

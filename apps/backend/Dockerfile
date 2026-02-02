@@ -93,8 +93,8 @@ RUN apk add --no-cache openssl \
     && npm install -g pnpm@${PNPM_VERSION} \
     && addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nodejs \
-    && mkdir -p /app/apps/backend/logs \
-    && chown -R nodejs:nodejs /app/apps/backend/logs
+    && mkdir -p /app/apps/backend/logs /app/apps/backend/reports \
+    && chown -R nodejs:nodejs /app/apps/backend/logs /app/apps/backend/reports
 
 # Set environment variables
 ENV NODE_ENV=production
