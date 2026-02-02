@@ -89,7 +89,7 @@ export class App {
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true }));
 
-    this.app.use(apiVersionMiddleware);
+    this.app.use(apiVersionMiddleware());
     this.app.use(attachUserIfPresent);
   }
 
