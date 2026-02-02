@@ -57,6 +57,70 @@ function classify(tags) {
 }
 
 /**
+ * @param {string} dirName
+ * @returns {boolean}
+ */
+function isExcludedDirName(dirName) {
+  return dirName === 'node_modules' || dirName === 'dist' || dirName === 'build';
+}
+
+/**
+ * @param {string} dir
+ * @returns {import('node:fs').Dirent[]}
+ */
+function readDirSafe(dir) {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * @param {string} dir
+ * @param {string[]} results
+ */
+function walkFeatureFiles(dir, results) {
+  for (const entry of readDirSafe(dir)) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      if (isExcludedDirName(entry.name)) continue;
+      walkFeatureFiles(fullPath, results);
+      continue;
+    }
+
+    if (entry.isFile() && entry.name.endsWith('.feature')) {
+      results.push(fullPath);
+    }
+  }
+}
+
+/**
+ * Merge feature/scenario tags, ensuring exactly one primary status tag is applied
+ * (scenario overrides feature), and de-duplicating the final list.
+ *
+ * @param {string[]} featureTags
+ * @param {string[]} scenarioTags
+ * @returns {string[]}
+ */
+function buildEffectiveScenarioTags(featureTags, scenarioTags) {
+  const featurePrimaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => featureTags.includes(t));
+  const scenarioPrimaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => scenarioTags.includes(t));
+
+  const effectivePrimaryStatusTags =
+    scenarioPrimaryStatusTags.length > 0 ? scenarioPrimaryStatusTags : featurePrimaryStatusTags;
+
+  return Array.from(
+    new Set([
+      ...featureTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
+      ...scenarioTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
+      ...effectivePrimaryStatusTags,
+    ])
+  );
+}
+
+/**
  * @param {string} dir
  * @returns {string[]}
  */
@@ -65,32 +129,7 @@ function findFeatureFiles(dir) {
   const results = [];
   if (!fs.existsSync(dir)) return results;
 
-  /** @type {string[]} */
-  const stack = [dir];
-  while (stack.length) {
-    const current = stack.pop();
-    if (!current) break;
-
-    let entries = [];
-    try {
-      entries = fs.readdirSync(current, { withFileTypes: true });
-    } catch {
-      continue;
-    }
-
-    for (const entry of entries) {
-      const fullPath = path.join(current, entry.name);
-      if (entry.isDirectory()) {
-        const base = path.basename(fullPath);
-        if (base === 'node_modules' || base === 'dist' || base === 'build') continue;
-        stack.push(fullPath);
-        continue;
-      }
-      if (entry.isFile() && entry.name.endsWith('.feature')) {
-        results.push(fullPath);
-      }
-    }
-  }
+  walkFeatureFiles(dir, results);
 
   return results;
 }
@@ -131,19 +170,7 @@ function parseScenarios(filePath, content) {
     if (/^Scenario( Outline)?:/i.test(line)) {
       const scenarioName = parseScenarioName(line);
 
-      const featurePrimaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => featureTags.includes(t));
-      const scenarioPrimaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => pendingTags.includes(t));
-
-      const effectivePrimaryStatusTags =
-        scenarioPrimaryStatusTags.length > 0 ? scenarioPrimaryStatusTags : featurePrimaryStatusTags;
-
-      const tags = Array.from(
-        new Set([
-          ...featureTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
-          ...pendingTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
-          ...effectivePrimaryStatusTags,
-        ])
-      );
+      const tags = buildEffectiveScenarioTags(featureTags, pendingTags);
 
       rows.push({
         filePath,
