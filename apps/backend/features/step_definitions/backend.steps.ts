@@ -1,4 +1,5 @@
 import { Given, Then, When } from '@cucumber/cucumber';
+import crypto from 'node:crypto';
 import { expect } from '../support/assertions';
 import { World } from '../support/world';
 
@@ -237,7 +238,7 @@ When('I register a webhook for event {string}', async function (this: World, eve
   const webhook = {
     event,
     url: 'https://example.com/webhook',
-    secret: 'webhook-secret',
+    secret: crypto.randomBytes(32).toString('hex'),
   };
   this.setData('webhook', webhook);
 });
