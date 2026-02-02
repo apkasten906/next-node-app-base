@@ -1,5 +1,5 @@
-import crypto from 'crypto';
-import path from 'path';
+import crypto from 'node:crypto';
+import path from 'node:path';
 
 import { Request } from 'express';
 import multer, { FileFilterCallback } from 'multer';
@@ -44,10 +44,10 @@ export const ALLOWED_MIME_TYPES = {
  */
 export function sanitizeFilename(filename: string): string {
   // Remove path traversal attempts
-  let sanitized = filename.replace(/\.\./g, '');
+  let sanitized = filename.replaceAll('..', '');
 
   // Remove special characters except dot, dash, underscore
-  sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, '_');
+  sanitized = sanitized.replaceAll(/[^a-zA-Z0-9._-]/g, '_');
 
   // Ensure filename doesn't start with dot (hidden file)
   if (sanitized.startsWith('.')) {

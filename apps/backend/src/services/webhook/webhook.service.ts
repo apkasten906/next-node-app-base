@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 import { QueueName, WebhookJobData } from '@repo/types';
 import { inject, singleton } from 'tsyringe';
@@ -38,11 +38,11 @@ export interface WebhookResult {
 export class WebhookService {
   private readonly DEFAULT_MAX_RETRIES = 3;
   private readonly RETRY_DELAYS = [1000, 5000, 15000]; // ms
-  private queueService?: QueueService;
+  private readonly queueService?: QueueService;
 
   constructor(
-    @inject(LoggerService) private logger: LoggerService,
-    @inject(CacheService) private cache: CacheService
+    @inject(LoggerService) private readonly logger: LoggerService,
+    @inject(CacheService) private readonly cache: CacheService
   ) {
     // Try to resolve QueueService, but don't fail if it's not available
     try {
@@ -187,7 +187,7 @@ export class WebhookService {
         id: event.id,
         url: event.url,
         event: event.event,
-        payload: event.payload as Record<string, unknown>,
+        payload: event.payload,
         maxRetries: event.maxRetries || this.DEFAULT_MAX_RETRIES,
       };
 
@@ -210,10 +210,17 @@ export class WebhookService {
       });
 
       // Process async
+      const processQueuedWebhook = async (): Promise<void> => {
+        try {
+          await this.send(event);
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error));
+          this.logger.error('Webhook queue processing error', err);
+        }
+      };
+
       setImmediate(() => {
-        this.send(event).catch((error) => {
-          this.logger.error('Webhook queue processing error', error as Error);
-        });
+        void processQueuedWebhook();
       });
     }
   }

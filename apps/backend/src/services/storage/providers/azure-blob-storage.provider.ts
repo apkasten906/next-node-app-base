@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 import {
   BlobSASPermissions,
@@ -28,7 +28,7 @@ export class AzureBlobStorageProvider implements IStorageProvider {
   private readonly blobServiceClient: BlobServiceClient;
   private readonly defaultContainer: string;
 
-  constructor(private logger: LoggerService) {
+  constructor(private readonly logger: LoggerService) {
     const accountName = process.env['AZURE_STORAGE_ACCOUNT_NAME'] || '';
     const accountKey = process.env['AZURE_STORAGE_ACCOUNT_KEY'] || '';
     this.defaultContainer = process.env['AZURE_STORAGE_CONTAINER'] || 'uploads';

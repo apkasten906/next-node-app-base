@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 import {
   CopyObjectCommand,
@@ -33,7 +33,7 @@ export class S3StorageProvider implements IStorageProvider {
   private readonly client: S3Client;
   private readonly defaultBucket: string;
 
-  constructor(private logger: LoggerService) {
+  constructor(private readonly logger: LoggerService) {
     const region = process.env['AWS_REGION'] || 'us-east-1';
     this.defaultBucket = process.env['AWS_S3_BUCKET'] || '';
 

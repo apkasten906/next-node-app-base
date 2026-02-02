@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 import { Storage } from '@google-cloud/storage';
 import {
@@ -23,7 +23,7 @@ export class GcpStorageProvider implements IStorageProvider {
   private readonly storage: Storage;
   private readonly defaultBucket: string;
 
-  constructor(private logger: LoggerService) {
+  constructor(private readonly logger: LoggerService) {
     const projectId = process.env['GCP_PROJECT_ID'];
     const keyFilename = process.env['GCP_KEY_FILE'];
     this.defaultBucket = process.env['GCP_STORAGE_BUCKET'] || '';
@@ -97,7 +97,7 @@ export class GcpStorageProvider implements IStorageProvider {
         filename,
         originalName: options.filename || filename,
         mimeType: metadata.contentType || 'application/octet-stream',
-        size: parseInt(String(metadata.size || '0'), 10),
+        size: Number.parseInt(String(metadata.size || '0'), 10),
         path: blobName,
         url,
         uploadedAt: new Date(metadata.timeCreated || Date.now()),
@@ -223,7 +223,7 @@ export class GcpStorageProvider implements IStorageProvider {
             filename: file.name.split('/').pop() || '',
             originalName: file.name.split('/').pop() || '',
             mimeType: metadata.contentType || 'application/octet-stream',
-            size: parseInt(String(metadata.size || '0'), 10),
+            size: Number.parseInt(String(metadata.size || '0'), 10),
             path: file.name,
             url: `https://storage.googleapis.com/${bucketName}/${file.name}`,
             uploadedAt: new Date(metadata.timeCreated || Date.now()),
@@ -252,7 +252,7 @@ export class GcpStorageProvider implements IStorageProvider {
         filename: filePath.split('/').pop() || '',
         originalName: filePath.split('/').pop() || '',
         mimeType: metadata.contentType || 'application/octet-stream',
-        size: parseInt(String(metadata.size || '0'), 10),
+        size: Number.parseInt(String(metadata.size || '0'), 10),
         path: filePath,
         url: `https://storage.googleapis.com/${bucketName}/${filePath}`,
         uploadedAt: new Date(metadata.timeCreated || Date.now()),

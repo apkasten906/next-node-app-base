@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 import { IEncryptionService } from '@repo/types';
 import bcrypt from 'bcrypt';
