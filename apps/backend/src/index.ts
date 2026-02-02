@@ -437,31 +437,39 @@ if (require.main === module) {
   const app = new App();
   let shuttingDown = false;
 
-  const shutdownAndExit = (signal: string): void => {
-    if (shuttingDown) return;
-    shuttingDown = true;
-
-    void (async () => {
-      try {
-        await app.shutdown();
-        process.exit(0);
-      } catch (error) {
-        // Avoid relying on DI logger during teardown.
-        console.error(`Shutdown failed after ${signal}`, error);
-        process.exit(1);
-      }
-    })();
+  const shutdown = async (signal: string): Promise<void> => {
+    try {
+      await app.shutdown();
+      process.exit(0);
+    } catch (error) {
+      // Avoid relying on DI logger during teardown.
+      console.error(`Shutdown failed after ${signal}`, error);
+      process.exit(1);
+    }
   };
 
-  process.on('SIGTERM', () => shutdownAndExit('SIGTERM'));
-  process.on('SIGINT', () => shutdownAndExit('SIGINT'));
-
-  void (async () => {
+  const startServer = async (): Promise<void> => {
     try {
       await app.start();
     } catch (error) {
       console.error('Server failed to start', error);
       process.exit(1);
     }
-  })();
+  };
+
+  const shutdownAndExit = (signal: string): void => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+
+    setImmediate(() => {
+      void shutdown(signal);
+    });
+  };
+
+  process.on('SIGTERM', () => shutdownAndExit('SIGTERM'));
+  process.on('SIGINT', () => shutdownAndExit('SIGINT'));
+
+  setImmediate(() => {
+    void startServer();
+  });
 }
