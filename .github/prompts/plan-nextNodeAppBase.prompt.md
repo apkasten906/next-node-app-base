@@ -30,7 +30,7 @@ This document has two parts:
 
 ### Reporting note
 
-- TODO: Backend Cucumber JSON report output is currently disabled (HTML is self-contained but `apps/backend/reports/cucumber-report.json` can appear empty). We should fix/clarify this later to avoid confusion.
+- TODO: Backend Cucumber JSON report output is currently disabled (HTML is self-contained but `apps/backend/reports/cucumber-report.json` can appear empty). Tracked in: https://github.com/apkasten906/next-node-app-base/issues/18
 
 ---
 
@@ -45,6 +45,8 @@ This document has two parts:
 - Hardened `pre-push` to run a fast backend test gate and added `scripts/run-backend-tests-ci.js` to force mocks for external services in local dev.
 - Converted many high-value `@security` BDD scenarios into integration tests and wired Cucumber step-definitions to use in-memory services (AuditLogService, AuthorizationService, CacheService). Added cache-backed rate limiter tests and mock Redis support.
 - Chosen artifact registry: GitHub Packages selected (see Advanced Features for placement). A registry-agnostic publish flow will allow CI and local dev to swap to an internal registry exposed via the service mesh by setting `REGISTRY_URL` and `NPM_AUTH_TOKEN`.
+- Created GitHub tracking issues for remaining near-term plan items (#15–#21) so they can be grouped under a milestone.
+- Opened PR #22 to wire deterministic E2E seeding into CI: https://github.com/apkasten906/next-node-app-base/pull/22
 - **✅ COMPLETED (Dec 2024)**: Migrated to ESLint v9 flat config, fixed pre-commit hooks (lint-staged, TypeScript, commitlint working end-to-end).
 - **✅ COMPLETED (Dec 2024)**: Implemented owner-based authorization (`:own` semantics), integrated audit logging into AuthorizationService, added test helpers (`clear()`, `resetForTests()`).
 - **✅ COMPLETED (Dec 2024)**: Made integration tests resilient to external services - tests skip gracefully when `TEST_EXTERNAL_SERVICES=false` or dependencies unavailable. Test suite runs in ~11s without external connections.
@@ -70,7 +72,10 @@ This document has two parts:
 
 ### Next Priorities
 
-- ⬜ **Deterministic E2E seeding (WSJF 7.33)** - Core dev-only, token-protected `POST /api/e2e/seed` endpoint and Playwright global setup are implemented; remaining work: wire seeding into CI runs, extend seeded personas, and document the deterministic E2E flow (see `docs/Planning/plan-httpSeedEndpoint.prompt.md`).
+- ⬜ **Deterministic E2E seeding (WSJF 7.33)** - Core dev-only, token-protected `POST /api/e2e/seed` endpoint and Playwright global setup are implemented; remaining work is tracked in:
+  - #15 (CI wiring): https://github.com/apkasten906/next-node-app-base/issues/15 (PR: https://github.com/apkasten906/next-node-app-base/pull/22)
+  - #16 (personas/fixtures): https://github.com/apkasten906/next-node-app-base/issues/16
+  - #17 (docs): https://github.com/apkasten906/next-node-app-base/issues/17
 - 📌 **Deployable template WSJF backlog (2026-01-25)** - If/when we shift focus to “deployable template” hardening, use `/docs/Planning/wsjf-deployable-template.md` as the WSJF-scored sub-backlog to avoid expanding this plan with lots of sub-bullets.
 - ✅ **Code Quality** - ESLint improvements completed (0 errors, 0 warnings) - commits `8e94d79`, `59f4c95`, `3ccab31`, `06d74f6`
 - ✅ **Testing Infrastructure - Storage** - Storage Service tests completed (28 tests) - commit `646dfbb`
@@ -97,10 +102,15 @@ This document has two parts:
 
 ### Actionable steps (short-term)
 
-- ⬜ NEXT (WSJF 7.33): Implement HTTP E2E seed endpoint and wire Playwright to call it once pre-run.
-  - Backend: dev-only, token-protected `POST /api/e2e/seed` (block when `NODE_ENV==='production'`; require `x-e2e-seed-token` to match `E2E_SEED_TOKEN`), idempotently upsert persona users (start with `test@example.com` / `admin@example.com`).
-  - Frontend E2E: call seed endpoint from Playwright global setup (or existing runner) using the backend base URL already used by API auth helpers.
-  - Persona strategy: start minimal “user-only” fixtures; add domain fixtures (preferences/roles/orgs) as follow-ups only if tests need them.
+- ⬜ NEXT (WSJF 7.33): Finish deterministic E2E seeding work in CI and docs (see `docs/Planning/plan-httpSeedEndpoint.prompt.md`).
+  - CI wiring: #15 (PR #22): https://github.com/apkasten906/next-node-app-base/issues/15
+  - Personas/fixtures: #16: https://github.com/apkasten906/next-node-app-base/issues/16
+  - Documentation: #17: https://github.com/apkasten906/next-node-app-base/issues/17
+- ⬜ Decide/implement backend Cucumber JSON report behavior: #18: https://github.com/apkasten906/next-node-app-base/issues/18
+- ⬜ Workflow hardening follow-ups (Dependabot + governance): #19–#21
+  - #19: https://github.com/apkasten906/next-node-app-base/issues/19
+  - #20: https://github.com/apkasten906/next-node-app-base/issues/20
+  - #21: https://github.com/apkasten906/next-node-app-base/issues/21
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
 - ✅ DONE: Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — see `docs/adr/009-artifact-registry-github-packages.md`.
@@ -120,7 +130,8 @@ This document has two parts:
 
 ### Next check-in
 
-- Next: Implement deterministic E2E seeding (`POST /api/e2e/seed`) and wire Playwright pre-run (see `docs/Planning/plan-httpSeedEndpoint.prompt.md`).
+- Next: Land #15 (PR #22), then proceed with #16 and #17 to complete deterministic E2E seeding end-to-end.
+- Next (after E2E): Resolve #18 (backend Cucumber JSON reporting) and run workflow hardening tasks #19–#21.
 - If focus shifts to “deployable template” hardening, track WSJF items in `docs/Planning/wsjf-deployable-template.md` and keep this plan as a short pointer.
 
 ---
