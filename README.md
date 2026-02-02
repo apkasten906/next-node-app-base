@@ -2,73 +2,27 @@
 
 A production-ready base repository for rapidly starting new web applications with a Next.js frontend, Node.js backend, comprehensive testing, and DevOps infrastructure.
 
-## 🌟 Features
+## Features
 
-### Core Stack
+This template includes both implemented functionality and scaffolding for planned components.
 
-- **Monorepo**: Turborepo with pnpm workspaces
-- **Frontend**: Next.js 14+ with App Router, TypeScript, Tailwind CSS
-- **Backend**: Node.js with Express, TypeScript, Prisma ORM
-- **Database**: PostgreSQL with read replica support
-- **Cache**: Multi-level caching (In-Memory L1, Redis L2, CDN L3)
-- **Service Mesh**: Istio for mTLS, traffic management, and observability
+### Implemented
 
-### Security & Authentication (OWASP Compliant)
+- Monorepo: Turborepo with pnpm workspaces
+- Frontend: Next.js (App Router) + TypeScript + Tailwind CSS
+- Backend: Express + TypeScript + Prisma
+- Docker: Docker Compose + multi-stage Dockerfiles
+- BDD: Cucumber features + status/implementation governance tooling + dashboard
+- Tests: Vitest (backend) and Playwright (E2E)
 
-- OAuth 2.0 + OpenID Connect (OIDC) via Passport.js
-- NextAuth.js for frontend authentication
-- RBAC/ABAC authorization
-- Istio mTLS for service-to-service communication
-- Comprehensive security headers (Helmet.js)
-- OWASP security governance and standards
+### Scaffolded / Planned
 
-### Infrastructure & Services
+- Contract tests (Pact)
+- Security testing (OWASP ZAP)
+- Load testing (k6)
+- Additional deployment/observability building blocks (Kubernetes/Istio manifests and docs)
 
-- **Message Queue**: Bull/BullMQ for background jobs
-- **WebSockets**: Socket.io for real-time communication
-- **File Storage**: DI pattern supporting Local/S3/Azure/GCP
-- **Notifications**: Email (SendGrid/SES), SMS (Twilio), Push (FCM)
-- **Search**: Elasticsearch, Algolia, or MeiliSearch
-- **Payments**: Stripe, PayPal integration
-- **Analytics**: Mixpanel, Segment integration
-- **Secrets**: HashiCorp Vault or cloud provider integration
-- **Webhooks**: Complete webhook management system
-
-### Testing & Quality
-
-- **Unit Tests**: Vitest with coverage reporting
-- **BDD Tests**: Cucumber with Gherkin syntax
-- **E2E Tests**: Playwright with Page Object Model
-- **Contract Tests**: Pact for consumer-driven contracts
-- **API Mocking**: Mock Service Worker (MSW)
-- **Security Tests**: OWASP ZAP automated scanning
-- **Load Tests**: k6 for performance testing
-
-### Observability
-
-- **Distributed Tracing**: Istio + Jaeger
-- **Metrics**: Prometheus + Grafana
-- **Logging**: ELK Stack or Loki + Grafana
-- **APM**: Datadog or New Relic integration
-- **Service Mesh Visualization**: Kiali
-- **Error Tracking**: Sentry
-
-### DevOps & Deployment
-
-- **Containers**: Docker with multi-stage builds
-- **Orchestration**: Kubernetes with Istio service mesh
-- **CI/CD**: GitHub Actions (lint, test, security scan, deploy)
-- **Deployment Strategies**: Blue-Green, Canary, A/B testing with Istio
-- **Dev Containers**: VSCode devcontainer for consistent environments
-- **Local Development**: Docker Compose
-
-### Internationalization
-
-- Multi-language support (en, es, fr, de) with next-i18next
-- RTL language support
-- Localized date/time/number/currency formatting
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -84,7 +38,7 @@ A production-ready base repository for rapidly starting new web applications wit
 3. Clone the repository
 4. Open in VSCode and click "Reopen in Container"
 5. Wait for the container to build and dependencies to install
-6. Start developing! 🎉
+6. Start developing
 
 ### Option 2: Local Setup
 
@@ -117,7 +71,7 @@ pnpm dev
 
 Note: By default, Postgres/Redis are not published to localhost ports (to avoid conflicts with existing local services). See `docs/DOCKER.md` for how to expose ports via an override file if you need host access.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 next-node-app-base/
@@ -131,12 +85,11 @@ next-node-app-base/
 │   ├── constants/          # Shared constants
 │   └── config/             # Shared configurations
 ├── kubernetes/             # Kubernetes + Istio manifests
-├── docker/                 # Docker configurations
 ├── docs/                   # Documentation
-└── load-tests/             # k6 load tests
+└── scripts/                # Repo scripts (linting, BDD status/audit, etc.)
 ```
 
-## 🛠️ Development
+## Development
 
 ### Available Scripts
 
@@ -181,19 +134,19 @@ pnpm test:e2e:ui            # Run E2E tests in interactive UI mode
 pnpm test:e2e:debug         # Run E2E tests in debug mode
 pnpm test:contract          # Run contract tests
 pnpm test:security          # Run security tests
-pnpm test:load              # Run load tests
+pnpm test:load              # Run load tests (requires k6 + scenarios; scaffolded)
 ```
 
 **E2E Test Details:**
 
-- 435 tests across 5 browser projects (Chromium, Firefox, WebKit, Mobile Chrome, Mobile Safari)
-- Servers auto-start: Backend (port 4000) + Frontend (port 3000)
+- Runs across multiple browser projects (Chromium, Firefox, WebKit, mobile emulation)
+- Servers auto-start: Backend (port 3001) + Frontend (port 3000)
 - Tests wait for servers to be ready before executing
 - Servers auto-shutdown after tests complete
 
 See [TEST_EXPLORER_GUIDE.md](docs/TEST_EXPLORER_GUIDE.md) for VSCode Test Explorer setup.
 
-# Code Quality
+#### Code Quality
 
 pnpm lint # Lint all code
 pnpm lint:fix # Fix linting issues
@@ -201,7 +154,7 @@ pnpm lint:workflows # Lint GitHub Actions workflows (actionlint)
 pnpm format # Format code with Prettier
 pnpm typecheck # Run TypeScript type checking
 
-# Database
+#### Database
 
 pnpm db:migrate # Run database migrations
 pnpm db:seed # Seed database
@@ -220,40 +173,32 @@ This repository uses Husky hooks to enforce linting, commit message rules, and a
 
 If a hook fails, fix the issues locally and re-run the commands. CI runs the same checks and will block merges if they fail.
 
-## 🔒 Security
+## Security
 
 This project follows OWASP security standards and best practices:
 
-- **OWASP Top 10**: Comprehensive coverage of all major vulnerabilities
-- **Security Headers**: Configured via Helmet.js and Istio
-- **Authentication**: OAuth 2.0/OIDC with MFA support
-- **Authorization**: RBAC/ABAC with fine-grained permissions
-- **Data Protection**: Encryption at rest and in transit (TLS 1.3 + Istio mTLS)
-- **Secret Management**: HashiCorp Vault or cloud provider integration
-- **Dependency Scanning**: Automated with OWASP Dependency-Check and Snyk
-- **Security Testing**: OWASP ZAP automated scans in CI/CD
+- **Governance**: OWASP-oriented security governance docs and standards
+- **Security Headers**: Helmet.js baseline middleware
+- **Authorization**: RBAC/ABAC services and middleware
+- **Encryption**: Encryption/hashing services for secrets and credentials
+- Planned/scaffolded: Istio mTLS integration, dependency scanning, OWASP ZAP DAST
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
-## 📚 Documentation
+## Documentation
 
-Comprehensive documentation is available in the [docs/](docs/) directory:
+Docs live in `docs/` (plus some app-specific docs under `apps/*/docs/`). Start here:
 
-- **Architecture Decision Records (ADRs)**: [docs/adr/](docs/adr/)
-  - [ADR-001: Node.js 25 for Native TypeScript](docs/adr/001-node-js-25-native-typescript.md)
-  - [ADR-009: Artifact Registry — GitHub Packages](docs/adr/009-artifact-registry-github-packages.md)
-- [Architecture Overview](docs/architecture/overview.md)
-- [Security Architecture](docs/architecture/security-architecture.md)
-- [Service Mesh (Istio)](docs/architecture/service-mesh.md)
-- [API Documentation](docs/api/openapi.yaml)
-- [HATEOAS Guide](docs/api/hateoas-guide.md)
-- [Publishing Packages](docs/PUBLISHING.md) - How to publish packages to npm registries
-- [Development Setup](docs/development/local-setup.md)
-- [Dev Containers](docs/development/dev-containers.md)
-- [Deployment Guide](docs/deployment.md)
-- [Contributing Guidelines](CONTRIBUTING.md)
+- `docs/BDD.md`
+- `docs/BDD_IMPLEMENTATION_AUDIT.md`
+- `docs/DOCKER.md`
+- `docs/TESTING.md`
+- `docs/TEST_EXPLORER_GUIDE.md`
+- `docs/WEBSOCKET.md`
+- `docs/security-governance.md`
+- ADRs: `docs/adr/`
 
-## 🌍 Internationalization
+## Internationalization
 
 The application supports multiple languages:
 
@@ -262,19 +207,22 @@ The application supports multiple languages:
 - French (fr)
 - German (de)
 
-See [docs/i18n/translation-guide.md](docs/i18n/translation-guide.md) for adding new languages.
+Translations live under `apps/frontend/public/locales/` and i18n configuration is in `apps/frontend/i18n.ts`.
 
-## 🚢 Deployment
+## Deployment
 
 ### Deployment Strategies
 
-This template supports multiple deployment strategies via Istio:
+Kubernetes/Istio deployment content is included as scaffolding and examples (for example, see the Verdaccio manifests).
 
 - **Blue-Green**: Zero-downtime deployments with instant rollback
 - **Canary**: Gradual traffic shifting (5% → 25% → 50% → 100%)
 - **A/B Testing**: User segment-based routing
 
-See [docs/deployment/](docs/deployment/) for detailed guides.
+See:
+
+- `docs/DOCKER.md` for local Docker workflows
+- `kubernetes/verdaccio/README.md` for a Kubernetes + Istio example
 
 ### Environments
 
@@ -282,7 +230,7 @@ See [docs/deployment/](docs/deployment/) for detailed guides.
 - **Staging**: Kubernetes cluster with Istio (pre-production)
 - **Production**: Kubernetes cluster with Istio (high availability)
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
 
@@ -292,11 +240,11 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 - Coding standards
 - Commit message conventions
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 Built with amazing open-source technologies:
 
@@ -308,7 +256,7 @@ Built with amazing open-source technologies:
 - [Kubernetes](https://kubernetes.io/)
 - And many more...
 
-## 📞 Support
+## Support
 
 - 📧 Email: support@example.com
 - 💬 Slack: [Join our community](#)

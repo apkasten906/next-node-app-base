@@ -93,8 +93,8 @@ Reusable utilities for common tasks:
 
 ### Prerequisites
 
-- Node.js 24+
-- pnpm 9+
+- Node.js 25+
+- pnpm 8+
 - Browser binaries (installed automatically)
 
 ### Installation
@@ -113,7 +113,7 @@ Create a `.env.test` file in the frontend directory:
 
 ```env
 E2E_BASE_URL=http://localhost:3000
-API_BASE_URL=http://localhost:4000
+NEXT_PUBLIC_API_URL=http://localhost:3001
 NEXTAUTH_SECRET=your-test-secret
 DATABASE_URL=your-test-database-url
 ```
@@ -223,7 +223,7 @@ await AccessibilityHelpers.testKeyboardNavigation(page, ['Tab', 'Enter']);
 
 Playwright is configured to automatically start both frontend and backend servers before running tests:
 
-- **Backend**: `http://localhost:4000` (started first, health check on `/health`)
+- **Backend**: `http://localhost:3001` (started first, health check on `/health`)
 - **Frontend**: `http://localhost:3000` (started after backend is ready)
 
 The `webServer` configuration in `playwright.config.ts` handles this automatically. You don't need to start servers manually!
@@ -484,7 +484,7 @@ Set in GitHub Actions secrets:
 - `TEST_DATABASE_URL`: Test database connection
 - `NEXTAUTH_SECRET`: NextAuth secret for tests
 - `E2E_BASE_URL`: Frontend URL (default: http://localhost:3000)
-- `API_BASE_URL`: Backend URL (default: http://localhost:4000)
+- `NEXT_PUBLIC_API_URL`: Backend URL (default: http://localhost:3001)
 
 ### Test Sharding
 

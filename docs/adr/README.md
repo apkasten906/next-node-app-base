@@ -40,6 +40,7 @@ Each ADR follows this structure:
 | [009](./009-artifact-registry-github-packages.md) | Artifact registry — GitHub Packages (default), registry-agnostic publish flow | Accepted                         | 2025-11-29 |
 | [010](./010-prisma-7-cli-migration-workaround.md) | Prisma 7 CLI Migration Workaround Strategy                                    | Accepted                         | 2025-12-04 |
 | [011](./011-backend-only-auth.md)                 | Backend-Only Authentication                                                   | Accepted                         | 2025-12-16 |
+| [012](./012-testing-framework-vitest.md)          | Use Vitest as the Primary Test Runner                                         | Accepted                         | 2026-02-02 |
 
 <!-- adr-index:end -->
 
