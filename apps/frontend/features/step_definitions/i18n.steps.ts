@@ -16,8 +16,15 @@ Then('default locale should be {string}', async function (this: World, expected:
   const content = this.getData<string>('i18nSource');
   assert.ok(content, 'i18n config not loaded');
 
-  const match = content.match(/export\s+const\s+defaultLocale\s*=\s*['"]([^'"]+)['"]/);
+  const re = /export\s+const\s+defaultLocale\s*=\s*['"]([^'"]+)['"]/;
+  const match = re.exec(content);
   assert.ok(match, 'defaultLocale export not found');
+  assert.ok(match[1], 'defaultLocale export value is empty');
+  assert.ok(match[1].length <= 32, 'defaultLocale export value is unexpectedly long');
+  assert.ok(
+    /^[A-Za-z0-9-]+$/.test(match[1]),
+    `defaultLocale export value contains unexpected characters: '${match[1]}'`
+  );
   assert.equal(match[1], expected);
 });
 
@@ -31,7 +38,8 @@ Then('supported locales should include:', async function (this: World, dataTable
     .map((s: string) => s.trim())
     .filter(Boolean);
 
-  const localesMatch = content.match(/export\s+const\s+locales\s*=\s*\[([^\]]*)\]/);
+  const localesRe = /export\s+const\s+locales\s*=\s*\[([^\]]*)\]/;
+  const localesMatch = localesRe.exec(content);
   assert.ok(localesMatch, 'locales export not found');
 
   const locales: string[] = [];

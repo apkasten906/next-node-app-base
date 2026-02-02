@@ -10,6 +10,8 @@ export class LoggerService {
   private logger: winston.Logger;
 
   constructor() {
+    const isTest = process.env['NODE_ENV'] === 'test';
+
     const logFormat = winston.format.combine(
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
       winston.format.errors({ stack: true }),
@@ -57,8 +59,12 @@ export class LoggerService {
             ]
           : []),
       ],
-      exceptionHandlers: [new winston.transports.File({ filename: 'logs/exceptions.log' })],
-      rejectionHandlers: [new winston.transports.File({ filename: 'logs/rejections.log' })],
+      ...(isTest
+        ? {}
+        : {
+            exceptionHandlers: [new winston.transports.File({ filename: 'logs/exceptions.log' })],
+            rejectionHandlers: [new winston.transports.File({ filename: 'logs/rejections.log' })],
+          }),
     });
   }
 

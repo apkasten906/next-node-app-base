@@ -4,16 +4,19 @@
 
 VSCode Test Explorer shows two separate test runners:
 
-1. **Jest Tests** (Backend) - ~214 tests
-2. **Playwright Tests** (E2E) - 435 tests (87 tests × 5 browser projects)
+1. **Vitest Tests** (Backend)
+2. **Playwright Tests** (E2E)
 
 ## Required Extensions
 
-To see all tests in VSCode Test Explorer, install the **Playwright Test** extension:
+To see all tests in VSCode Test Explorer, install:
+
+- **Vitest**: `vitest.explorer`
+- **Playwright Test**: `ms-playwright.playwright`
 
 1. Open Extensions (Ctrl+Shift+X)
-2. Search for "Playwright Test"
-3. Install `ms-playwright.playwright`
+2. Search for "Vitest" and install `vitest.explorer`
+3. Search for "Playwright Test" and install `ms-playwright.playwright`
 
 Alternatively, VSCode will prompt you to install recommended extensions when you open the workspace.
 
@@ -40,7 +43,7 @@ This installs Chromium, Firefox, and WebKit browsers needed for testing.
 
 The Playwright configuration automatically starts both servers before running tests:
 
-- Backend: `http://localhost:4000` (with health check)
+- Backend: `http://localhost:3001` (with health check)
 - Frontend: `http://localhost:3000`
 
 **Automatic startup** (recommended):
@@ -74,11 +77,10 @@ This ensures VSCode discovers the Playwright tests.
 
 ## Viewing Tests
 
-### Backend Tests (Jest)
+### Backend Tests (Vitest)
 
 - Location: `apps/backend/src/tests/**/*.test.ts`
-- Runner: Jest (via `orta.vscode-jest` extension)
-- Count: ~214 tests
+- Runner: Vitest (via `vitest.explorer` extension)
 - View: Automatically discovered in Test Explorer sidebar
 
 ### E2E Tests (Playwright)
@@ -211,28 +213,9 @@ Current settings in `.vscode/settings.json`:
 
 ## Test Count Breakdown
 
-### Total: 435 Playwright Tests
+Playwright runs the same test files across multiple browser projects (Chromium/Firefox/WebKit and mobile emulation). Total test count depends on the current suite and selected projects.
 
-**By Browser Project:**
-
-- chromium: 87 tests
-- firefox: 87 tests
-- webkit: 87 tests
-- Mobile Chrome: 87 tests
-- Mobile Safari: 87 tests
-
-**By Test Suite (per project):**
-
-- Authentication: 9 tests
-- User Management: 18 tests
-- API Integration: 35 tests
-- Error Handling: 25 tests
-
-**Backend (Jest): ~214 tests**
-
-- Service tests: ~150 tests
-- Controller tests: ~40 tests
-- Utility tests: ~24 tests
+Backend (Vitest) test count varies as the suite evolves.
 
 ## Troubleshooting
 
@@ -278,7 +261,7 @@ pnpm --filter=frontend test:e2e
 **Solution:**
 
 1. Ensure browsers are installed: `pnpm playwright install`
-2. Check if services are running (frontend on :3000, backend on :4000)
+2. Check if services are running (frontend on :3000, backend on :3001)
 3. Verify environment variables in `.env.test`
 4. Clear Playwright cache: `pnpm playwright install --force`
 5. Check Playwright output in Test Explorer Output panel

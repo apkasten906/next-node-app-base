@@ -1,9 +1,9 @@
 import { Given, Then, When } from '@cucumber/cucumber';
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
-import fs from 'fs/promises';
 import jwt from 'jsonwebtoken';
-import path from 'path';
+import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { AuditLogService } from '../../src/services/audit/audit-log.service';
 import { AuthorizationService } from '../../src/services/auth/authorization.service';
 import { CacheService } from '../../src/services/cache.service';
@@ -108,7 +108,7 @@ When('I validate password {string}', async function (this: World, password: stri
   const hasMinLength = password.length >= 8;
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
+  const hasNumber = /\d/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
   const isValid = hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar;
@@ -270,7 +270,9 @@ When('I make {int} requests to the API', async function (this: World, count: num
     try {
       const res = await this.request?.get('/api/health');
       responses.push(res?.status || 200);
-    } catch (err) {
+    } catch (error_) {
+      const message = error_ instanceof Error ? error_.message : String(error_);
+      this.setData('lastRequestError', message);
       responses.push(429);
     }
   }
@@ -289,7 +291,7 @@ Then('subsequent requests should be rate limited', async function (this: World) 
   const limit = this.getData<number>('rateLimit');
 
   // Requests beyond the limit should be 429
-  const rateLimited = responses?.slice(limit!).some((s) => s === 429);
+  const rateLimited = responses?.slice(limit!).includes(429);
   expect(rateLimited).toBe(true);
 });
 
@@ -303,8 +305,8 @@ Then('it should be sanitized to {string}', async function (this: World, expected
 
   // Simple sanitization (in real app, use a library like DOMPurify or validator)
   const sanitized = input
-    ?.replace(/<script>/gi, '&lt;script&gt;')
-    .replace(/<\/script>/gi, '&lt;/script&gt;');
+    ?.replaceAll(/<script>/gi, '&lt;script&gt;')
+    .replaceAll(/<\/script>/gi, '&lt;/script&gt;');
 
   expect(sanitized).toBe(expected);
 });
@@ -366,14 +368,19 @@ Then('an audit log entry should be created with:', async function (this: World, 
 Then('security headers should be present:', async function (this: World, dataTable: any) {
   const endpointsToTry = ['/health', '/api/health', '/'];
   let res: any = null;
+  const errors: string[] = [];
 
   for (const ep of endpointsToTry) {
     try {
       res = await this.request?.get(ep);
       if (res && res.status < 500) break;
-    } catch (err) {
-      // ignore and try next
+    } catch (error_) {
+      errors.push(error_ instanceof Error ? error_.message : String(error_));
     }
+  }
+
+  if (!res && errors.length > 0) {
+    this.setData('securityHeadersProbeErrors', errors);
   }
 
   expect(res).toBeDefined();
@@ -451,7 +458,12 @@ Then('secrets should be loaded from .env file', async function (this: World) {
   // A real `.env` is intentionally NOT committed and may not exist in CI.
   expect(envExists || envExampleExists || envDockerExampleExists).toBe(true);
 
-  const sourcePath = envExists ? envPath : envExampleExists ? envExamplePath : envDockerExamplePath;
+  let sourcePath = envDockerExamplePath;
+  if (envExists) {
+    sourcePath = envPath;
+  } else if (envExampleExists) {
+    sourcePath = envExamplePath;
+  }
   this.setData('envSourcePath', sourcePath);
 
   const content = await fs.readFile(sourcePath, 'utf-8');
@@ -524,10 +536,10 @@ Then('secrets should be different per environment', async function (this: World)
       const idx = line.indexOf('=');
       if (idx <= 0) continue;
       const key = line.slice(0, idx).trim();
-      const value = line
-        .slice(idx + 1)
-        .trim()
-        .replace(/^"|"$/g, '');
+      let value = line.slice(idx + 1).trim();
+      if (value.startsWith('"') && value.endsWith('"') && value.length >= 2) {
+        value = value.slice(1, -1);
+      }
       kv[key] = value;
     }
     return kv;

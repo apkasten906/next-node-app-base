@@ -74,7 +74,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     const jwt = container.resolve<JwtService>('JwtService');
     try {
       const user = await db.user.findUnique({ where: { email } });
-      if (!user || !user.passwordHash) {
+      if (!user?.passwordHash) {
         res.status(401).json({ error: 'Invalid credentials' });
         return;
       }
@@ -103,31 +103,37 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         authenticated: true,
         tokenType: tokens.tokenType,
       });
-    } catch (dbErr) {
+    } catch (error_) {
       // Fallback for dev/test when DB is unavailable
       if (!devFallbackEnabled()) {
-        throw dbErr;
+        throw error_;
       }
 
-      const fallbackUsers: Record<
+      const fallbackUsers = new Map<
         string,
         { id: string; name: string; role: 'USER' | 'ADMIN'; password: string }
-      > = {
-        'test@example.com': {
-          id: 'test-user-1',
-          name: 'Test User',
-          role: 'USER',
-          password: 'Password123!',
-        },
-        'admin@example.com': {
-          id: 'admin-user-1',
-          name: 'Admin User',
-          role: 'ADMIN',
-          password: 'Admin123!',
-        },
-      };
+      >([
+        [
+          'test@example.com',
+          {
+            id: 'test-user-1',
+            name: 'Test User',
+            role: 'USER',
+            password: 'Password123!',
+          },
+        ],
+        [
+          'admin@example.com',
+          {
+            id: 'admin-user-1',
+            name: 'Admin User',
+            role: 'ADMIN',
+            password: 'Admin123!',
+          },
+        ],
+      ]);
 
-      const fu = fallbackUsers[email];
+      const fu = fallbackUsers.get(email);
       if (!fu || fu.password !== password) {
         res.status(401).json({ error: 'Invalid credentials' });
         return;

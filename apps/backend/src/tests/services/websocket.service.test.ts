@@ -9,7 +9,7 @@ import {
   WebSocketEvent,
 } from '@repo/types';
 import { Socket as ClientSocket, io as ioClient } from 'socket.io-client';
-import { afterEach, beforeEach, describe, DoneFn, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LoggerService } from '../../services/logger.service';
 import { WebSocketService } from '../../services/websocket/websocket.service';
@@ -100,7 +100,7 @@ describe('WebSocketService', () => {
       });
     });
 
-    it('should accept client connections with valid token', (done: DoneFn) => {
+    it('should accept client connections with valid token', async () => {
       clientSocket = ioClient(`http://localhost:${testPort}`, {
         auth: {
           token: 'valid-token',
@@ -109,21 +109,44 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      clientSocket.on('connect', () => {
-        expect(clientSocket.connected).toBe(true);
-        done();
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Timed out waiting for connect')), 2000);
+
+        clientSocket.on('connect', () => {
+          clearTimeout(timeout);
+          expect(clientSocket.connected).toBe(true);
+          resolve();
+        });
+
+        clientSocket.on('connect_error', (error) => {
+          clearTimeout(timeout);
+          reject(error);
+        });
       });
     });
 
-    it('should reject connections without token', (done: DoneFn) => {
+    it('should reject connections without token', async () => {
       clientSocket = ioClient(`http://localhost:${testPort}`, {
         auth: {}, // No token
         transports: ['websocket'],
       });
 
-      clientSocket.on('connect_error', (error) => {
-        expect(error.message).toContain('AUTHENTICATION_FAILED');
-        done();
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(
+          () => reject(new Error('Timed out waiting for connect_error')),
+          2000
+        );
+
+        clientSocket.on('connect', () => {
+          clearTimeout(timeout);
+          reject(new Error('Expected connection to be rejected'));
+        });
+
+        clientSocket.on('connect_error', (error) => {
+          clearTimeout(timeout);
+          expect(error.message).toContain('AUTHENTICATION_FAILED');
+          resolve();
+        });
       });
     });
 
@@ -190,19 +213,27 @@ describe('WebSocketService', () => {
       });
     });
 
-    it('should allow joining a room', (done: DoneFn) => {
+    it('should allow joining a room', async () => {
       const joinRequest: JoinRoomRequest = {
         room: 'test-room',
       };
 
-      clientSocket.once('room-joined', (response) => {
-        expect(response.success).toBe(true);
-        expect(response.room).toBe('test-room');
-        expect(response.memberCount).toBeGreaterThan(0);
-        done();
-      });
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(
+          () => reject(new Error('Timed out waiting for room-joined')),
+          2000
+        );
 
-      clientSocket.emit(WebSocketEvent.JOIN_ROOM, joinRequest);
+        clientSocket.once('room-joined', (response) => {
+          clearTimeout(timeout);
+          expect(response.success).toBe(true);
+          expect(response.room).toBe('test-room');
+          expect(response.memberCount).toBeGreaterThan(0);
+          resolve();
+        });
+
+        clientSocket.emit(WebSocketEvent.JOIN_ROOM, joinRequest);
+      });
     });
 
     it('should track rooms in connection info', async () => {
@@ -376,7 +407,7 @@ describe('WebSocketService', () => {
       });
     });
 
-    it('should send typing-start event', (done: DoneFn) => {
+    it('should send typing-start event', async () => {
       const client2 = ioClient(`http://localhost:${testPort}`, {
         auth: {
           token: 'valid-token-2',
@@ -385,19 +416,33 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      client2.on('connect', () => {
-        client2.once(WebSocketEvent.TYPING_START, (indicator) => {
-          expect(indicator.userId).toBe('user-123');
-          expect(indicator.isTyping).toBe(true);
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
           client2.disconnect();
-          done();
+          reject(new Error('Timed out waiting for typing-start'));
+        }, 2000);
+
+        client2.on('connect', () => {
+          client2.once(WebSocketEvent.TYPING_START, (indicator) => {
+            clearTimeout(timeout);
+            expect(indicator.userId).toBe('user-123');
+            expect(indicator.isTyping).toBe(true);
+            client2.disconnect();
+            resolve();
+          });
+
+          clientSocket.emit(WebSocketEvent.TYPING_START, {});
         });
 
-        clientSocket.emit(WebSocketEvent.TYPING_START, {});
+        client2.on('connect_error', (error) => {
+          clearTimeout(timeout);
+          client2.disconnect();
+          reject(error);
+        });
       });
     });
 
-    it('should send typing-stop event', (done: DoneFn) => {
+    it('should send typing-stop event', async () => {
       const client2 = ioClient(`http://localhost:${testPort}`, {
         auth: {
           token: 'valid-token-2',
@@ -406,15 +451,29 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      client2.on('connect', () => {
-        client2.once(WebSocketEvent.TYPING_STOP, (indicator) => {
-          expect(indicator.userId).toBe('user-123');
-          expect(indicator.isTyping).toBe(false);
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
           client2.disconnect();
-          done();
+          reject(new Error('Timed out waiting for typing-stop'));
+        }, 2000);
+
+        client2.on('connect', () => {
+          client2.once(WebSocketEvent.TYPING_STOP, (indicator) => {
+            clearTimeout(timeout);
+            expect(indicator.userId).toBe('user-123');
+            expect(indicator.isTyping).toBe(false);
+            client2.disconnect();
+            resolve();
+          });
+
+          clientSocket.emit(WebSocketEvent.TYPING_STOP, {});
         });
 
-        clientSocket.emit(WebSocketEvent.TYPING_STOP, {});
+        client2.on('connect_error', (error) => {
+          clearTimeout(timeout);
+          client2.disconnect();
+          reject(error);
+        });
       });
     });
   });
@@ -439,7 +498,7 @@ describe('WebSocketService', () => {
       });
     });
 
-    it('should broadcast presence updates', (done: DoneFn) => {
+    it('should broadcast presence updates', async () => {
       const client2 = ioClient(`http://localhost:${testPort}`, {
         auth: {
           token: 'valid-token-2',
@@ -448,15 +507,29 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      client2.on('connect', () => {
-        client2.once(WebSocketEvent.PRESENCE_UPDATE, (presence) => {
-          expect(presence.userId).toBe('user-123');
-          expect(presence.status).toBe(PresenceStatus.AWAY);
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
           client2.disconnect();
-          done();
+          reject(new Error('Timed out waiting for presence update'));
+        }, 2000);
+
+        client2.on('connect', () => {
+          client2.once(WebSocketEvent.PRESENCE_UPDATE, (presence) => {
+            clearTimeout(timeout);
+            expect(presence.userId).toBe('user-123');
+            expect(presence.status).toBe(PresenceStatus.AWAY);
+            client2.disconnect();
+            resolve();
+          });
+
+          clientSocket.emit(WebSocketEvent.PRESENCE_UPDATE, PresenceStatus.AWAY);
         });
 
-        clientSocket.emit(WebSocketEvent.PRESENCE_UPDATE, PresenceStatus.AWAY);
+        client2.on('connect_error', (error) => {
+          clearTimeout(timeout);
+          client2.disconnect();
+          reject(error);
+        });
       });
     });
   });

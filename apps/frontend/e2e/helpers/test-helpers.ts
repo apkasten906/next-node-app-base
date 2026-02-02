@@ -64,15 +64,17 @@ export class AuthHelpers {
    * Sign in as test user via API
    * Faster than UI login for setup
    */
-  static async signInViaAPI(page: Page): Promise<void> {
+  static async signInViaAPI(page: Page, email?: string, password?: string): Promise<void> {
     const user = TestData.getValidUser();
+    const effectiveEmail = email ?? user.email;
+    const effectivePassword = password ?? user.password;
     const baseUrl = process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001';
 
     // Call backend login endpoint to receive HttpOnly cookies
     const response = await page.request.post(`${baseUrl}/api/auth/login`, {
       data: {
-        email: user.email,
-        password: user.password,
+        email: effectiveEmail,
+        password: effectivePassword,
       },
     });
 
@@ -129,10 +131,28 @@ export class WaitHelpers {
   static async waitForAPIResponse(
     page: Page,
     urlPattern: string | RegExp,
-    timeout = 10000
+    timeout?: number
+  ): Promise<Response>;
+
+  static async waitForAPIResponse(
+    page: Page,
+    urlPattern: string | RegExp,
+    method?: string,
+    timeout?: number
+  ): Promise<Response>;
+
+  static async waitForAPIResponse(
+    page: Page,
+    urlPattern: string | RegExp,
+    methodOrTimeout: string | number = 10000,
+    timeoutArg?: number
   ): Promise<Response> {
+    const method = typeof methodOrTimeout === 'string' ? methodOrTimeout : undefined;
+    const timeout = typeof methodOrTimeout === 'number' ? methodOrTimeout : (timeoutArg ?? 10000);
+
     return await page.waitForResponse(
       (response) => {
+        if (method && response.request().method() !== method) return false;
         const url = response.url();
         if (typeof urlPattern === 'string') {
           return url.includes(urlPattern);

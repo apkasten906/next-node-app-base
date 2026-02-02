@@ -122,7 +122,7 @@ Feature: Advanced Testing Strategies
     And tests should complete in < 2 minutes
     And deployment readiness should be determined
 
-  @publishing @registry
+  @publishing @registry @impl_publish_flow
   @ready
   Scenario: Registry-agnostic publish flow is wired
     Given a registry-agnostic publish script exists
@@ -131,7 +131,7 @@ Feature: Advanced Testing Strategies
     Then the publish script should accept registry and token via environment variables
     And the publish workflow should run the publish script with a token
 
-  @database @prisma @migrations
+  @database @prisma @migrations @impl_prisma7_migration_workaround
   @ready
   Scenario: Prisma 7 CLI migration workaround is documented and wired
     Given Prisma CLI configuration is maintained at the monorepo root

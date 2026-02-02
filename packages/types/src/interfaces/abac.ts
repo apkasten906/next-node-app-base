@@ -61,7 +61,7 @@ export interface Attribute {
 export interface Condition {
   attribute: Attribute;
   operator: ComparisonOperator;
-  value: any;
+  value: unknown;
 }
 
 /**
@@ -104,9 +104,9 @@ export interface Policy {
  * Contains attributes from user, resource, environment, and action
  */
 export interface PolicyContext {
-  user: Record<string, any>;
-  resource: Record<string, any>;
-  environment: Record<string, any>;
+  user: Record<string, unknown>;
+  resource: Record<string, unknown>;
+  environment: Record<string, unknown>;
   action: string;
 }
 
@@ -136,10 +136,7 @@ export interface IPolicyStore {
   /**
    * List all policies
    */
-  listPolicies(filter?: {
-    enabled?: boolean;
-    tags?: string[];
-  }): Promise<Policy[]>;
+  listPolicies(filter?: { enabled?: boolean; tags?: string[] }): Promise<Policy[]>;
 
   /**
    * Update existing policy

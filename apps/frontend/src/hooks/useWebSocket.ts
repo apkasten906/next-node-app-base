@@ -198,17 +198,19 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
   // Connect function
   const connect = useCallback(() => {
-    if (socketRef.current && !socketRef.current.connected) {
+    const socket = socketRef.current;
+    if (socket?.connected === false) {
       setConnectionState(ConnectionState.CONNECTING);
-      socketRef.current.connect();
+      socket.connect();
     }
   }, []);
 
   // Disconnect function
   const disconnect = useCallback(() => {
-    if (socketRef.current && socketRef.current.connected) {
+    const socket = socketRef.current;
+    if (socket?.connected) {
       setConnectionState(ConnectionState.DISCONNECTING);
-      socketRef.current.disconnect();
+      socket.disconnect();
     }
   }, []);
 
@@ -235,7 +237,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         clearTimeout(timeout);
         socketRef.current?.off(WebSocketEvent.ROOM_JOINED, handleJoined);
         socketRef.current?.off(WebSocketEvent.ROOM_ERROR, handleError);
-        reject(error);
+        reject(Object.assign(new Error(error.message), error));
       };
 
       socketRef.current.once(WebSocketEvent.ROOM_JOINED, handleJoined);
@@ -267,7 +269,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         clearTimeout(timeout);
         socketRef.current?.off(WebSocketEvent.ROOM_LEFT, handleLeft);
         socketRef.current?.off(WebSocketEvent.ROOM_ERROR, handleError);
-        reject(error);
+        reject(Object.assign(new Error(error.message), error));
       };
 
       socketRef.current.once(WebSocketEvent.ROOM_LEFT, handleLeft);
@@ -278,38 +280,30 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
   // Send message
   const sendMessage = useCallback((message: Omit<MessagePayload, 'id' | 'timestamp'>) => {
-    if (socketRef.current) {
-      socketRef.current.emit(WebSocketEvent.MESSAGE, message);
-    }
+    socketRef.current?.emit(WebSocketEvent.MESSAGE, message);
   }, []);
 
   // Start typing
   const startTyping = useCallback((room?: string) => {
-    if (socketRef.current) {
-      socketRef.current.emit(WebSocketEvent.TYPING_START, { room });
-    }
+    socketRef.current?.emit(WebSocketEvent.TYPING_START, { room });
   }, []);
 
   // Stop typing
   const stopTyping = useCallback((room?: string) => {
-    if (socketRef.current) {
-      socketRef.current.emit(WebSocketEvent.TYPING_STOP, { room });
-    }
+    socketRef.current?.emit(WebSocketEvent.TYPING_STOP, { room });
   }, []);
 
   // Update presence
   const updatePresence = useCallback((status: PresenceStatus) => {
-    if (socketRef.current) {
-      socketRef.current.emit(WebSocketEvent.PRESENCE_UPDATE, status);
-    }
+    socketRef.current?.emit(WebSocketEvent.PRESENCE_UPDATE, status);
   }, []);
 
   // Subscribe to events
   const on = useCallback(
     <K extends keyof ServerToClientEvents>(event: K, handler: ServerToClientEvents[K]) => {
-      if (socketRef.current) {
-        socketRef.current.on(event, handler);
-      }
+      // socket.io-client's listener typing includes reserved events; for our strongly-typed
+      // custom events this generic wrapper is safe but needs a cast to satisfy TS.
+      socketRef.current?.on(event as never, handler as never);
     },
     []
   );
@@ -317,13 +311,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
   // Unsubscribe from events
   const off = useCallback(
     <K extends keyof ServerToClientEvents>(event: K, handler?: ServerToClientEvents[K]) => {
-      if (socketRef.current) {
-        if (handler) {
-          socketRef.current.off(event, handler);
-        } else {
-          socketRef.current.off(event);
-        }
+      if (handler) {
+        socketRef.current?.off(event as never, handler as never);
+        return;
       }
+      socketRef.current?.off(event as never);
     },
     []
   );

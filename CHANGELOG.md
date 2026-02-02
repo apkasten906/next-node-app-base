@@ -21,14 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Node.js backend with Express and TypeScript
 - Prisma ORM with PostgreSQL support
 - Dev Container configuration for consistent development environment
-- Comprehensive testing setup (Vitest, Playwright, Cucumber, Pact, OWASP ZAP)
-- Security features (OAuth 2.0/OIDC, RBAC/ABAC, Helmet.js)
-- Istio service mesh configuration
-- Multi-level caching strategy (L1, L2, L3)
-- Webhook management system
-- GitHub Actions CI/CD workflows
-- Documentation structure
-- OWASP security compliance framework
+- Testing setup (Vitest for backend, Playwright for E2E, Cucumber for BDD)
+- BDD governance tooling (status tags, implementation tags, audit scripts)
+- BDD governance API endpoint and frontend dashboard
+- Docker Compose for local development (Postgres, Redis, backend, frontend)
+- Hardened multi-stage Docker builds for backend/frontend
+- Webhook delivery system
+- WebSocket system
+- Security governance documentation and baseline security middleware (Helmet.js, CORS)
 
 ## [1.0.0] - 2025-11-20
 

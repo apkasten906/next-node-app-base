@@ -7,6 +7,14 @@ Feature: Testing Infrastructure
   Background:
     Given testing frameworks are installed and configured
 
+  @testing @resilience @external-services @impl_test_resilience_external_services
+  @ready
+  Scenario: Backend tests are resilient without external services
+    Given backend test setup forces external service mocks
+    And backend CI test runner forces external service mocks
+    Then CacheService should select MockRedis when external services are disabled
+    And Redis and database integration tests should be skippable when external services are disabled
+
   @testing @vitest @unit
   Scenario: Vitest unit testing for backend
     Given Vitest is configured for unit tests

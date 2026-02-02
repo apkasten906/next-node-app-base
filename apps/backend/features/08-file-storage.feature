@@ -177,7 +177,7 @@ Feature: File Storage Abstraction
       | 5MB  | accepted |
       | 10MB | rejected |
 
-  @storage @validation @filename
+  @storage @validation @filename @impl_storage_filename_sanitization
   @ready
   Scenario: Filename sanitization
     When I upload a file with filename "<filename>"

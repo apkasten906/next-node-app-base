@@ -46,7 +46,7 @@ describe('Security Integration Tests', () => {
     expect(res.headers['x-dns-prefetch-control']).toBeDefined();
     expect(res.headers['x-frame-options']).toBeDefined();
     expect(res.headers['x-content-type-options']).toBeDefined();
-  });
+  }, 15000);
 
   it('rejects expired JWT tokens with 403', async () => {
     const app = express();

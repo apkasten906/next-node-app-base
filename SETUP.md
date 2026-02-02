@@ -1,164 +1,73 @@
 # Setup Instructions
 
-## ✅ Installation Complete!
+This repo is a working Next.js + Node.js monorepo (frontend + backend), with Docker, BDD governance tooling, and test infrastructure already in place.
 
-Your Next.js + Node.js monorepo base template is now set up and ready for development.
+## Prerequisites
 
-## What's Been Set Up
+- Node.js 25+
+- pnpm 8+
+- Docker + Docker Compose
 
-- ✅ Node.js 25 for native TypeScript support ([ADR-001](docs/adr/001-node-js-25-native-typescript.md))
-- ✅ pnpm package manager (v8.15.0)
-- ✅ Turborepo monorepo configuration
-- ✅ Workspace structure (apps/frontend, apps/backend, packages/\*)
-- ✅ Git hooks with Husky
-- ✅ Conventional commits with Commitlint
-- ✅ Code formatting with Prettier
-- ✅ Lint-staged for pre-commit checks
+## Option A: Docker Compose (fastest)
 
-## Project Structure
+Runs Postgres + Redis + backend + frontend.
 
-```
-next-node-app-base/
-├── apps/
-│   ├── frontend/          # Next.js application (placeholder)
-│   └── backend/           # Node.js API (placeholder)
-├── packages/
-│   ├── types/             # Shared TypeScript types
-│   ├── utils/             # Common utilities
-│   ├── constants/         # Shared constants
-│   └── config/            # Shared configurations
-├── .github/
-│   └── prompts/
-│       └── plan-nextNodeAppBase.prompt.md  # Complete implementation plan
-└── (root config files)
+```bash
+pnpm install
+docker compose up --build
 ```
 
-## Available Commands
+- Frontend: http://localhost:3000
+- Backend: http://localhost:3001/health
 
-```powershell
-# Development
-pnpm dev                    # Start all apps in dev mode
-pnpm dev:frontend           # Start only frontend
-pnpm dev:backend            # Start only backend
+See `docs/DOCKER.md` for details and overrides.
 
-# Building
-pnpm build                  # Build all apps
+## Option B: Local dev servers + Docker dependencies
 
-# Testing
-pnpm test                   # Run all tests
-pnpm test:unit              # Run unit tests
-pnpm test:integration       # Run integration tests
-pnpm test:e2e               # Run E2E tests
+1. Install dependencies:
 
-# Code Quality
-pnpm lint                   # Lint all code
-pnpm lint:fix               # Fix linting issues
-pnpm format                 # Format code with Prettier
-pnpm typecheck              # Run TypeScript type checking
-
-# Utilities
-pnpm clean                  # Clean all build artifacts
+```bash
+pnpm install
 ```
 
-## Next Steps
+2. Start Postgres + Redis (only):
 
-Follow the comprehensive plan in `.github/prompts/plan-nextNodeAppBase.prompt.md` to implement:
+```bash
+docker compose up -d postgres redis
+```
 
-### Phase 1: Foundation (Start Here)
+3. Create local env files:
 
-1. **Set up TypeScript configurations** for apps and packages
-2. **Configure ESLint** with OWASP security rules
-3. **Initialize Git repository** and make first commit
-4. **Set up Dev Container** for consistent development environment
+- Copy `.env.example` to `apps/backend/.env` (or export env vars another way).
+- Create `apps/frontend/.env.local` with at least:
 
-### Phase 2: Backend Core
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=dev-nextauth-secret-change-in-production
+```
 
-1. **Initialize Express server** with TypeScript
-2. **Set up Prisma** with PostgreSQL
-3. **Implement authentication** with OAuth 2.0/OIDC
-4. **Add security middleware** (Helmet, CORS, etc.)
+4. Run migrations and start dev:
 
-### Phase 3: Frontend Core
-
-1. **Initialize Next.js 14+** with App Router
-2. **Set up NextAuth.js** for authentication
-3. **Configure Tailwind CSS** for styling
-4. **Implement i18n** with next-i18next
-
-### Phase 4: Infrastructure
-
-1. **Set up Docker Compose** for local development
-2. **Configure Kubernetes** manifests
-3. **Install Istio** service mesh
-4. **Set up CI/CD** with GitHub Actions
-
-### Phase 5: Testing
-
-1. **Configure Vitest** for unit tests
-2. **Set up Playwright** for E2E tests
-3. **Integrate Pact** for contract testing
-4. **Add OWASP ZAP** for security testing
-
-## Documentation
-
-All documentation is available in the repository:
-
-- **Implementation Plan**: `.github/prompts/plan-nextNodeAppBase.prompt.md`
-- **Security Policy**: `SECURITY.md`
-- **Contributing Guide**: `CONTRIBUTING.md`
-- **Changelog**: `CHANGELOG.md`
-
-## Quick Start Development
-
-Once you implement the apps, you can start development with:
-
-```powershell
-# 1. Start development services (PostgreSQL, Redis, etc.)
-docker-compose up -d
-
-# 2. Run database migrations
+```bash
 pnpm db:migrate
-
-# 3. Start all development servers
 pnpm dev
 ```
 
-## Need Help?
-
-- 📖 Read the complete plan: `.github/prompts/plan-nextNodeAppBase.prompt.md`
-- 🔒 Security concerns: See `SECURITY.md`
-- 🤝 Want to contribute: See `CONTRIBUTING.md`
-- 📝 View changes: See `CHANGELOG.md`
-
-## Verification
-
-Your setup is working if:
-
-- ✅ `node --version` returns v25.x.x or higher
-- ✅ `pnpm --version` returns a version number
-- ✅ `pnpm dev` runs without errors (currently shows placeholder messages)
-- ✅ Git hooks are installed in `.husky/`
-- ✅ All workspace packages are linked
-
-## Node.js 25 Native TypeScript
-
-This project uses Node.js 25 for native TypeScript execution. See [ADR-001](docs/adr/001-node-js-25-native-typescript.md) for details.
-
-**Development:**
+## Useful Commands
 
 ```bash
-# Run TypeScript files natively
-node --experimental-strip-types src/index.ts
-```
-
-**Production:**
-
-```bash
-# Still transpile for optimization
+pnpm dev
 pnpm build
-pnpm start
+pnpm test
+pnpm test:e2e
+pnpm lint
+pnpm format:check
+pnpm typecheck
 ```
 
----
+## Where To Look Next
 
-**You're all set! Start implementing Phase 1 from the plan. 🚀**
+- `docs/BDD.md` and `docs/BDD_IMPLEMENTATION_AUDIT.md` for BDD governance/tagging and audit scripts
+- `docs/TESTING.md` and `docs/TEST_EXPLORER_GUIDE.md` for test running and VS Code integration
+- `PROGRESS.md` for the current implementation status

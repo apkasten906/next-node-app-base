@@ -40,7 +40,7 @@ When('I upload a file with:', async function (this: World, dataTable: any) {
     filename: data.name,
     originalname: data.name,
     mimetype: data.type,
-    size: parseInt(data.size),
+    size: Number.parseInt(data.size, 10),
     buffer: Buffer.from('test file content'),
     uploadedAt: new Date(),
   };
@@ -203,15 +203,15 @@ Then('size validation should return {string}', async function (this: World, expe
 // Filename Sanitization
 When('I sanitize filename {string}', async function (this: World, filename: string) {
   const parts = filename
-    .replace(/\\/g, '/')
+    .replaceAll('\\', '/')
     .split('/')
     .filter((p) => p && p !== '.' && p !== '..');
 
   const sanitized = parts
     .join('_')
-    .replace(/[^a-zA-Z0-9._-]/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/\.+/g, '.')
+    .replaceAll(/[^a-zA-Z0-9._-]/g, '_')
+    .replaceAll(/_+/g, '_')
+    .replaceAll(/\.+/g, '.')
     .toLowerCase()
     .replace(/^[._]+/, '');
 
@@ -220,15 +220,15 @@ When('I sanitize filename {string}', async function (this: World, filename: stri
 
 When('I upload a file with filename {string}', async function (this: World, filename: string) {
   const parts = filename
-    .replace(/\\/g, '/')
+    .replaceAll('\\', '/')
     .split('/')
     .filter((p) => p && p !== '.' && p !== '..');
 
   const sanitized = parts
     .join('_')
-    .replace(/[^a-zA-Z0-9._-]/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/\.+/g, '.')
+    .replaceAll(/[^a-zA-Z0-9._-]/g, '_')
+    .replaceAll(/_+/g, '_')
+    .replaceAll(/\.+/g, '.')
     .toLowerCase()
     .replace(/^[._]+/, '');
 
@@ -278,13 +278,11 @@ Then('the file should be processed by Multer', async function (this: World) {
 
 // Multi-file Upload
 When('I upload {int} files simultaneously', async function (this: World, count: number) {
-  const files = Array(count)
-    .fill(null)
-    .map((_, i) => ({
-      filename: `file${i + 1}.pdf`,
-      size: 1024,
-      mimetype: 'application/pdf',
-    }));
+  const files = new Array(count).fill(null).map((_, i) => ({
+    filename: `file${i + 1}.pdf`,
+    size: 1024,
+    mimetype: 'application/pdf',
+  }));
 
   this.setData('uploadedFiles', files);
   this.setData('uploadCount', count);

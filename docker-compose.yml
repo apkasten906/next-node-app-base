@@ -64,6 +64,8 @@ services:
       WEBSOCKET_PATH: /socket.io
     ports:
       - '3001:3001'
+    volumes:
+      - ./apps/backend/reports:/app/apps/backend/reports:ro
     command: sh -c "pnpm exec prisma migrate deploy --config /app/prisma.config.ts && node dist/index.js"
     networks:
       - app-network

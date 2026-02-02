@@ -35,3 +35,17 @@ jobs:
 
       - name: Validate BDD status tags
         run: pnpm -s bdd:status
+
+      - name: Validate @impl_* tags for @ready scenarios
+        run: node scripts/bdd-impl-audit.js --fail-on-missing-ready-impl
+
+      - name: Generate implementation audit report
+        run: node scripts/bdd-impl-audit.js --format json --out impl-audit.json
+
+      - name: Upload implementation audit report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: bdd-impl-audit
+          path: impl-audit.json
+          if-no-files-found: error

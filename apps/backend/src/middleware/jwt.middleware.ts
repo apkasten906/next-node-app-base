@@ -4,17 +4,18 @@ import { container } from 'tsyringe';
 
 import { JwtService } from '../services/auth/jwt.service';
 
-function parseCookies(cookieHeader: string | undefined): Record<string, string> {
-  const list: Record<string, string> = {};
-  if (!cookieHeader) return list;
-  const cookies = cookieHeader.split(';');
-  for (const cookie of cookies) {
+function parseCookies(cookieHeader: string | undefined): Map<string, string> {
+  const cookies = new Map<string, string>();
+  if (!cookieHeader) return cookies;
+
+  for (const cookie of cookieHeader.split(';')) {
     const parts = cookie.split('=');
     const key = parts.shift()?.trim();
     const value = decodeURIComponent(parts.join('=')).trim();
-    if (key) list[key] = value;
+    if (key) cookies.set(key, value);
   }
-  return list;
+
+  return cookies;
 }
 
 /**
@@ -27,14 +28,14 @@ export function attachUserIfPresent(req: Request, _res: Response, next: NextFunc
 
   // Try Authorization header first
   const authHeader = req.get('authorization') || req.get('Authorization');
-  const bearer =
-    authHeader && authHeader.startsWith('Bearer ')
-      ? authHeader.substring('Bearer '.length)
-      : undefined;
+  const bearer = authHeader?.startsWith('Bearer ')
+    ? authHeader.substring('Bearer '.length)
+    : undefined;
 
   // Then cookie
-  const cookies = parseCookies(req.headers['cookie'] as string | undefined);
-  const cookieToken = cookies['access_token'];
+  const cookieHeader = req.headers['cookie'];
+  const cookies = parseCookies(typeof cookieHeader === 'string' ? cookieHeader : undefined);
+  const cookieToken = cookies.get('access_token');
 
   const token = bearer || cookieToken;
   if (!token) return next();

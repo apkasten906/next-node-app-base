@@ -8,7 +8,7 @@ Feature: Notification Service Abstraction
     Given notification services are configured
     And environment variables specify providers
 
-  @notifications @email
+  @notifications @email @impl_notifications
   @ready
   Scenario: Send email notification
     Given email provider is configured
@@ -100,7 +100,7 @@ Feature: Notification Service Abstraction
     And attachment should have correct MIME type
     And email should be delivered successfully
 
-  @notifications @retry
+  @notifications @retry @impl_notifications
   @ready
   Scenario: Notification delivery retry logic
     Given a notification fails to deliver
@@ -109,7 +109,7 @@ Feature: Notification Service Abstraction
     And retry attempts should follow exponential backoff
     And maximum retry limit should be respected
 
-  @notifications @health-check
+  @notifications @health-check @impl_notifications
   @ready
   Scenario: Notification service health check
     Given notification providers are configured

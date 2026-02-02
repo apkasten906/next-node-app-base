@@ -269,13 +269,11 @@ Then('the email should contain the rendered template', async function (this: Wor
 
 // Attachments
 When('I send an email with {int} attachment', async function (this: World, count: number) {
-  const attachments = Array(count)
-    .fill(null)
-    .map((_, i) => ({
-      filename: `file${i + 1}.pdf`,
-      content: Buffer.from('test'),
-      contentType: 'application/pdf',
-    }));
+  const attachments = new Array(count).fill(null).map((_, i) => ({
+    filename: `file${i + 1}.pdf`,
+    content: Buffer.from('test'),
+    contentType: 'application/pdf',
+  }));
 
   this.setData('attachments', attachments);
   this.setData('notificationSent', true);

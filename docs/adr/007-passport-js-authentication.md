@@ -496,10 +496,12 @@ app.post('/auth/login', authLimiter, passport.authenticate('local'));
 ### Unit Tests
 
 ```typescript
+import { type Mocked } from 'vitest';
+
 describe('AuthenticationService', () => {
   let authService: AuthenticationService;
-  let mockJwtService: jest.Mocked<JwtService>;
-  let mockEncryptionService: jest.Mocked<EncryptionService>;
+  let mockJwtService: Mocked<JwtService>;
+  let mockEncryptionService: Mocked<EncryptionService>;
 
   beforeEach(() => {
     container.clearInstances();

@@ -1,5 +1,5 @@
 import { After, Given, Then, When } from '@cucumber/cucumber';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 import { expect } from '../support/assertions';
 import { World } from '../support/world';
@@ -88,12 +88,15 @@ When(
       return { ok: true, status: 200 };
     };
 
+    const signingSecret = crypto.randomBytes(32).toString('hex');
+    this.setData('webhookSigningSecret', signingSecret);
+
     const webhookEvent: WebhookEvent = {
-      id: `evt-${event.replace(/[^a-z0-9]/gi, '-')}`,
+      id: `evt-${event.replaceAll(/[^a-z0-9]/gi, '-')}`,
       url: 'https://example.com/webhook',
       event,
       payload: { ok: true },
-      secret: 'webhook-secret',
+      secret: signingSecret,
       maxRetries: 3,
     };
 
@@ -148,7 +151,7 @@ When('a webhook is received with a valid signature', async function (this: World
   expect(webhookService).toBeDefined();
 
   const payload = JSON.stringify({ id: 'evt-123', event: 'user.created', data: { ok: true } });
-  const secret = 'webhook-secret';
+  const secret = crypto.randomBytes(32).toString('hex');
 
   // Mirror WebhookService signing: sha256 HMAC over raw payload.
   const signature = `sha256=${crypto.createHmac('sha256', secret).update(payload).digest('hex')}`;
@@ -172,7 +175,7 @@ When('a webhook is received with an invalid signature', async function (this: Wo
 
   const payload =
     this.getData<string>('webhookPayload') ?? JSON.stringify({ id: 'evt-123', ok: true });
-  const secret = this.getData<string>('webhookSecret') ?? 'webhook-secret';
+  const secret = this.getData<string>('webhookSecret') ?? crypto.randomBytes(32).toString('hex');
   const invalidSignature =
     'sha256=0000000000000000000000000000000000000000000000000000000000000000';
 

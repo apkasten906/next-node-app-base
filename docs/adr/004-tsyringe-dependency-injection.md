@@ -264,13 +264,14 @@ beforeEach(() => {
 ```typescript
 // jwt.service.test.ts
 import { container } from 'tsyringe';
+import { vi } from 'vitest';
 
 describe('JwtService', () => {
   it('should generate tokens', () => {
     // Register mock
     const mockEncryption = {
-      hash: jest.fn(),
-      compare: jest.fn(),
+      hash: vi.fn(),
+      compare: vi.fn(),
     };
 
     container.registerInstance(EncryptionService, mockEncryption);

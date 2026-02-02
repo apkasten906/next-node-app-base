@@ -1,7 +1,7 @@
-import crypto from 'crypto';
-import { createWriteStream } from 'fs';
-import fs from 'fs/promises';
-import path from 'path';
+import crypto from 'node:crypto';
+import { createWriteStream } from 'node:fs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 import {
   DeleteOptions,
@@ -24,15 +24,19 @@ export class LocalStorageProvider implements IStorageProvider {
   readonly providerName = 'local';
   private readonly basePath: string;
   private readonly baseUrl: string;
+  private baseDirectoryReady?: Promise<void>;
 
-  constructor(private logger: LoggerService) {
+  constructor(private readonly logger: LoggerService) {
     this.basePath = process.env['STORAGE_PATH'] || path.join(process.cwd(), 'uploads');
     this.baseUrl = process.env['STORAGE_BASE_URL'] || 'http://localhost:3001/uploads';
+  }
 
-    // Ensure base directory exists
-    this.ensureDirectory(this.basePath).catch((error) => {
-      this.logger.error('Failed to create storage directory', error);
+  private async ensureBaseDirectory(): Promise<void> {
+    this.baseDirectoryReady ??= this.ensureDirectory(this.basePath).catch((error) => {
+      this.logger.error('Failed to create storage directory', error as Error);
     });
+
+    await this.baseDirectoryReady;
   }
 
   async upload(
@@ -40,6 +44,8 @@ export class LocalStorageProvider implements IStorageProvider {
     options: UploadOptions
   ): Promise<FileMetadata> {
     try {
+      await this.ensureBaseDirectory();
+
       const filename = options.filename || this.generateFilename(options.contentType);
       const folder = options.folder || 'default';
       const filePath = path.join(folder, filename);
@@ -99,6 +105,8 @@ export class LocalStorageProvider implements IStorageProvider {
 
   async download(filePath: string, _options?: DownloadOptions): Promise<Buffer> {
     try {
+      await this.ensureBaseDirectory();
+
       const fullPath = path.join(this.basePath, filePath);
       // eslint-disable-next-line security/detect-non-literal-fs-filename -- Path constructed with sanitized basePath to prevent directory traversal
       const buffer = await fs.readFile(fullPath);
@@ -319,8 +327,8 @@ export class LocalStorageProvider implements IStorageProvider {
             originalName: entry.name,
             mimeType: 'application/octet-stream',
             size: stats.size,
-            path: relPath.replace(/\\/g, '/'),
-            url: `${this.baseUrl}/${relPath.replace(/\\/g, '/')}`,
+            path: relPath.replaceAll('\\', '/'),
+            url: `${this.baseUrl}/${relPath.replaceAll('\\', '/')}`,
             uploadedAt: stats.birthtime,
           });
         }

@@ -31,7 +31,7 @@ Feature: Frontend Core Features
     And response should be strongly typed
     And TypeScript should catch type errors
 
-  @frontend @api-client @error-handling
+  @frontend @api-client @error-handling @impl_frontend_error_handling
   @ready
   Scenario: API client error handling
     Given the API client is configured
@@ -47,7 +47,7 @@ Feature: Frontend Core Features
       | 404    |
       | 500    |
 
-  @frontend @error-boundary
+  @frontend @error-boundary @impl_frontend_error_handling
   @ready
   Scenario: React error boundary
     Given an error boundary is configured
@@ -56,7 +56,7 @@ Feature: Frontend Core Features
     And a fallback UI should be displayed
     And the error should be logged
 
-  @frontend @websocket @ready
+  @frontend @websocket @ready @impl_frontend_websocket_hook
   Scenario: WebSocket hook wiring
     Given the WebSocket hook is implemented
     Then it should use socket.io-client

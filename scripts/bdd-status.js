@@ -62,6 +62,85 @@ function classify(tags) {
 }
 
 /**
+ * @param {string[]} featureTags
+ * @param {string[]} pendingTags
+ */
+function buildScenarioTags(featureTags, pendingTags) {
+  const featurePrimaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => featureTags.includes(t));
+  const scenarioPrimaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => pendingTags.includes(t));
+
+  // Scenario-level status tags override feature-level status tags.
+  // This allows gradual promotion within a feature that still defaults to @wip.
+  const effectivePrimaryStatusTags =
+    scenarioPrimaryStatusTags.length > 0 ? scenarioPrimaryStatusTags : featurePrimaryStatusTags;
+
+  const scenarioTags = Array.from(
+    new Set([
+      // Keep all non-status tags from both scopes.
+      ...featureTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
+      ...pendingTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
+      // Apply the effective status tags.
+      ...effectivePrimaryStatusTags,
+    ])
+  );
+
+  return {
+    scenarioTags,
+    featurePrimaryStatusTags,
+    scenarioPrimaryStatusTags,
+    effectivePrimaryStatusTags,
+  };
+}
+
+/**
+ * @param {string} filePath
+ * @param {string} scenarioName
+ * @param {string[]} scenarioTags
+ * @param {string[]} featurePrimaryStatusTags
+ * @param {string[]} scenarioPrimaryStatusTags
+ * @param {string[]} effectivePrimaryStatusTags
+ * @param {Array<{filePath: string, scenarioName: string, tags: string[]}>} missingStatus
+ * @param {Array<{filePath: string, scenarioName: string, tags: string[], primaryStatusTags: string[]}>} conflictingStatus
+ */
+function evaluateScenarioIssues({
+  filePath,
+  scenarioName,
+  scenarioTags,
+  featurePrimaryStatusTags,
+  scenarioPrimaryStatusTags,
+  effectivePrimaryStatusTags,
+  missingStatus,
+  conflictingStatus,
+}) {
+  // Conflicts are only within the same scope (scenario overrides feature).
+  if (scenarioPrimaryStatusTags.length > 1) {
+    conflictingStatus.push({
+      filePath,
+      scenarioName,
+      tags: scenarioTags,
+      primaryStatusTags: scenarioPrimaryStatusTags,
+    });
+    return;
+  }
+
+  if (scenarioPrimaryStatusTags.length === 0 && featurePrimaryStatusTags.length > 1) {
+    conflictingStatus.push({
+      filePath,
+      scenarioName,
+      tags: scenarioTags,
+      primaryStatusTags: featurePrimaryStatusTags,
+    });
+    return;
+  }
+
+  // Require at least one primary status tag OR @skip.
+  // (We allow "skip-only" so a scenario can be temporarily disabled without changing its intent tags.)
+  if (effectivePrimaryStatusTags.length === 0 && !scenarioTags.includes(STATUS_TAGS.skip)) {
+    missingStatus.push({ filePath, scenarioName, tags: scenarioTags });
+  }
+}
+
+/**
  * Parse a single .feature file and return scenario status counts.
  *
  * Rules:
@@ -103,47 +182,24 @@ function parseFeatureFile(filePath, fileContent, missingStatus, conflictingStatu
 
     if (/^Scenario( Outline)?:/i.test(line)) {
       const scenarioName = parseScenarioName(line);
-      const featurePrimaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => featureTags.includes(t));
-      const scenarioPrimaryStatusTags = PRIMARY_STATUS_TAGS.filter((t) => pendingTags.includes(t));
-
-      // Scenario-level status tags override feature-level status tags.
-      // This allows gradual promotion within a feature that still defaults to @wip.
-      const effectivePrimaryStatusTags =
-        scenarioPrimaryStatusTags.length > 0 ? scenarioPrimaryStatusTags : featurePrimaryStatusTags;
-
-      const scenarioTags = Array.from(
-        new Set([
-          // Keep all non-status tags from both scopes.
-          ...featureTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
-          ...pendingTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
-          // Apply the effective status tags.
-          ...effectivePrimaryStatusTags,
-        ])
-      );
+      const {
+        scenarioTags,
+        featurePrimaryStatusTags,
+        scenarioPrimaryStatusTags,
+        effectivePrimaryStatusTags,
+      } = buildScenarioTags(featureTags, pendingTags);
       pendingTags = [];
 
-      // Conflicts are only within the same scope (scenario overrides feature).
-      if (scenarioPrimaryStatusTags.length > 1) {
-        conflictingStatus.push({
-          filePath,
-          scenarioName,
-          tags: scenarioTags,
-          primaryStatusTags: scenarioPrimaryStatusTags,
-        });
-      } else if (scenarioPrimaryStatusTags.length === 0 && featurePrimaryStatusTags.length > 1) {
-        conflictingStatus.push({
-          filePath,
-          scenarioName,
-          tags: scenarioTags,
-          primaryStatusTags: featurePrimaryStatusTags,
-        });
-      }
-
-      // Require at least one primary status tag OR @skip.
-      // (We allow "skip-only" so a scenario can be temporarily disabled without changing its intent tags.)
-      if (effectivePrimaryStatusTags.length === 0 && !scenarioTags.includes(STATUS_TAGS.skip)) {
-        missingStatus.push({ filePath, scenarioName, tags: scenarioTags });
-      }
+      evaluateScenarioIssues({
+        filePath,
+        scenarioName,
+        scenarioTags,
+        featurePrimaryStatusTags,
+        scenarioPrimaryStatusTags,
+        effectivePrimaryStatusTags,
+        missingStatus,
+        conflictingStatus,
+      });
 
       counts.total += 1;
       const status = classify(scenarioTags);
@@ -155,6 +211,81 @@ function parseFeatureFile(filePath, fileContent, missingStatus, conflictingStatu
   }
 
   return counts;
+}
+
+/**
+ * @param {string} p
+ */
+function shouldSkipDirDefault(p) {
+  const base = path.basename(p);
+  return (
+    base === 'node_modules' ||
+    base === 'dist' ||
+    base === 'build' ||
+    base === '.turbo' ||
+    base === '.next' ||
+    base === 'coverage'
+  );
+}
+
+/**
+ * @param {string[]} featureFiles
+ * @param {Array<{filePath: string, scenarioName: string, tags: string[]}>} missingStatus
+ * @param {Array<{filePath: string, scenarioName: string, tags: string[], primaryStatusTags: string[]}>} conflictingStatus
+ */
+function computeCountsForFiles(featureFiles, missingStatus, conflictingStatus) {
+  const counts = createEmptyCounts();
+  for (const filePath of featureFiles) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    addCounts(counts, parseFeatureFile(filePath, content, missingStatus, conflictingStatus));
+  }
+  return counts;
+}
+
+/**
+ * @param {string} repoRoot
+ * @param {Array<{filePath: string, scenarioName: string, tags: string[], primaryStatusTags: string[]}>} conflictingStatus
+ */
+function reportConflictingStatus(repoRoot, conflictingStatus) {
+  const maxShown = 50;
+  console.error('');
+  console.error(
+    `ERROR: ${conflictingStatus.length} scenario(s) have conflicting status tags. Choose exactly one of: ${PRIMARY_STATUS_TAGS.join(
+      ', '
+    )} (you may optionally add ${STATUS_TAGS.skip}).`
+  );
+  for (const v of conflictingStatus.slice(0, maxShown)) {
+    const rel = path.relative(repoRoot, v.filePath).replaceAll('\\', '/');
+    console.error(
+      `- ${rel} :: ${v.scenarioName} (primary: ${v.primaryStatusTags.join(
+        ', '
+      )}; tags: ${v.tags.join(' ') || '(none)'})`
+    );
+  }
+  if (conflictingStatus.length > maxShown) {
+    console.error(`...and ${conflictingStatus.length - maxShown} more`);
+  }
+}
+
+/**
+ * @param {string} repoRoot
+ * @param {Array<{filePath: string, scenarioName: string, tags: string[]}>} missingStatus
+ */
+function reportMissingStatus(repoRoot, missingStatus) {
+  const maxShown = 50;
+  console.error('');
+  console.error(
+    `ERROR: ${missingStatus.length} scenario(s) missing a status tag. Add one of: ${Object.values(
+      STATUS_TAGS
+    ).join(', ')}`
+  );
+  for (const v of missingStatus.slice(0, maxShown)) {
+    const rel = path.relative(repoRoot, v.filePath).replaceAll('\\', '/');
+    console.error(`- ${rel} :: ${v.scenarioName} (tags: ${v.tags.join(' ') || '(none)'})`);
+  }
+  if (missingStatus.length > maxShown) {
+    console.error(`...and ${missingStatus.length - maxShown} more`);
+  }
 }
 
 /**
@@ -252,26 +383,12 @@ function main() {
     const featuresDir = path.join(appsDir, appName, 'features');
     if (!fs.existsSync(featuresDir)) continue;
 
-    const featureFiles = findFeatureFiles(featuresDir, (p) => {
-      const base = path.basename(p);
-      return (
-        base === 'node_modules' ||
-        base === 'dist' ||
-        base === 'build' ||
-        base === '.turbo' ||
-        base === '.next' ||
-        base === 'coverage'
-      );
-    });
+    const featureFiles = findFeatureFiles(featuresDir, shouldSkipDirDefault);
 
     if (featureFiles.length === 0) continue;
     anyFeatures = true;
 
-    const appCounts = createEmptyCounts();
-    for (const filePath of featureFiles) {
-      const content = fs.readFileSync(filePath, 'utf8');
-      addCounts(appCounts, parseFeatureFile(filePath, content, missingStatus, conflictingStatus));
-    }
+    const appCounts = computeCountsForFiles(featureFiles, missingStatus, conflictingStatus);
 
     addCounts(overall, appCounts);
     console.log(
@@ -290,42 +407,12 @@ function main() {
   );
 
   if (conflictingStatus.length > 0) {
-    const maxShown = 50;
-    console.error('');
-    console.error(
-      `ERROR: ${conflictingStatus.length} scenario(s) have conflicting status tags. Choose exactly one of: ${PRIMARY_STATUS_TAGS.join(
-        ', '
-      )} (you may optionally add ${STATUS_TAGS.skip}).`
-    );
-    for (const v of conflictingStatus.slice(0, maxShown)) {
-      const rel = path.relative(repoRoot, v.filePath).replaceAll('\\', '/');
-      console.error(
-        `- ${rel} :: ${v.scenarioName} (primary: ${v.primaryStatusTags.join(
-          ', '
-        )}; tags: ${v.tags.join(' ') || '(none)'})`
-      );
-    }
-    if (conflictingStatus.length > maxShown) {
-      console.error(`...and ${conflictingStatus.length - maxShown} more`);
-    }
+    reportConflictingStatus(repoRoot, conflictingStatus);
     process.exitCode = 1;
   }
 
   if (missingStatus.length > 0) {
-    const maxShown = 50;
-    console.error('');
-    console.error(
-      `ERROR: ${missingStatus.length} scenario(s) missing a status tag. Add one of: ${Object.values(
-        STATUS_TAGS
-      ).join(', ')}`
-    );
-    for (const v of missingStatus.slice(0, maxShown)) {
-      const rel = path.relative(repoRoot, v.filePath).replaceAll('\\', '/');
-      console.error(`- ${rel} :: ${v.scenarioName} (tags: ${v.tags.join(' ') || '(none)'})`);
-    }
-    if (missingStatus.length > maxShown) {
-      console.error(`...and ${missingStatus.length - maxShown} more`);
-    }
+    reportMissingStatus(repoRoot, missingStatus);
     process.exitCode = 1;
   }
 }

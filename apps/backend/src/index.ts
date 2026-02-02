@@ -1,6 +1,8 @@
-import 'dotenv/config';
-import { createServer, type Server as HttpServer } from 'http';
-import 'reflect-metadata';
+import './bootstrap';
+
+import fs from 'node:fs';
+import { createServer, type Server as HttpServer } from 'node:http';
+import path from 'node:path';
 
 import compression from 'compression';
 import cors from 'cors';
@@ -13,6 +15,7 @@ import { setupSwagger } from './config/swagger';
 import { apiVersionMiddleware } from './middleware/api-version.middleware';
 import { attachUserIfPresent } from './middleware/jwt.middleware';
 import authRouter from './routes/auth.routes';
+import bddAdminRouter from './routes/bdd-admin.routes';
 import e2eRouter from './routes/e2e.routes';
 import filesRouter from './routes/files.routes';
 import { usersRouter } from './routes/users-v2.routes';
@@ -31,15 +34,24 @@ import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.se
 import { registerStorageProvider } from './services/storage/storage-provider.factory';
 import { WebSocketService } from './services/websocket/websocket.service';
 
+function readDirEntriesSafe(dir: string): fs.Dirent[] {
+  try {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    return fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Express application setup with DI container
  */
 export class App {
   public app: Express;
   private server?: HttpServer;
-  private logger: LoggerService;
-  private database: DatabaseService;
-  private cache: CacheService;
+  private readonly logger: LoggerService;
+  private readonly database: DatabaseService;
+  private readonly cache: CacheService;
   private websocket?: WebSocketService;
 
   private queuesEnabled(): boolean {
@@ -61,83 +73,80 @@ export class App {
     this.initializeErrorHandling();
   }
 
-  /**
-   * Initialize middleware
-   */
   private initializeMiddlewares(): void {
-    // Security headers
-    this.app.use(helmet());
+    // Trust proxy for correct IP/HTTPS detection behind reverse proxies
+    this.app.set('trust proxy', 1);
 
-    // CORS
-    const allowedOrigins = (process.env['ALLOWED_ORIGINS'] || 'http://localhost:3000').split(',');
+    this.app.use(compression());
     this.app.use(
       cors({
-        origin: allowedOrigins,
+        origin: process.env['CORS_ORIGIN'] ? process.env['CORS_ORIGIN'].split(',') : true,
         credentials: true,
       })
     );
-
-    // Compression
-    this.app.use(compression());
-
-    // Body parsing
-    this.app.use(express.json());
+    this.app.use(helmet());
+    this.app.use(morgan('combined'));
+    this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true }));
 
-    // Request logging
-    this.app.use(
-      morgan('combined', {
-        stream: {
-          write: (message: string) => {
-            this.logger.info(message.trim());
-          },
-        },
-      })
-    );
-
-    // API versioning middleware (for /api routes)
-    this.app.use(
-      '/api',
-      apiVersionMiddleware({
-        defaultVersion: '1.0',
-        supportedVersions: ['1.0'],
-        header: 'accept',
-      })
-    );
-
-    // Attach user from JWT if present
+    this.app.use(apiVersionMiddleware());
     this.app.use(attachUserIfPresent);
-
-    // Correlation ID middleware
-    this.app.use((req: Request, res: Response, next: NextFunction) => {
-      const correlationId = (req.headers['x-correlation-id'] as string) || crypto.randomUUID();
-      req.headers['x-correlation-id'] = correlationId;
-      res.setHeader('x-correlation-id', correlationId);
-      next();
-    });
   }
 
-  /**
-   * Initialize routes
-   */
   private initializeRoutes(): void {
-    // Swagger documentation
     setupSwagger(this.app);
 
-    // Bull Board queue monitoring dashboard (admin only in production)
-    if (
-      this.queuesEnabled() &&
-      (process.env['NODE_ENV'] === 'development' ||
-        process.env['ENABLE_QUEUE_DASHBOARD'] === 'true')
-    ) {
-      try {
-        const queueService = container.resolve(QueueService);
-        const queueDashboard = createQueueMonitoringDashboard(queueService);
-        this.app.use('/admin/queues', queueDashboard);
-        this.logger.info('Queue monitoring dashboard available at /admin/queues');
-      } catch (error) {
-        this.logger.warn('Failed to initialize queue dashboard', { error });
-      }
+    // Default root landing
+    this.app.get('/', (_req: Request, res: Response) => {
+      res.redirect(302, '/api-docs');
+    });
+
+    if (process.env['NODE_ENV'] === 'development') {
+      const reportsDir = path.join(process.cwd(), 'reports');
+
+      // Cucumber's HTML report uses inline scripts; Helmet's default CSP blocks it.
+      // Keep CSP for the rest of the app, but relax it for dev-only report viewing.
+      this.app.use('/reports', (_req: Request, res: Response, next: NextFunction) => {
+        res.removeHeader('Content-Security-Policy');
+        res.removeHeader('Content-Security-Policy-Report-Only');
+        next();
+      });
+
+      this.app.get(['/reports', '/reports/'], (_req: Request, res: Response) => {
+        res.setHeader('cache-control', 'no-store');
+
+        const entries = readDirEntriesSafe(reportsDir)
+          .filter((d) => d.isFile())
+          .map((d) => d.name)
+          .filter((name) => !name.startsWith('.'))
+          .sort((a, b) => a.localeCompare(b));
+
+        const listItems = entries
+          .map((name) => `<li><a href="/reports/${encodeURIComponent(name)}">${name}</a></li>`)
+          .join('');
+
+        res.status(200).type('html').send(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Reports</title>
+  </head>
+  <body>
+    <h1>Reports</h1>
+    <ul>
+      <li><a href="/reports/cucumber">Cucumber report</a></li>
+    </ul>
+    <h2>Files</h2>
+    <ul>${listItems || '<li>(no files found)</li>'}</ul>
+  </body>
+</html>`);
+      });
+
+      this.app.use('/reports', express.static(reportsDir, { index: false }));
+      this.app.get('/reports/cucumber', (_req: Request, res: Response) => {
+        res.redirect(302, '/reports/cucumber-report.html');
+      });
     }
 
     // Health check endpoint
@@ -196,11 +205,10 @@ export class App {
 
     // Register API routes
     this.app.use('/api/auth', authRouter);
+    this.app.use('/api/admin/bdd', bddAdminRouter);
     this.app.use('/api/e2e', e2eRouter);
     this.app.use('/api/users', usersRouter);
     this.app.use('/api/files', filesRouter);
-
-    // Additional API routes would be added here
   }
 
   /**
@@ -237,103 +245,26 @@ export class App {
       await this.database.connect();
       this.logger.info('Database connected');
 
-      // Seed development/test users for E2E auth flow (only if DB is reachable and users table exists)
-      if (process.env['NODE_ENV'] !== 'production') {
+      await this.seedDevUsersIfApplicable();
+
+      this.initializeQueuesIfEnabled();
+
+      // Queue monitoring dashboard (development only)
+      if (process.env['NODE_ENV'] === 'development' && this.queuesEnabled()) {
         try {
-          const reachable = await this.database.healthCheck();
-          if (!reachable) {
-            this.logger.warn('Skipping dev seeding: database not reachable');
-          } else {
-            const existsResult = await this.database.$queryRaw<
-              Array<{ exists: boolean }>
-            >`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='users') AS exists`;
-            const hasUsersTable = existsResult[0]?.exists === true;
-
-            if (!hasUsersTable) {
-              this.logger.warn('Skipping dev seeding: users table not found');
-            } else {
-              const enc = container.resolve(EncryptionService);
-              const testPassword = await enc.hash('Password123!');
-              const adminPassword = await enc.hash('Admin123!');
-
-              await this.database.user.upsert({
-                where: { email: 'test@example.com' },
-                update: {
-                  name: 'Test User',
-                  role: 'USER',
-                  passwordHash: testPassword,
-                },
-                create: {
-                  email: 'test@example.com',
-                  name: 'Test User',
-                  role: 'USER',
-                  passwordHash: testPassword,
-                },
-              });
-
-              await this.database.user.upsert({
-                where: { email: 'admin@example.com' },
-                update: {
-                  name: 'Admin User',
-                  role: 'ADMIN',
-                  passwordHash: adminPassword,
-                },
-                create: {
-                  email: 'admin@example.com',
-                  name: 'Admin User',
-                  role: 'ADMIN',
-                  passwordHash: adminPassword,
-                },
-              });
-
-              this.logger.info('Seeded development users for E2E');
-            }
-          }
-        } catch (seedErr) {
-          this.logger.warn('Dev user seeding skipped/failed', {
-            error:
-              seedErr instanceof Error
-                ? { message: seedErr.message, stack: seedErr.stack, name: seedErr.name }
-                : String(seedErr),
-          });
-        }
-      }
-
-      // Initialize job queues
-      if (this.queuesEnabled()) {
-        try {
-          initializeQueues();
-          this.logger.info('Job queues initialized');
+          const queueService = container.resolve(QueueService);
+          const queueDashboard = createQueueMonitoringDashboard(queueService);
+          this.app.use('/admin/queues', queueDashboard);
+          this.logger.info('Queue monitoring dashboard available at /admin/queues');
         } catch (error) {
-          this.logger.error('Failed to initialize job queues', error as Error);
-          // Continue without queues in development
-          if (process.env['NODE_ENV'] === 'production') {
-            throw error;
-          }
+          this.logger.warn('Failed to initialize queue dashboard', { error });
         }
-      } else {
-        this.logger.info('Job queues disabled (DISABLE_QUEUES=true)');
       }
 
       // Create HTTP server
       this.server = createServer(this.app);
 
-      // Initialize WebSocket server
-      if (this.websocketsEnabled()) {
-        try {
-          this.websocket = container.resolve(WebSocketService);
-          await this.websocket.initialize(this.server);
-          this.logger.info('WebSocket server initialized');
-        } catch (error) {
-          this.logger.error('Failed to initialize WebSocket server', error as Error);
-          // Continue without WebSocket in development
-          if (process.env['NODE_ENV'] === 'production') {
-            throw error;
-          }
-        }
-      } else {
-        this.logger.info('WebSockets disabled (DISABLE_WEBSOCKETS=true)');
-      }
+      await this.initializeWebSocketsIfEnabled();
 
       // Start server
       this.server.listen(port, () => {
@@ -343,6 +274,108 @@ export class App {
     } catch (error) {
       this.logger.error('Failed to start server', error as Error);
       throw error;
+    }
+  }
+
+  private async seedDevUsersIfApplicable(): Promise<void> {
+    if (process.env['NODE_ENV'] === 'production') return;
+
+    try {
+      const reachable = await this.database.healthCheck();
+      if (!reachable) {
+        this.logger.warn('Skipping dev seeding: database not reachable');
+        return;
+      }
+
+      const existsResult = await this.database.$queryRaw<
+        Array<{ exists: boolean }>
+      >`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='users') AS exists`;
+      const hasUsersTable = existsResult[0]?.exists === true;
+
+      if (hasUsersTable !== true) {
+        this.logger.warn('Skipping dev seeding: users table not found');
+        return;
+      }
+
+      const enc = container.resolve(EncryptionService);
+      const testPassword = await enc.hash('Password123!');
+      const adminPassword = await enc.hash('Admin123!');
+
+      await this.database.user.upsert({
+        where: { email: 'test@example.com' },
+        update: {
+          name: 'Test User',
+          role: 'USER',
+          passwordHash: testPassword,
+        },
+        create: {
+          email: 'test@example.com',
+          name: 'Test User',
+          role: 'USER',
+          passwordHash: testPassword,
+        },
+      });
+
+      await this.database.user.upsert({
+        where: { email: 'admin@example.com' },
+        update: {
+          name: 'Admin User',
+          role: 'ADMIN',
+          passwordHash: adminPassword,
+        },
+        create: {
+          email: 'admin@example.com',
+          name: 'Admin User',
+          role: 'ADMIN',
+          passwordHash: adminPassword,
+        },
+      });
+
+      this.logger.info('Seeded development users for E2E');
+    } catch (error_) {
+      this.logger.warn('Dev user seeding skipped/failed', {
+        error:
+          error_ instanceof Error
+            ? { message: error_.message, stack: error_.stack, name: error_.name }
+            : String(error_),
+      });
+    }
+  }
+
+  private initializeQueuesIfEnabled(): void {
+    if (!this.queuesEnabled()) {
+      this.logger.info('Job queues disabled (DISABLE_QUEUES=true)');
+      return;
+    }
+
+    try {
+      initializeQueues();
+      this.logger.info('Job queues initialized');
+    } catch (error) {
+      this.logger.error('Failed to initialize job queues', error as Error);
+      // Continue without queues in development
+      if (process.env['NODE_ENV'] === 'production') {
+        throw error;
+      }
+    }
+  }
+
+  private async initializeWebSocketsIfEnabled(): Promise<void> {
+    if (!this.websocketsEnabled()) {
+      this.logger.info('WebSockets disabled (DISABLE_WEBSOCKETS=true)');
+      return;
+    }
+
+    try {
+      this.websocket = container.resolve(WebSocketService);
+      await this.websocket.initialize(this.server!);
+      this.logger.info('WebSocket server initialized');
+    } catch (error) {
+      this.logger.error('Failed to initialize WebSocket server', error as Error);
+      // Continue without WebSocket in development
+      if (process.env['NODE_ENV'] === 'production') {
+        throw error;
+      }
     }
   }
 
@@ -402,28 +435,41 @@ registerStorageProvider();
 
 if (require.main === module) {
   const app = new App();
-
   let shuttingDown = false;
+
+  const shutdown = async (signal: string): Promise<void> => {
+    try {
+      await app.shutdown();
+      process.exit(0);
+    } catch (error) {
+      // Avoid relying on DI logger during teardown.
+      console.error(`Shutdown failed after ${signal}`, error);
+      process.exit(1);
+    }
+  };
+
+  const startServer = async (): Promise<void> => {
+    try {
+      await app.start();
+    } catch (error) {
+      console.error('Server failed to start', error);
+      process.exit(1);
+    }
+  };
 
   const shutdownAndExit = (signal: string): void => {
     if (shuttingDown) return;
     shuttingDown = true;
 
-    void app
-      .shutdown()
-      .then(() => process.exit(0))
-      .catch((err) => {
-        // Avoid relying on DI logger during teardown.
-        console.error(`Shutdown failed after ${signal}`, err);
-        process.exit(1);
-      });
+    setImmediate(() => {
+      void shutdown(signal);
+    });
   };
 
   process.on('SIGTERM', () => shutdownAndExit('SIGTERM'));
   process.on('SIGINT', () => shutdownAndExit('SIGINT'));
 
-  void app.start().catch((err) => {
-    console.error('Server failed to start', err);
-    process.exit(1);
+  setImmediate(() => {
+    void startServer();
   });
 }

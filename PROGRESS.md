@@ -59,39 +59,25 @@ Key architectural decisions are documented in [Architecture Decision Records (AD
 - ✅ Create audit logging service
 - ✅ Set up environment-based secrets manager
 
-## Next Phase: Phase 3 - Backend Core
+### ✅ Phase 3: Backend Core
 
-### Pending Tasks
+The backend core is implemented and running.
 
-- [ ] Initialize Express server
-- [ ] Configure Prisma with PostgreSQL
-  - [ ] Set up primary database for writes
-  - [ ] Configure read replicas for reads
-  - [ ] Implement automatic read/write query routing
-  - [ ] Add replica lag monitoring
-  - [ ] Configure connection pooling (PgBouncer)
-- [ ] Implement SOLID architecture layers
-  - [ ] Controllers
-  - [ ] Services
-  - [ ] Repositories
-  - [ ] Entities
-- [ ] Add Winston + Morgan logging
-- [ ] Set up correlation ID middleware
-- [ ] Configure environment validation with Zod
-- [ ] Implement health check endpoints (/health, /ready, /metrics)
-- [ ] Add graceful shutdown handling
-- [ ] Implement multi-level caching service
-  - [ ] L1: In-memory cache with node-cache
-  - [ ] L2: Redis distributed cache
-  - [ ] Cache invalidation strategies
-  - [ ] Cache warming on startup
-  - [ ] Cache stampede prevention
-- [ ] Implement webhook management system
-  - [ ] Webhook registration and subscription API
-  - [ ] HMAC signature generation/verification
-  - [ ] Webhook delivery queue with Bull/BullMQ
-  - [ ] Retry logic with exponential backoff
-  - [ ] Delivery status tracking
+- ✅ Express server bootstrapping with DI container
+- ✅ Prisma + Postgres integration (migrations, client)
+- ✅ Logging (Morgan + structured app logging)
+- ✅ Health/readiness endpoints (`/health`, `/ready`) and metrics endpoint (`/metrics`)
+- ✅ Swagger UI + OpenAPI spec endpoints (`/api-docs`, `/api-docs.json`)
+- ✅ Webhook delivery service (HMAC signing/verification, queue-based delivery)
+- ✅ WebSocket service (optional; can be disabled for E2E)
+- ✅ File storage service with provider implementations
+
+## Current Focus / Next Steps
+
+- [ ] Add correlation ID middleware and propagate into logs
+- [ ] Harden/extend read-replica usage (only if needed; currently single DB is sufficient)
+- [ ] Add true multi-level caching (L1 in-memory) if required for performance
+- [ ] Expand CI security/contract testing (Pact, OWASP ZAP): currently scaffolded/placeholders
 
 ## Technology Stack Implemented
 
