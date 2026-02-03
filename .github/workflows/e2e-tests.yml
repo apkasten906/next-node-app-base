@@ -137,12 +137,17 @@ jobs:
             core.info(`pr.head.repo.full_name=${pr.head?.repo?.full_name}`);
             core.info(`pr.head.repo.fork=${pr.head?.repo?.fork}`);
 
-            const comment = `## 🎭 E2E Test Results
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
-            E2E tests completed across multiple browsers.
-
-            Check the workflow artifacts for detailed reports, videos, and traces.
-            `;
+            const comment = [
+              '## 🎭 E2E Test Results',
+              '',
+              'E2E tests completed across multiple browsers.',
+              '',
+              `➡️ [Open this workflow run (Artifacts are at the bottom)](${runUrl})`,
+              '',
+              'Download the `playwright-report-*` artifacts for the HTML report (and `playwright-traces-*` / `playwright-videos-*` on failures).',
+            ].join('\n');
 
             try {
               await github.rest.issues.createComment({

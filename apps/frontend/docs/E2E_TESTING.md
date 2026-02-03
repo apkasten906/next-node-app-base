@@ -461,8 +461,7 @@ DEBUG=pw:api pnpm --filter frontend test:e2e
 
 The `.github/workflows/e2e-tests.yml` workflow runs E2E tests on:
 
-- Push to `main` or `develop`
-- Pull requests
+- Pull requests to `master`
 - Manual dispatch
 
 **Browser Matrix**:
@@ -479,12 +478,14 @@ The `.github/workflows/e2e-tests.yml` workflow runs E2E tests on:
 
 ### Environment Variables
 
-Set in GitHub Actions secrets:
+Configured in GitHub Actions (env/secrets as appropriate):
 
 - `TEST_DATABASE_URL`: Test database connection
 - `NEXTAUTH_SECRET`: NextAuth secret for tests
-- `E2E_BASE_URL`: Frontend URL (default: http://localhost:3000)
-- `NEXT_PUBLIC_API_URL`: Backend URL (default: http://localhost:3001)
+- `E2E_BASE_URL`: Frontend URL (default: `http://localhost:3000`)
+- `E2E_BACKEND_URL`: Backend base URL used by E2E global setup/seeding (default: `http://localhost:3001`)
+- `NEXT_PUBLIC_API_URL`: Backend URL (default: `http://localhost:3001`)
+- `E2E_SEED_TOKEN`: Token required by the backend E2E seed endpoint; set uniquely per CI run to make seeding deterministic
 
 ### Test Sharding
 
