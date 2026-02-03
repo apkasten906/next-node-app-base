@@ -1,6 +1,8 @@
 name: E2E Tests
 
 on:
+  pull_request:
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -40,6 +42,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build workspace packages required by backend
+        run: pnpm --filter @repo/types build
+
+      - name: Generate Prisma Client
+        run: pnpm -C apps/backend db:generate
+
       - name: Install Playwright browsers (Linux)
         run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
         working-directory: apps/frontend
@@ -54,8 +62,9 @@ jobs:
         run: pnpm --filter frontend test:e2e --project=${{ matrix.browser }}
         env:
           E2E_BASE_URL: http://localhost:3000
-          API_BASE_URL: http://localhost:3001
-          E2E_SEED_TOKEN: local-e2e-seed-token
+          E2E_BACKEND_URL: http://localhost:3001
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+          E2E_SEED_TOKEN: e2e-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.os }}-${{ matrix.browser }}
           CI: true
 
       - name: Upload test results
@@ -93,6 +102,7 @@ jobs:
     permissions:
       contents: read
       issues: write
+      pull-requests: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -110,20 +120,48 @@ jobs:
 
       - name: Comment PR with test results
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
-            const fs = require('fs');
-            const comment = `## 🎭 E2E Test Results
+            const pr = context.payload.pull_request;
+            core.info(`github.actor=${context.actor}`);
+            core.info(`event=${context.eventName}`);
 
-            E2E tests completed across multiple browsers.
+            if (!pr) {
+              core.info('No pull_request payload found; skipping PR comment.');
+              return;
+            }
 
-            Check the workflow artifacts for detailed reports, videos, and traces.
-            `;
+            core.info(`pr.number=${pr.number}`);
+            core.info(`pr.head.repo.full_name=${pr.head?.repo?.full_name}`);
+            core.info(`pr.head.repo.fork=${pr.head?.repo?.fork}`);
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const comment = [
+              '## 🎭 E2E Test Results',
+              '',
+              'E2E tests completed across multiple browsers.',
+              '',
+              `➡️ [Open this workflow run (Artifacts are at the bottom)](${runUrl})`,
+              '',
+              'Download the `playwright-report-*` artifacts for the HTML report (and `playwright-traces-*` / `playwright-videos-*` on failures).',
+            ].join('\n');
+
+            try {
+              await github.rest.issues.createComment({
+                issue_number: pr.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment,
+              });
+              core.info('Posted PR comment with E2E results.');
+            } catch (error) {
+              const status = error?.status;
+              if (status === 403) {
+                core.warning(`Unable to post PR comment (403): ${error.message}`);
+                return;
+              }
+              throw error;
+            }
