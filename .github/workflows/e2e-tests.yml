@@ -120,23 +120,22 @@ jobs:
 
       - name: Comment PR with test results
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
-            // Note: On pull requests from forks, GitHub intentionally restricts GITHUB_TOKEN
-            // write actions and returns: "Resource not accessible by integration".
-            // This step should not fail the workflow in that case.
-
             const pr = context.payload.pull_request;
+            core.info(`github.actor=${context.actor}`);
+            core.info(`event=${context.eventName}`);
+
             if (!pr) {
               core.info('No pull_request payload found; skipping PR comment.');
               return;
             }
 
-            if (pr.head?.repo?.fork) {
-              core.info('PR is from a fork; skipping PR comment (token is read-only).');
-              return;
-            }
+            core.info(`pr.number=${pr.number}`);
+            core.info(`pr.head.repo.full_name=${pr.head?.repo?.full_name}`);
+            core.info(`pr.head.repo.fork=${pr.head?.repo?.fork}`);
 
             const comment = `## 🎭 E2E Test Results
 
