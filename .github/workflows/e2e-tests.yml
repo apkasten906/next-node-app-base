@@ -1,6 +1,8 @@
 name: E2E Tests
 
 on:
+  pull_request:
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -40,6 +42,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build workspace packages required by backend
+        run: pnpm --filter @repo/types build
+
+      - name: Generate Prisma Client
+        run: pnpm -C apps/backend db:generate
+
       - name: Install Playwright browsers (Linux)
         run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
         working-directory: apps/frontend
@@ -54,8 +62,9 @@ jobs:
         run: pnpm --filter frontend test:e2e --project=${{ matrix.browser }}
         env:
           E2E_BASE_URL: http://localhost:3000
-          API_BASE_URL: http://localhost:3001
-          E2E_SEED_TOKEN: local-e2e-seed-token
+          E2E_BACKEND_URL: http://localhost:3001
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+          E2E_SEED_TOKEN: ci-${{ github.run_id }}-${{ github.run_attempt }}
           CI: true
 
       - name: Upload test results
