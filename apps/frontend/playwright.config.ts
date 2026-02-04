@@ -1,9 +1,50 @@
+import net from 'node:net';
+import { URL } from 'node:url';
+
 import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Playwright E2E Test Configuration
  * See https://playwright.dev/docs/test-configuration
  */
+async function isPortOpen(host: string, port: number, timeout = 2000): Promise<boolean> {
+  return new Promise<boolean>((resolve: (value: boolean) => void): void => {
+    const socket = new net.Socket();
+    const onError = () => {
+      socket.destroy();
+      resolve(false);
+    };
+
+    socket.setTimeout(timeout);
+    socket.once('error', onError);
+    socket.once('timeout', onError);
+    socket.connect(port, host, () => {
+      socket.end();
+      resolve(true);
+    });
+  });
+}
+
+function parseHostAndPort(urlStr: string): { host: string; port: number } {
+  try {
+    const u = new URL(urlStr);
+    return { host: u.hostname, port: Number(u.port) || (u.protocol === 'https:' ? 443 : 80) };
+  } catch {
+    return { host: 'localhost', port: 0 };
+  }
+}
+
+const backendUrl = 'http://localhost:3001/health';
+const frontendUrl = 'http://localhost:3000';
+
+const backendHostPort = parseHostAndPort(backendUrl);
+const frontendHostPort = parseHostAndPort(frontendUrl);
+
+const backendIsUp = await isPortOpen(backendHostPort.host, backendHostPort.port).catch(() => false);
+const frontendIsUp = await isPortOpen(frontendHostPort.host, frontendHostPort.port).catch(
+  () => false
+);
+
 export default defineConfig({
   testDir: './e2e',
   testIgnore: ['**/tests/**'],
@@ -85,8 +126,8 @@ export default defineConfig({
   webServer: [
     {
       command: 'pnpm --filter=backend dev',
-      url: 'http://localhost:3001/health',
-      reuseExistingServer: !process.env['CI'],
+      url: backendUrl,
+      reuseExistingServer: backendIsUp || !process.env['CI'],
       timeout: 120 * 1000,
       stdout: 'pipe',
       stderr: 'pipe',
@@ -106,8 +147,8 @@ export default defineConfig({
     },
     {
       command: 'pnpm --filter=frontend dev',
-      url: 'http://localhost:3000',
-      reuseExistingServer: !process.env['CI'],
+      url: frontendUrl,
+      reuseExistingServer: frontendIsUp || !process.env['CI'],
       timeout: 120 * 1000,
       stdout: 'pipe',
       stderr: 'pipe',
