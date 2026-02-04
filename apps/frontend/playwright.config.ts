@@ -8,7 +8,11 @@ import { defineConfig, devices } from '@playwright/test';
 const backendUrl = 'http://localhost:3001/health';
 const frontendUrl = 'http://localhost:3000';
 
-const reuseExisting = process.env['REUSE_EXISTING_SERVER'] === 'true' || !process.env['CI'];
+// Default to reusing already-running local servers (e.g. Docker) to avoid
+// “url already used” errors in VS Code Test Explorer.
+// CI pipelines can force starting fresh servers by setting `REUSE_EXISTING_SERVER=false`.
+const reuseExistingEnv = process.env['REUSE_EXISTING_SERVER'];
+const reuseExisting = reuseExistingEnv !== 'false';
 
 export default defineConfig({
   testDir: './e2e',
