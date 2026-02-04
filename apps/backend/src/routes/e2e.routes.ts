@@ -24,7 +24,10 @@ router.post('/seed', async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  const expectedToken = process.env['E2E_SEED_TOKEN'];
+  // When Playwright reuses an already-running backend (e.g. via Docker),
+  // it cannot inject env vars into that server process. Default to the
+  // same local token that the Playwright global setup uses.
+  const expectedToken = process.env['E2E_SEED_TOKEN'] || 'local-e2e-seed-token';
   if (!expectedToken) {
     res.status(500).json({ error: 'E2E_SEED_TOKEN is not configured' });
     return;
