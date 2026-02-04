@@ -17,8 +17,8 @@ pnpm install
 docker compose up --build
 ```
 
-- Frontend: http://localhost:3000
-- Backend: http://localhost:3001/health
+- Frontend: <http://localhost:3000>
+- Backend: <http://localhost:3001/health>
 
 See `docs/DOCKER.md` for details and overrides.
 
@@ -30,13 +30,13 @@ See `docs/DOCKER.md` for details and overrides.
 pnpm install
 ```
 
-2. Start Postgres + Redis (only):
+1. Start Postgres + Redis (only):
 
 ```bash
 docker compose up -d postgres redis
 ```
 
-3. Create local env files:
+1. Create local env files:
 
 - Copy `.env.example` to `apps/backend/.env` (or export env vars another way).
 - Create `apps/frontend/.env.local` with at least:
@@ -47,7 +47,7 @@ NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=dev-nextauth-secret-change-in-production
 ```
 
-4. Run migrations and start dev:
+1. Run migrations and start dev:
 
 ```bash
 pnpm db:migrate

@@ -7,7 +7,7 @@ import winston from 'winston';
  */
 @singleton()
 export class LoggerService {
-  private logger: winston.Logger;
+  readonly logger: winston.Logger;
 
   constructor() {
     const isTest = process.env['NODE_ENV'] === 'test';

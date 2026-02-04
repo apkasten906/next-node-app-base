@@ -1,4 +1,4 @@
-import { Server as HttpServer } from 'http';
+import { Server as HttpServer } from 'node:http';
 
 import {
   JoinRoomRequest,
@@ -13,6 +13,138 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LoggerService } from '../../services/logger.service';
 import { WebSocketService } from '../../services/websocket/websocket.service';
+
+const DEFAULT_TIMEOUT_MS = 2000;
+
+type RoomJoinedResponse = { success: boolean; room: string; memberCount: number };
+type RoomLeftResponse = { success: boolean; room: string };
+type ReceivedMessage = { id: string; content: string; room?: string; timestamp: unknown };
+type TypingIndicator = { userId: string; isTyping: boolean };
+type PresenceUpdate = { userId: string; status: PresenceStatus };
+
+const delay = async (ms: number): Promise<void> =>
+  await new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const withTimeout = async <T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  timeoutMessage: string
+): Promise<T> => {
+  let timeoutId: NodeJS.Timeout | undefined;
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+};
+
+const listenServer = async (server: HttpServer, port: number): Promise<void> => {
+  await withTimeout(
+    new Promise<void>((resolve, reject) => {
+      const onError = (error: Error) => {
+        server.off('error', onError);
+        reject(error);
+      };
+
+      server.once('error', onError);
+      server.listen(port, () => {
+        server.off('error', onError);
+        resolve();
+      });
+    }),
+    DEFAULT_TIMEOUT_MS,
+    `Timed out waiting for server to listen on port ${port}`
+  );
+};
+
+const closeServer = async (server: HttpServer): Promise<void> => {
+  await withTimeout(
+    new Promise<void>((resolve) => {
+      server.close(() => resolve());
+    }),
+    DEFAULT_TIMEOUT_MS,
+    'Timed out waiting for server to close'
+  );
+};
+
+const waitForConnect = async (socket: ClientSocket): Promise<void> => {
+  await withTimeout(
+    new Promise<void>((resolve, reject) => {
+      const onConnect = () => {
+        cleanup();
+        resolve();
+      };
+
+      const onError = (error: Error) => {
+        cleanup();
+        reject(error);
+      };
+
+      const cleanup = () => {
+        socket.off('connect', onConnect);
+        socket.off('connect_error', onError);
+      };
+
+      socket.once('connect', onConnect);
+      socket.once('connect_error', onError);
+    }),
+    DEFAULT_TIMEOUT_MS,
+    'Timed out waiting for connect'
+  );
+};
+
+const waitForConnectError = async (socket: ClientSocket): Promise<Error> => {
+  return await withTimeout(
+    new Promise<Error>((resolve, reject) => {
+      const onConnect = () => {
+        cleanup();
+        reject(new Error('Expected connection to be rejected'));
+      };
+
+      const onError = (error: Error) => {
+        cleanup();
+        resolve(error);
+      };
+
+      const cleanup = () => {
+        socket.off('connect', onConnect);
+        socket.off('connect_error', onError);
+      };
+
+      socket.once('connect', onConnect);
+      socket.once('connect_error', onError);
+    }),
+    DEFAULT_TIMEOUT_MS,
+    'Timed out waiting for connect_error'
+  );
+};
+
+const waitForEvent = async <T>(
+  socket: ClientSocket,
+  event: string,
+  trigger?: () => void,
+  timeoutMessage?: string
+): Promise<T> => {
+  const eventPromise = new Promise<T>((resolve) => {
+    socket.once(event, (payload: T) => resolve(payload));
+  });
+
+  if (trigger) {
+    trigger();
+  }
+
+  return await withTimeout(
+    eventPromise,
+    DEFAULT_TIMEOUT_MS,
+    timeoutMessage ?? `Timed out waiting for ${event}`
+  );
+};
 
 describe('WebSocketService', () => {
   let websocketService: WebSocketService;
@@ -32,7 +164,7 @@ describe('WebSocketService', () => {
     // Setup HTTP server
     const express = (await import('express')).default;
     const app = express();
-    httpServer = (await import('http')).createServer(app);
+    httpServer = (await import('node:http')).createServer(app);
 
     // Set test environment variables
     process.env['WEBSOCKET_PORT'] = testPort.toString();
@@ -53,9 +185,7 @@ describe('WebSocketService', () => {
     }
 
     if (httpServer) {
-      await new Promise<void>((resolve) => {
-        httpServer.close(() => resolve());
-      });
+      await closeServer(httpServer);
     }
 
     // Close logger to prevent "write after end" errors
@@ -95,9 +225,7 @@ describe('WebSocketService', () => {
   describe('Connection Handling', () => {
     beforeEach(async () => {
       await websocketService.initialize(httpServer);
-      await new Promise<void>((resolve) => {
-        httpServer.listen(testPort, () => resolve());
-      });
+      await listenServer(httpServer, testPort);
     });
 
     it('should accept client connections with valid token', async () => {
@@ -109,20 +237,8 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Timed out waiting for connect')), 2000);
-
-        clientSocket.on('connect', () => {
-          clearTimeout(timeout);
-          expect(clientSocket.connected).toBe(true);
-          resolve();
-        });
-
-        clientSocket.on('connect_error', (error) => {
-          clearTimeout(timeout);
-          reject(error);
-        });
-      });
+      await waitForConnect(clientSocket);
+      expect(clientSocket.connected).toBe(true);
     });
 
     it('should reject connections without token', async () => {
@@ -131,23 +247,8 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(
-          () => reject(new Error('Timed out waiting for connect_error')),
-          2000
-        );
-
-        clientSocket.on('connect', () => {
-          clearTimeout(timeout);
-          reject(new Error('Expected connection to be rejected'));
-        });
-
-        clientSocket.on('connect_error', (error) => {
-          clearTimeout(timeout);
-          expect(error.message).toContain('AUTHENTICATION_FAILED');
-          resolve();
-        });
-      });
+      const error = await waitForConnectError(clientSocket);
+      expect(error.message).toContain('AUTHENTICATION_FAILED');
     });
 
     it('should track connection info', async () => {
@@ -159,14 +260,17 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await new Promise<void>((resolve) => {
-        clientSocket.on('connect', () => resolve());
-      });
+      await waitForConnect(clientSocket);
 
-      const connectionInfo = websocketService.getConnectionInfo(clientSocket.id);
+      if (!clientSocket.id) {
+        throw new Error('Expected clientSocket.id to be defined after connect');
+      }
+      const socketId = clientSocket.id;
+
+      const connectionInfo = websocketService.getConnectionInfo(socketId);
       expect(connectionInfo).toBeDefined();
       expect(connectionInfo?.userId).toBe('user-123');
-      expect(connectionInfo?.socketId).toBe(clientSocket.id);
+      expect(connectionInfo?.socketId).toBe(socketId);
       expect(connectionInfo?.rooms).toEqual([]);
     });
 
@@ -179,14 +283,15 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await new Promise<void>((resolve) => {
-        clientSocket.on('connect', () => resolve());
-      });
+      await waitForConnect(clientSocket);
 
+      if (!clientSocket.id) {
+        throw new Error('Expected clientSocket.id to be defined after connect');
+      }
       const socketId = clientSocket.id;
       clientSocket.disconnect();
 
-      await new Promise<void>((resolve) => setTimeout(resolve, 100));
+      await delay(100);
 
       const connectionInfo = websocketService.getConnectionInfo(socketId);
       expect(connectionInfo).toBeNull();
@@ -194,11 +299,11 @@ describe('WebSocketService', () => {
   });
 
   describe('Room Management', () => {
+    let clientSocketId: string;
+
     beforeEach(async () => {
       await websocketService.initialize(httpServer);
-      await new Promise<void>((resolve) => {
-        httpServer.listen(testPort, () => resolve());
-      });
+      await listenServer(httpServer, testPort);
 
       clientSocket = ioClient(`http://localhost:${testPort}`, {
         auth: {
@@ -208,9 +313,12 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await new Promise<void>((resolve) => {
-        clientSocket.on('connect', () => resolve());
-      });
+      await waitForConnect(clientSocket);
+
+      if (!clientSocket.id) {
+        throw new Error('Expected clientSocket.id to be defined after connect');
+      }
+      clientSocketId = clientSocket.id;
     });
 
     it('should allow joining a room', async () => {
@@ -218,22 +326,16 @@ describe('WebSocketService', () => {
         room: 'test-room',
       };
 
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(
-          () => reject(new Error('Timed out waiting for room-joined')),
-          2000
-        );
+      const response = await waitForEvent<RoomJoinedResponse>(
+        clientSocket,
+        'room-joined',
+        () => clientSocket.emit(WebSocketEvent.JOIN_ROOM, joinRequest),
+        'Timed out waiting for room-joined'
+      );
 
-        clientSocket.once('room-joined', (response) => {
-          clearTimeout(timeout);
-          expect(response.success).toBe(true);
-          expect(response.room).toBe('test-room');
-          expect(response.memberCount).toBeGreaterThan(0);
-          resolve();
-        });
-
-        clientSocket.emit(WebSocketEvent.JOIN_ROOM, joinRequest);
-      });
+      expect(response.success).toBe(true);
+      expect(response.room).toBe('test-room');
+      expect(response.memberCount).toBeGreaterThan(0);
     });
 
     it('should track rooms in connection info', async () => {
@@ -241,12 +343,11 @@ describe('WebSocketService', () => {
         room: 'test-room',
       };
 
-      await new Promise<void>((resolve) => {
-        clientSocket.once('room-joined', () => resolve());
-        clientSocket.emit(WebSocketEvent.JOIN_ROOM, joinRequest);
-      });
+      await waitForEvent<void>(clientSocket, 'room-joined', () =>
+        clientSocket.emit(WebSocketEvent.JOIN_ROOM, joinRequest)
+      );
 
-      const connectionInfo = websocketService.getConnectionInfo(clientSocket.id);
+      const connectionInfo = websocketService.getConnectionInfo(clientSocketId);
       expect(connectionInfo?.rooms).toContain('test-room');
     });
 
@@ -256,27 +357,23 @@ describe('WebSocketService', () => {
         room: 'test-room',
       };
 
-      await new Promise<void>((resolve) => {
-        clientSocket.once('room-joined', () => resolve());
-        clientSocket.emit(WebSocketEvent.JOIN_ROOM, joinRequest);
-      });
+      await waitForEvent<void>(clientSocket, 'room-joined', () =>
+        clientSocket.emit(WebSocketEvent.JOIN_ROOM, joinRequest)
+      );
 
       // Then leave it
       const leaveRequest: LeaveRoomRequest = {
         room: 'test-room',
       };
 
-      await new Promise<void>((resolve) => {
-        clientSocket.once('room-left', (response) => {
-          expect(response.success).toBe(true);
-          expect(response.room).toBe('test-room');
-          resolve();
-        });
+      const response = await waitForEvent<RoomLeftResponse>(clientSocket, 'room-left', () =>
+        clientSocket.emit(WebSocketEvent.LEAVE_ROOM, leaveRequest)
+      );
 
-        clientSocket.emit(WebSocketEvent.LEAVE_ROOM, leaveRequest);
-      });
+      expect(response.success).toBe(true);
+      expect(response.room).toBe('test-room');
 
-      const connectionInfo = websocketService.getConnectionInfo(clientSocket.id);
+      const connectionInfo = websocketService.getConnectionInfo(clientSocketId);
       expect(connectionInfo?.rooms).not.toContain('test-room');
     });
 
@@ -285,16 +382,15 @@ describe('WebSocketService', () => {
         room: 'test-room',
       };
 
-      await new Promise<void>((resolve) => {
-        clientSocket.once('room-joined', () => resolve());
-        clientSocket.emit(WebSocketEvent.JOIN_ROOM, joinRequest);
-      });
+      await waitForEvent<void>(clientSocket, 'room-joined', () =>
+        clientSocket.emit(WebSocketEvent.JOIN_ROOM, joinRequest)
+      );
 
       const roomInfo = websocketService.getRoomInfo('test-room');
       expect(roomInfo).toBeDefined();
       expect(roomInfo?.name).toBe('test-room');
       expect(roomInfo?.memberCount).toBeGreaterThan(0);
-      expect(roomInfo?.members).toContain(clientSocket.id);
+      expect(roomInfo?.members).toContain(clientSocketId);
     });
   });
 
@@ -303,9 +399,7 @@ describe('WebSocketService', () => {
 
     beforeEach(async () => {
       await websocketService.initialize(httpServer);
-      await new Promise<void>((resolve) => {
-        httpServer.listen(testPort, () => resolve());
-      });
+      await listenServer(httpServer, testPort);
 
       clientSocket = ioClient(`http://localhost:${testPort}`, {
         auth: {
@@ -323,10 +417,7 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await Promise.all([
-        new Promise<void>((resolve) => clientSocket.on('connect', () => resolve())),
-        new Promise<void>((resolve) => client2.on('connect', () => resolve())),
-      ]);
+      await Promise.all([waitForConnect(clientSocket), waitForConnect(client2)]);
     });
 
     afterEach(() => {
@@ -338,14 +429,12 @@ describe('WebSocketService', () => {
     it('should send messages to room', async () => {
       // Both clients join same room
       await Promise.all([
-        new Promise<void>((resolve) => {
-          clientSocket.once('room-joined', () => resolve());
-          clientSocket.emit(WebSocketEvent.JOIN_ROOM, { room: 'test-room' });
-        }),
-        new Promise<void>((resolve) => {
-          client2.once('room-joined', () => resolve());
-          client2.emit(WebSocketEvent.JOIN_ROOM, { room: 'test-room' });
-        }),
+        waitForEvent<void>(clientSocket, 'room-joined', () =>
+          clientSocket.emit(WebSocketEvent.JOIN_ROOM, { room: 'test-room' })
+        ),
+        waitForEvent<void>(client2, 'room-joined', () =>
+          client2.emit(WebSocketEvent.JOIN_ROOM, { room: 'test-room' })
+        ),
       ]);
 
       // Send message from client1
@@ -356,17 +445,16 @@ describe('WebSocketService', () => {
         type: MessageType.TEXT,
       };
 
-      await new Promise<void>((resolve) => {
-        client2.once(WebSocketEvent.MESSAGE, (receivedMessage) => {
-          expect(receivedMessage.content).toBe('Hello room!');
-          expect(receivedMessage.room).toBe('test-room');
-          expect(receivedMessage.id).toBeDefined();
-          expect(receivedMessage.timestamp).toBeDefined();
-          resolve();
-        });
+      const receivedMessage = await waitForEvent<ReceivedMessage>(
+        client2,
+        WebSocketEvent.MESSAGE,
+        () => clientSocket.emit(WebSocketEvent.MESSAGE, message)
+      );
 
-        clientSocket.emit(WebSocketEvent.MESSAGE, message);
-      });
+      expect(receivedMessage.content).toBe('Hello room!');
+      expect(receivedMessage.room).toBe('test-room');
+      expect(receivedMessage.id).toBeDefined();
+      expect(receivedMessage.timestamp).toBeDefined();
     });
 
     it('should broadcast messages', async () => {
@@ -376,23 +464,19 @@ describe('WebSocketService', () => {
         type: MessageType.TEXT,
       };
 
-      await new Promise<void>((resolve) => {
-        client2.once(WebSocketEvent.MESSAGE, (receivedMessage) => {
-          expect(receivedMessage.content).toBe('Hello everyone!');
-          resolve();
-        });
-
-        clientSocket.emit(WebSocketEvent.MESSAGE, message);
-      });
+      const receivedMessage = await waitForEvent<ReceivedMessage>(
+        client2,
+        WebSocketEvent.MESSAGE,
+        () => clientSocket.emit(WebSocketEvent.MESSAGE, message)
+      );
+      expect(receivedMessage.content).toBe('Hello everyone!');
     });
   });
 
   describe('Typing Indicators', () => {
     beforeEach(async () => {
       await websocketService.initialize(httpServer);
-      await new Promise<void>((resolve) => {
-        httpServer.listen(testPort, () => resolve());
-      });
+      await listenServer(httpServer, testPort);
 
       clientSocket = ioClient(`http://localhost:${testPort}`, {
         auth: {
@@ -402,9 +486,7 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await new Promise<void>((resolve) => {
-        clientSocket.on('connect', () => resolve());
-      });
+      await waitForConnect(clientSocket);
     });
 
     it('should send typing-start event', async () => {
@@ -416,30 +498,21 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
+      try {
+        await waitForConnect(client2);
+        const indicator = await waitForEvent<TypingIndicator>(
+          client2,
+          WebSocketEvent.TYPING_START,
+          () => clientSocket.emit(WebSocketEvent.TYPING_START, {}),
+          'Timed out waiting for typing-start'
+        );
+        expect(indicator.userId).toBe('user-123');
+        expect(indicator.isTyping).toBe(true);
+      } finally {
+        if (client2.connected) {
           client2.disconnect();
-          reject(new Error('Timed out waiting for typing-start'));
-        }, 2000);
-
-        client2.on('connect', () => {
-          client2.once(WebSocketEvent.TYPING_START, (indicator) => {
-            clearTimeout(timeout);
-            expect(indicator.userId).toBe('user-123');
-            expect(indicator.isTyping).toBe(true);
-            client2.disconnect();
-            resolve();
-          });
-
-          clientSocket.emit(WebSocketEvent.TYPING_START, {});
-        });
-
-        client2.on('connect_error', (error) => {
-          clearTimeout(timeout);
-          client2.disconnect();
-          reject(error);
-        });
-      });
+        }
+      }
     });
 
     it('should send typing-stop event', async () => {
@@ -451,39 +524,28 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
+      try {
+        await waitForConnect(client2);
+        const indicator = await waitForEvent<TypingIndicator>(
+          client2,
+          WebSocketEvent.TYPING_STOP,
+          () => clientSocket.emit(WebSocketEvent.TYPING_STOP, {}),
+          'Timed out waiting for typing-stop'
+        );
+        expect(indicator.userId).toBe('user-123');
+        expect(indicator.isTyping).toBe(false);
+      } finally {
+        if (client2.connected) {
           client2.disconnect();
-          reject(new Error('Timed out waiting for typing-stop'));
-        }, 2000);
-
-        client2.on('connect', () => {
-          client2.once(WebSocketEvent.TYPING_STOP, (indicator) => {
-            clearTimeout(timeout);
-            expect(indicator.userId).toBe('user-123');
-            expect(indicator.isTyping).toBe(false);
-            client2.disconnect();
-            resolve();
-          });
-
-          clientSocket.emit(WebSocketEvent.TYPING_STOP, {});
-        });
-
-        client2.on('connect_error', (error) => {
-          clearTimeout(timeout);
-          client2.disconnect();
-          reject(error);
-        });
-      });
+        }
+      }
     });
   });
 
   describe('Presence Updates', () => {
     beforeEach(async () => {
       await websocketService.initialize(httpServer);
-      await new Promise<void>((resolve) => {
-        httpServer.listen(testPort, () => resolve());
-      });
+      await listenServer(httpServer, testPort);
 
       clientSocket = ioClient(`http://localhost:${testPort}`, {
         auth: {
@@ -493,9 +555,7 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await new Promise<void>((resolve) => {
-        clientSocket.on('connect', () => resolve());
-      });
+      await waitForConnect(clientSocket);
     });
 
     it('should broadcast presence updates', async () => {
@@ -507,39 +567,28 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
+      try {
+        await waitForConnect(client2);
+        const presence = await waitForEvent<PresenceUpdate>(
+          client2,
+          WebSocketEvent.PRESENCE_UPDATE,
+          () => clientSocket.emit(WebSocketEvent.PRESENCE_UPDATE, PresenceStatus.AWAY),
+          'Timed out waiting for presence update'
+        );
+        expect(presence.userId).toBe('user-123');
+        expect(presence.status).toBe(PresenceStatus.AWAY);
+      } finally {
+        if (client2.connected) {
           client2.disconnect();
-          reject(new Error('Timed out waiting for presence update'));
-        }, 2000);
-
-        client2.on('connect', () => {
-          client2.once(WebSocketEvent.PRESENCE_UPDATE, (presence) => {
-            clearTimeout(timeout);
-            expect(presence.userId).toBe('user-123');
-            expect(presence.status).toBe(PresenceStatus.AWAY);
-            client2.disconnect();
-            resolve();
-          });
-
-          clientSocket.emit(WebSocketEvent.PRESENCE_UPDATE, PresenceStatus.AWAY);
-        });
-
-        client2.on('connect_error', (error) => {
-          clearTimeout(timeout);
-          client2.disconnect();
-          reject(error);
-        });
-      });
+        }
+      }
     });
   });
 
   describe('Broadcasting', () => {
     beforeEach(async () => {
       await websocketService.initialize(httpServer);
-      await new Promise<void>((resolve) => {
-        httpServer.listen(testPort, () => resolve());
-      });
+      await listenServer(httpServer, testPort);
     });
 
     it('should broadcast to all clients', async () => {
@@ -553,27 +602,18 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await Promise.all([
-        new Promise<void>((resolve) => client1.on('connect', () => resolve())),
-        new Promise<void>((resolve) => client2.on('connect', () => resolve())),
-      ]);
+      await Promise.all([waitForConnect(client1), waitForConnect(client2)]);
 
       const broadcastData = { message: 'Hello everyone!' };
 
+      const client1Data = waitForEvent<typeof broadcastData>(client1, 'broadcast');
+      const client2Data = waitForEvent<typeof broadcastData>(client2, 'broadcast');
+
+      websocketService.broadcast('broadcast', broadcastData);
+
       await Promise.all([
-        new Promise<void>((resolve) => {
-          client1.once('broadcast', (data) => {
-            expect(data).toEqual(broadcastData);
-            resolve();
-          });
-        }),
-        new Promise<void>((resolve) => {
-          client2.once('broadcast', (data) => {
-            expect(data).toEqual(broadcastData);
-            resolve();
-          });
-        }),
-        websocketService.broadcast('broadcast', broadcastData),
+        client1Data.then((data) => expect(data).toEqual(broadcastData)),
+        client2Data.then((data) => expect(data).toEqual(broadcastData)),
       ]);
 
       client1.disconnect();
@@ -591,33 +631,32 @@ describe('WebSocketService', () => {
         transports: ['websocket'],
       });
 
-      await Promise.all([
-        new Promise<void>((resolve) => client1.on('connect', () => resolve())),
-        new Promise<void>((resolve) => client2.on('connect', () => resolve())),
-      ]);
+      await Promise.all([waitForConnect(client1), waitForConnect(client2)]);
 
       // Only client1 joins room
-      await new Promise<void>((resolve) => {
-        client1.once('room-joined', () => resolve());
-        client1.emit(WebSocketEvent.JOIN_ROOM, { room: 'room1' });
-      });
+      await waitForEvent<void>(client1, 'room-joined', () =>
+        client1.emit(WebSocketEvent.JOIN_ROOM, { room: 'room1' })
+      );
 
       const roomData = { message: 'Room message!' };
 
-      const client1Received = new Promise<void>((resolve) => {
-        client1.once('notification', (data) => {
-          expect(data).toEqual(roomData);
-          resolve();
-        });
-      });
-
-      const client2Timeout = new Promise<void>((resolve) => {
-        setTimeout(() => resolve(), 500); // Client2 should not receive
+      const client1Received = waitForEvent<typeof roomData>(client1, 'notification');
+      let client2Notified = false;
+      client2.once('notification', () => {
+        client2Notified = true;
       });
 
       websocketService.broadcastToRoom('room1', 'notification', roomData);
 
-      await Promise.race([client1Received, client2Timeout]);
+      const received = await withTimeout(
+        client1Received,
+        DEFAULT_TIMEOUT_MS,
+        'Timed out waiting for room notification'
+      );
+      expect(received).toEqual(roomData);
+
+      await delay(500);
+      expect(client2Notified).toBe(false);
 
       client1.disconnect();
       client2.disconnect();
@@ -627,9 +666,7 @@ describe('WebSocketService', () => {
   describe('Metrics and Health', () => {
     beforeEach(async () => {
       await websocketService.initialize(httpServer);
-      await new Promise<void>((resolve) => {
-        httpServer.listen(testPort, () => resolve());
-      });
+      await listenServer(httpServer, testPort);
     });
 
     it('should return metrics', () => {
@@ -657,9 +694,7 @@ describe('WebSocketService', () => {
   describe('Graceful Shutdown', () => {
     it('should shutdown gracefully', async () => {
       await websocketService.initialize(httpServer);
-      await new Promise<void>((resolve) => {
-        httpServer.listen(testPort, () => resolve());
-      });
+      await listenServer(httpServer, testPort);
 
       await websocketService.shutdown();
 
