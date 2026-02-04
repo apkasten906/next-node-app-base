@@ -11,9 +11,9 @@ describe('LoggerService - correlationId handling', () => {
     // Create a complex object correlation id and make a child logger
     const complexId = { requestId: 'req-1', user: { id: 'user-1' } };
 
-    // Use the underlying Winston logger to create a child with an object correlationId
-    const root = loggerService.getLogger();
-    const child = root.child({ correlationId: complexId });
+    // Create a child logger via the LoggerService API so object correlationIds
+    // are coerced to a stable string representation.
+    const child = loggerService.child(complexId);
 
     // Create a lightweight stream transport to capture the formatted output
     const formatted: string[] = [];

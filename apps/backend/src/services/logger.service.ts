@@ -106,10 +106,14 @@ export class LoggerService {
   }
 
   /**
-   * Create child logger with correlation ID
+   * Create child logger with correlation ID.
+   * Accepts non-string values and coerces them to a stable string
+   * representation to avoid console interpolation producing
+   * "[object Object]" for object correlation IDs.
    */
-  child(correlationId: string): winston.Logger {
-    return this.logger.child({ correlationId });
+  child(correlationId: unknown): winston.Logger {
+    const cid = typeof correlationId === 'string' ? correlationId : JSON.stringify(correlationId);
+    return this.logger.child({ correlationId: cid });
   }
 
   /**
