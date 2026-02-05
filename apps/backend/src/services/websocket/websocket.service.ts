@@ -1,5 +1,5 @@
+import { Server as HttpServer } from 'node:http';
 import 'reflect-metadata';
-import { Server as HttpServer } from 'http';
 
 import {
   ClientToServerEvents,
@@ -25,7 +25,7 @@ import {
   WebSocketMetrics,
 } from '@repo/types';
 import Redis from 'ioredis';
-import { Server as SocketIOServer, Socket } from 'socket.io';
+import { Socket, Server as SocketIOServer } from 'socket.io';
 import { createAdapter } from 'socket.io-redis-adapter';
 import { injectable } from 'tsyringe';
 
