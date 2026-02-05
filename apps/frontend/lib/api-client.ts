@@ -1,3 +1,4 @@
+import { captureCorrelationIdFromResponse, injectCorrelationId } from './correlation-id';
 import { logError } from './error-logger';
 
 const API_BASE_URL =
@@ -67,10 +68,10 @@ interface ApiRequestOptions extends RequestInit {
  * Type-safe API client with automatic error handling, retries, and logging
  */
 export class ApiClient {
-  private baseUrl: string;
-  private defaultTimeout: number = 30000;
-  private defaultRetries: number = 3;
-  private defaultRetryDelay: number = 1000;
+  private readonly baseUrl: string;
+  private readonly defaultTimeout: number = 30000;
+  private readonly defaultRetries: number = 3;
+  private readonly defaultRetryDelay: number = 1000;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
@@ -137,10 +138,16 @@ export class ApiClient {
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
       try {
+        const requestHeaders = new Headers(options.headers);
+        injectCorrelationId(requestHeaders);
+
         const response = await fetch(url, {
           ...options,
+          headers: requestHeaders,
           signal: controller.signal,
         });
+
+        captureCorrelationIdFromResponse(response);
 
         clearTimeout(timeoutId);
 
@@ -151,7 +158,7 @@ export class ApiClient {
 
         // Handle empty responses
         const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
+        if (!contentType?.includes('application/json')) {
           return {} as T;
         }
 

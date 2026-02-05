@@ -16,6 +16,11 @@ declare global {
        * Authenticated user information from JWT token
        */
       user?: TokenPayload;
+
+      /**
+       * Request correlation ID (from X-Correlation-ID or generated).
+       */
+      correlationId?: string;
     }
   }
 }

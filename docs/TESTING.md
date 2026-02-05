@@ -7,6 +7,7 @@ This document describes the testing setup and how to run tests across the monore
 The project uses multiple testing frameworks:
 
 - **Backend Tests**: Vitest for unit and integration tests
+- **Frontend Unit Tests**: Vitest for fast unit tests
 - **Frontend E2E Tests**: Playwright for end-to-end browser testing
 - **Coverage**: c8 for backend code coverage reporting
 
@@ -116,6 +117,27 @@ describe('API Integration', () => {
   });
 });
 ```
+
+## Frontend Unit Testing
+
+The frontend also supports unit tests using Vitest.
+
+### Running Tests
+
+```powershell
+# From the monorepo root
+cd apps\frontend
+
+# Run unit tests
+pnpm test:unit
+
+# Or run all frontend tests (currently the same as unit)
+pnpm test
+```
+
+### Configuration
+
+See `apps/frontend/vitest.config.ts`.
 
 ## Frontend E2E Testing
 

@@ -13,7 +13,8 @@ This template includes both implemented functionality and scaffolding for planne
 - Backend: Express + TypeScript + Prisma
 - Docker: Docker Compose + multi-stage Dockerfiles
 - BDD: Cucumber features + status/implementation governance tooling + dashboard
-- Tests: Vitest (backend) and Playwright (E2E)
+- Tests: Vitest (backend + frontend unit) and Playwright (E2E)
+- Observability: Correlation IDs for request tracing (`X-Correlation-ID`)
 
 ### Scaffolded / Planned
 
@@ -204,6 +205,7 @@ Docs live in `docs/` (plus some app-specific docs under `apps/*/docs/`). Start h
 
 - `docs/BDD.md`
 - `docs/BDD_IMPLEMENTATION_AUDIT.md`
+- `docs/CORRELATION_ID.md`
 - `docs/DOCKER.md`
 - `docs/TESTING.md`
 - `docs/TEST_EXPLORER_GUIDE.md`

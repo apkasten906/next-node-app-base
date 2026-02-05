@@ -1,4 +1,4 @@
-import { PassThrough } from 'stream';
+import { PassThrough } from 'node:stream';
 
 import { container } from 'tsyringe';
 import { describe, expect, it } from 'vitest';
@@ -21,9 +21,15 @@ describe('LoggerService - correlationId handling', () => {
     const formatted: string[] = [];
     const consoleFormat = winston.format.combine(
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-      winston.format.printf(({ timestamp, level, message, correlationId, ...metadata }) => {
-        let msg = `${timestamp} [${level}]`;
-        if (correlationId) {
+      winston.format.printf((info) => {
+        const { timestamp, level, message, correlationId, ...metadata } = info as Record<
+          string,
+          unknown
+        >;
+
+        const cidPresent = Object.hasOwn(info, 'correlationId');
+        let msg = `${timestamp} [${level}] [cidPresent=${cidPresent}]`;
+        if (typeof correlationId === 'string' && correlationId.length > 0) {
           msg += ` [${correlationId}]`;
         }
         msg += `: ${message}`;
@@ -57,5 +63,62 @@ describe('LoggerService - correlationId handling', () => {
     expect(out).not.toContain('[object Object]');
     // And it should include the requestId field from the complex id when stringified
     expect(out).toContain('req-1');
+    expect(out).toContain('cidPresent=true');
+  });
+
+  it('omits correlationId metadata when undefined or null', () => {
+    const loggerService = container.resolve(LoggerService);
+
+    const formatted: string[] = [];
+    const pass = new PassThrough();
+    pass.on('data', (chunk) => formatted.push(String(chunk)));
+
+    const transport = new winston.transports.Stream({
+      stream: pass as unknown as NodeJS.WritableStream,
+      level: 'info',
+      format: winston.format.printf((info) => {
+        const cidPresent = Object.hasOwn(info, 'correlationId');
+        return `cidPresent=${cidPresent}`;
+      }),
+    });
+
+    const childUndefined = loggerService.child(undefined);
+    childUndefined.add(transport);
+    childUndefined.info('Test message');
+    childUndefined.remove(transport);
+
+    const childNull = loggerService.child(null);
+    childNull.add(transport);
+    childNull.info('Test message');
+    childNull.remove(transport);
+
+    const out = formatted.join('\n');
+    expect(out).toContain('cidPresent=false');
+  });
+
+  it('coerces bigint correlationId to a string without throwing', () => {
+    const loggerService = container.resolve(LoggerService);
+
+    const formatted: string[] = [];
+    const pass = new PassThrough();
+    pass.on('data', (chunk) => formatted.push(String(chunk)));
+
+    const transport = new winston.transports.Stream({
+      stream: pass as unknown as NodeJS.WritableStream,
+      level: 'info',
+      format: winston.format.printf((info) => {
+        const cid = (info as Record<string, unknown>)['correlationId'];
+        return `cidType=${typeof cid} cid=${String(cid)}`;
+      }),
+    });
+
+    const child = loggerService.child(123n);
+    child.add(transport);
+    child.info('Test message');
+    child.remove(transport);
+
+    const out = formatted.join('\n');
+    expect(out).toContain('cidType=string');
+    expect(out).toContain('cid=123');
   });
 });

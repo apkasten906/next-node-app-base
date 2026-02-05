@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { JSX } from 'react';
 
@@ -29,6 +29,9 @@ export default async function BddDashboardPage({
     process.env['NEXT_PUBLIC_API_URL'] ||
     'http://localhost:3001';
 
+  const headerStore = await headers();
+  const incomingCorrelationId = headerStore.get('x-correlation-id');
+
   const cookieStore = await cookies();
   const cookieHeader = cookieStore
     .getAll()
@@ -36,7 +39,10 @@ export default async function BddDashboardPage({
     .join('; ');
 
   const meRes = await fetch(`${baseUrl}/api/auth/me`, {
-    headers: { cookie: cookieHeader },
+    headers: {
+      cookie: cookieHeader,
+      ...(incomingCorrelationId ? { 'X-Correlation-ID': incomingCorrelationId } : {}),
+    },
     cache: 'no-store',
   });
 
@@ -45,7 +51,10 @@ export default async function BddDashboardPage({
   }
 
   const res = await fetch(`${baseUrl}/api/admin/bdd/status`, {
-    headers: { cookie: cookieHeader },
+    headers: {
+      cookie: cookieHeader,
+      ...(incomingCorrelationId ? { 'X-Correlation-ID': incomingCorrelationId } : {}),
+    },
     cache: 'no-store',
   });
 

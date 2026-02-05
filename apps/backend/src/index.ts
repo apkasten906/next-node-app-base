@@ -13,6 +13,7 @@ import { container } from 'tsyringe';
 
 import { setupSwagger } from './config/swagger';
 import { apiVersionMiddleware } from './middleware/api-version.middleware';
+import { correlationIdMiddleware } from './middleware/correlation-id.middleware';
 import { attachUserIfPresent } from './middleware/jwt.middleware';
 import authRouter from './routes/auth.routes';
 import bddAdminRouter from './routes/bdd-admin.routes';
@@ -77,15 +78,33 @@ export class App {
     // Trust proxy for correct IP/HTTPS detection behind reverse proxies
     this.app.set('trust proxy', 1);
 
+    // Correlation ID should be available as early as possible
+    this.app.use(correlationIdMiddleware);
+
     this.app.use(compression());
     this.app.use(
       cors({
         origin: process.env['CORS_ORIGIN'] ? process.env['CORS_ORIGIN'].split(',') : true,
         credentials: true,
+        allowedHeaders: [
+          'Content-Type',
+          'Authorization',
+          'X-Requested-With',
+          'X-API-Version',
+          'X-Correlation-ID',
+        ],
+        exposedHeaders: ['X-Correlation-ID'],
       })
     );
     this.app.use(helmet());
-    this.app.use(morgan('combined'));
+
+    morgan.token('correlation-id', (req) => (req as Request).correlationId ?? '-');
+    // Based on morgan's built-in "combined" format, but with correlation-id prefix
+    this.app.use(
+      morgan(
+        ':correlation-id :remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'
+      )
+    );
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true }));
 
