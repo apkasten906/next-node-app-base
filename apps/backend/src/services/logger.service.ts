@@ -7,7 +7,8 @@ import winston from 'winston';
  */
 @singleton()
 export class LoggerService {
-  readonly logger: winston.Logger;
+  // Internal Winston logger instance; keep private to preserve encapsulation
+  private readonly logger: winston.Logger;
 
   constructor() {
     const isTest = process.env['NODE_ENV'] === 'test';

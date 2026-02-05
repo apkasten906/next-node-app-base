@@ -1,3 +1,5 @@
+import { PassThrough } from 'stream';
+
 import { container } from 'tsyringe';
 import { describe, expect, it } from 'vitest';
 import winston from 'winston';
@@ -32,9 +34,10 @@ describe('LoggerService - correlationId handling', () => {
       })
     );
 
-    const stream = { write: (chunk: unknown) => formatted.push(String(chunk)) };
+    const pass = new PassThrough();
+    pass.on('data', (chunk) => formatted.push(String(chunk)));
     const transport = new winston.transports.Stream({
-      stream: stream as unknown as NodeJS.WritableStream,
+      stream: pass as unknown as NodeJS.WritableStream,
       level: 'info',
       format: consoleFormat,
     });

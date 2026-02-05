@@ -30,13 +30,13 @@ See `docs/DOCKER.md` for details and overrides.
 pnpm install
 ```
 
-1. Start Postgres + Redis (only):
+2. Start Postgres + Redis (only):
 
 ```bash
 docker compose up -d postgres redis
 ```
 
-1. Create local env files:
+3. Create local env files:
 
 - Copy `apps/backend/.env.example` to `apps/backend/.env` (or export env vars another way).
 - Copy `apps/frontend/.env.local.example` to `apps/frontend/.env.local` and ensure it contains at least:
@@ -47,7 +47,7 @@ NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=dev-nextauth-secret-change-in-production
 ```
 
-1. Run migrations and start dev:
+4. Run migrations and start dev:
 
 ```bash
 pnpm db:migrate

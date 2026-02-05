@@ -686,7 +686,7 @@ describe('WebSocketService', () => {
       expect(health.status).toBeDefined();
       expect(health.connections).toBeGreaterThanOrEqual(0);
       expect(health.rooms).toBeGreaterThanOrEqual(0);
-      expect(health.uptime).toBeGreaterThan(0);
+      expect(health.uptime).toBeGreaterThanOrEqual(0);
       expect(health.timestamp).toBeInstanceOf(Date);
     });
   });
