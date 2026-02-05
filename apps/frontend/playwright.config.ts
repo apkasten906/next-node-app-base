@@ -12,7 +12,9 @@ const frontendUrl = 'http://localhost:3000';
 // “url already used” errors in VS Code Test Explorer.
 // CI pipelines can force starting fresh servers by setting `REUSE_EXISTING_SERVER=false`.
 const reuseExistingEnv = process.env['REUSE_EXISTING_SERVER'];
-const reuseExisting = reuseExistingEnv !== 'false';
+// Preserve original behavior: do not reuse servers in CI unless explicitly requested.
+const reuseExisting =
+  reuseExistingEnv === 'true' || (!process.env['CI'] && reuseExistingEnv !== 'false');
 
 export default defineConfig({
   testDir: './e2e',
