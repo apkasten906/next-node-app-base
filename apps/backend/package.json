@@ -42,7 +42,7 @@
     "typecheck": "echo 'Backend typecheck - TypeScript to be configured'",
     "test:prepare": "pnpm --filter @repo/types build && pnpm db:generate",
     "test": "pnpm -s test:prepare && vitest run",
-    "test:ci": "pnpm -s test:prepare && pnpm -s test:unit",
+    "test:ci": "pnpm -s test:unit",
     "test:watch": "pnpm -s test:prepare && vitest",
     "test:ui": "pnpm -s test:prepare && vitest --ui",
     "test:coverage": "pnpm -s test:prepare && vitest run --coverage",
