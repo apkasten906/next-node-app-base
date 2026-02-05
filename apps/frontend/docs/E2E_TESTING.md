@@ -26,7 +26,7 @@ Our E2E testing suite uses Playwright to test the entire application stack from 
 
 ## Architecture
 
-```
+```text
 apps/frontend/
 ├── features/                    # BDD feature files (Gherkin)
 │   ├── 01-authentication.feature
@@ -217,9 +217,9 @@ await AccessibilityHelpers.testKeyboardNavigation(page, ['Tab', 'Enter']);
 
 ## Running Tests
 
-### Prerequisites
+### Server Startup
 
-**Automatic Server Startup (Default)**
+#### Automatic Server Startup (Default)
 
 Playwright is configured to automatically start both frontend and backend servers before running tests:
 
@@ -228,7 +228,7 @@ Playwright is configured to automatically start both frontend and backend server
 
 The `webServer` configuration in `playwright.config.ts` handles this automatically. You don't need to start servers manually!
 
-**Manual Server Startup (Alternative)**
+#### Manual Server Startup (Alternative)
 
 If you prefer to run servers manually or are debugging:
 
@@ -476,7 +476,7 @@ The `.github/workflows/e2e-tests.yml` workflow runs E2E tests on:
 - Videos on failure (7 days)
 - Traces on failure (7 days)
 
-### Environment Variables
+### CI Environment Variables
 
 Configured in GitHub Actions (env/secrets as appropriate):
 

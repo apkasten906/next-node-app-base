@@ -17,8 +17,8 @@ pnpm install
 docker compose up --build
 ```
 
-- Frontend: http://localhost:3000
-- Backend: http://localhost:3001/health
+- Frontend: <http://localhost:3000>
+- Backend: <http://localhost:3001/health>
 
 See `docs/DOCKER.md` for details and overrides.
 
@@ -38,8 +38,8 @@ docker compose up -d postgres redis
 
 3. Create local env files:
 
-- Copy `.env.example` to `apps/backend/.env` (or export env vars another way).
-- Create `apps/frontend/.env.local` with at least:
+- Copy `apps/backend/.env.example` to `apps/backend/.env` (or export env vars another way).
+- Copy `apps/frontend/.env.local.example` to `apps/frontend/.env.local` and ensure it contains at least:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001
@@ -69,5 +69,6 @@ pnpm typecheck
 ## Where To Look Next
 
 - `docs/BDD.md` and `docs/BDD_IMPLEMENTATION_AUDIT.md` for BDD governance/tagging and audit scripts
+- `docs/CORRELATION_ID.md` for request tracing via `X-Correlation-ID` (plus ADR 013)
 - `docs/TESTING.md` and `docs/TEST_EXPLORER_GUIDE.md` for test running and VS Code integration
 - `PROGRESS.md` for the current implementation status

@@ -9,9 +9,9 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'Frontend tests - Vitest to be configured'",
-    "test:unit": "echo 'Frontend unit tests'",
-    "test:integration": "echo 'Frontend integration tests'",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:integration": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
@@ -43,6 +43,7 @@
     "@cucumber/cucumber": "^12.2.0",
     "@cucumber/pretty-formatter": "^2.4.1",
     "@playwright/test": "^1.56.1",
+    "@tailwindcss/postcss": "^4.1.17",
     "@types/node": "^24.10.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
@@ -53,9 +54,9 @@
     "postcss": "^8.5.6",
     "prisma": "^7.0.0",
     "supertest": "^7.1.4",
-    "@tailwindcss/postcss": "^4.1.17",
     "tailwindcss": "^4.1.17",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.12"
   }
 }

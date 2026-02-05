@@ -3,6 +3,8 @@
  * Supports console logging and optional Sentry integration
  */
 
+import { injectCorrelationId } from './correlation-id';
+
 interface ErrorContext {
   [key: string]: unknown;
 }
@@ -27,8 +29,8 @@ export async function logError(error: Error, options: LogErrorOptions = {}): Pro
     level,
     context,
     tags,
-    userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server',
-    url: typeof window !== 'undefined' ? window.location.href : 'server',
+    userAgent: globalThis.window?.navigator.userAgent ?? 'server',
+    url: globalThis.window?.location.href ?? 'server',
   };
 
   // Console logging for development
@@ -36,7 +38,7 @@ export async function logError(error: Error, options: LogErrorOptions = {}): Pro
     console.error('[Error Logger]', errorData);
   }
 
-  // TODO: Integrate with Sentry or other monitoring service
+  // Optional: Integrate with Sentry or other monitoring service
   // if (typeof window !== 'undefined' && window.Sentry) {
   //   window.Sentry.captureException(error, {
   //     level,
@@ -47,12 +49,15 @@ export async function logError(error: Error, options: LogErrorOptions = {}): Pro
 
   // Send to backend error logging endpoint
   try {
-    if (typeof window !== 'undefined') {
+    if (globalThis.window) {
+      const headers = new Headers({
+        'Content-Type': 'application/json',
+      });
+      injectCorrelationId(headers);
+
       await fetch('/api/errors', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(errorData),
       }).catch((err) => {
         // Silently fail - don't create error loops

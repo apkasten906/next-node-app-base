@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { JSX } from 'react';
 
@@ -9,6 +9,9 @@ export default async function DashboardPage(): Promise<JSX.Element> {
     process.env['API_URL_INTERNAL'] ||
     process.env['NEXT_PUBLIC_API_URL'] ||
     'http://localhost:3001';
+
+  const headerStore = await headers();
+  const incomingCorrelationId = headerStore.get('x-correlation-id');
   const cookieStore = await cookies();
   const cookieHeader = cookieStore
     .getAll()
@@ -16,7 +19,10 @@ export default async function DashboardPage(): Promise<JSX.Element> {
     .join('; ');
 
   const meRes = await fetch(`${baseUrl}/api/auth/me`, {
-    headers: { cookie: cookieHeader },
+    headers: {
+      cookie: cookieHeader,
+      ...(incomingCorrelationId ? { 'X-Correlation-ID': incomingCorrelationId } : {}),
+    },
     // Prevent caching auth checks during SSR
     cache: 'no-store',
   });

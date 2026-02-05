@@ -3,6 +3,8 @@
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 
+import { injectCorrelationId } from '@/lib/correlation-id';
+
 export function SignInClient(): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,15 +17,17 @@ export function SignInClient(): JSX.Element {
     setLoading(true);
     try {
       const baseUrl = process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001';
+      const headers = new Headers({ 'Content-Type': 'application/json' });
+      injectCorrelationId(headers);
       const res = await fetch(`${baseUrl}/api/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data && data.error) || 'Login failed');
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data?.error ?? 'Login failed');
       }
       // Redirect after login
       globalThis.location.href = '/dashboard';
