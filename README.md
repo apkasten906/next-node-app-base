@@ -50,9 +50,15 @@ cd next-node-app-base
 # Install dependencies
 pnpm install
 
-# Set up environment variables
-cp .env.example .env.development
-# Edit .env.development with your configuration
+## Set up environment variables
+
+This repo uses separate env files depending on how you run it:
+
+- Docker Compose env (used by `docker compose`): copy `.env.docker.example` → `.env`
+- Backend local dev env (loaded from `apps/backend/.env`): copy `apps/backend/.env.example` → `apps/backend/.env`
+- Frontend local dev env (loaded by Next.js): copy `apps/frontend/.env.local.example` → `apps/frontend/.env.local`
+
+Monorepo note: prefer scoping commands to an app/package when working with env vars (e.g. `pnpm --filter backend dev`, `pnpm --filter frontend dev`, `pnpm --filter frontend test:e2e`).
 
 # Start development services (PostgreSQL, Redis, etc.)
 docker compose up -d
@@ -143,6 +149,13 @@ pnpm test:load              # Run load tests (requires k6 + scenarios; scaffolde
 - Servers auto-start: Backend (port 3001) + Frontend (port 3000)
 - Tests wait for servers to be ready before executing
 - Servers auto-shutdown after tests complete
+
+**E2E / Playwright env vars (optional):**
+
+- `E2E_SEED_TOKEN`: token sent as `x-e2e-seed-token` to `POST /api/e2e/seed` (default: `local-e2e-seed-token`)
+- `E2E_BACKEND_URL`: override backend base URL for E2E setup (default: `http://localhost:3001`)
+- `E2E_BASE_URL`: override frontend base URL for E2E setup (default: `http://localhost:3000`)
+- `REUSE_EXISTING_SERVER`: controls Playwright `webServer.reuseExistingServer` (`true`/`false`); by default it reuses locally and does not reuse in CI unless explicitly set
 
 See [TEST_EXPLORER_GUIDE.md](docs/TEST_EXPLORER_GUIDE.md) for VSCode Test Explorer setup.
 

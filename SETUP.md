@@ -38,8 +38,8 @@ docker compose up -d postgres redis
 
 1. Create local env files:
 
-- Copy `.env.example` to `apps/backend/.env` (or export env vars another way).
-- Create `apps/frontend/.env.local` with at least:
+- Copy `apps/backend/.env.example` to `apps/backend/.env` (or export env vars another way).
+- Copy `apps/frontend/.env.local.example` to `apps/frontend/.env.local` and ensure it contains at least:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001
