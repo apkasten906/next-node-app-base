@@ -1,5 +1,7 @@
 import { Locator, Page, Response, WebSocket } from '@playwright/test';
 
+import { getPersona } from '../fixtures/personas';
+
 /**
  * Test Data Utilities
  * Provides consistent test data across E2E tests
@@ -9,22 +11,20 @@ export class TestData {
    * Get valid user credentials
    */
   static getValidUser(): { email: string; password: string; name: string } {
-    return {
-      email: 'test@example.com',
-      password: 'Password123!',
-      name: 'Test User',
-    };
+    const persona = getPersona('user');
+    return { email: persona.email, password: persona.password, name: persona.name };
   }
 
   /**
    * Get admin user credentials
    */
   static getAdminUser(): { email: string; password: string; name: string; role: string } {
+    const persona = getPersona('admin');
     return {
-      email: 'admin@example.com',
-      password: 'Admin123!',
-      name: 'Admin User',
-      role: 'ADMIN',
+      email: persona.email,
+      password: persona.password,
+      name: persona.name,
+      role: persona.role,
     };
   }
 

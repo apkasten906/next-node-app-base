@@ -98,6 +98,10 @@ next-node-app-base/
 
 ## Development
 
+Note about E2E persona customization:
+
+For convenience when forking this template, you can customize the seeded E2E personas without editing TypeScript. See `apps/frontend/docs/E2E_TESTING.md` for details — the project supports an optional JSON override file enabled via the `E2E_PERSONAS_FILE` environment variable (example: `apps/frontend/e2e/fixtures/personas.example.json`).
+
 ### Available Scripts
 
 ````bash
