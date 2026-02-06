@@ -2,6 +2,8 @@
  * Global Setup for Playwright Tests
  * Runs once before all tests
  */
+import { getDefaultSeedPayload } from './fixtures/personas';
+
 async function globalSetup(): Promise<void> {
   // eslint-disable-next-line no-console
   console.log('🚀 Starting E2E test setup...');
@@ -18,7 +20,7 @@ async function globalSetup(): Promise<void> {
   await waitForOk(`${backendBaseUrl}/health`, 'Backend');
   await waitForOk(frontendBaseUrl, 'Frontend');
 
-  await seedE2E(`${backendBaseUrl}/api/e2e/seed`, seedToken);
+  await seedE2E(`${backendBaseUrl}/api/e2e/seed`, seedToken, getDefaultSeedPayload());
 
   // eslint-disable-next-line no-console
   console.log('✅ E2E test setup complete');
@@ -49,7 +51,11 @@ async function waitForOk(url: string, name: string): Promise<void> {
   throw new Error(`${name} did not become ready in time: ${url}`);
 }
 
-async function seedE2E(seedUrl: string, seedToken: string): Promise<void> {
+async function seedE2E(
+  seedUrl: string,
+  seedToken: string,
+  seedRequestBody: unknown
+): Promise<void> {
   // eslint-disable-next-line no-console
   console.log(`🌱 Seeding E2E fixtures via ${seedUrl}`);
 
@@ -59,7 +65,7 @@ async function seedE2E(seedUrl: string, seedToken: string): Promise<void> {
       'Content-Type': 'application/json',
       'x-e2e-seed-token': seedToken,
     },
-    body: JSON.stringify({}),
+    body: JSON.stringify(seedRequestBody),
   });
 
   if (!res.ok) {
@@ -67,21 +73,23 @@ async function seedE2E(seedUrl: string, seedToken: string): Promise<void> {
     throw new Error(`E2E seed failed (${res.status}): ${text || res.statusText}`);
   }
 
-  const payload = (await res.json().catch(() => null)) as {
+  const seedResponse = (await res.json().catch(() => null)) as {
     ok?: boolean;
-    seeded?: string[];
+    seeded?: unknown[];
     skipped?: boolean;
     reason?: string;
   } | null;
 
-  if (payload?.skipped) {
+  if (seedResponse?.skipped) {
     // eslint-disable-next-line no-console
-    console.log(`⚠️  E2E seed skipped: ${payload.reason ?? 'unknown reason'}`);
+    console.log(`⚠️  E2E seed skipped: ${seedResponse.reason ?? 'unknown reason'}`);
     return;
   }
 
-  // eslint-disable-next-line no-console
-  console.log(`✅ E2E seed complete${payload?.seeded ? ` (${payload.seeded.length} users)` : ''}`);
+  const seeded = seedResponse?.seeded;
+  const seededCount = Array.isArray(seeded) ? seeded.length : 0;
+  const suffix = seededCount ? ` (${seededCount} users)` : '';
+  console.log(`✅ E2E seed complete${suffix}`);
 }
 
 export default globalSetup;

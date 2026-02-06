@@ -1,0 +1,202 @@
+<testsuites id="" name="" tests="85" failures="0" skipped="0" errors="0" time="44.860997">
+<testsuite name="auth.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="chromium" tests="6" failures="0" skipped="0" time="12.636" errors="0">
+<testcase name="Authentication Flow › should show sign in form" classname="auth.spec.ts" time="1.937">
+</testcase>
+<testcase name="Authentication Flow › should allow accessing sign in page when unauthenticated" classname="auth.spec.ts" time="1.931">
+</testcase>
+<testcase name="Authentication Flow › should show error page with sign in link when unauthorized" classname="auth.spec.ts" time="1.877">
+</testcase>
+<testcase name="Authentication Flow › should allow accessing dashboard when authenticated" classname="auth.spec.ts" time="2.255">
+</testcase>
+<testcase name="Protected Routes › should block access to dashboard when not authenticated" classname="auth.spec.ts" time="2.397">
+</testcase>
+<testcase name="Protected Routes › should allow access to public pages" classname="auth.spec.ts" time="2.239">
+</testcase>
+</testsuite>
+<testsuite name="dashboard.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="chromium" tests="7" failures="0" skipped="0" time="11.671" errors="0">
+<testcase name="Dashboard Page - Unauthenticated › should redirect to sign in when accessing dashboard without auth" classname="dashboard.spec.ts" time="2.001">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should display dashboard heading" classname="dashboard.spec.ts" time="2.48">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should show user greeting" classname="dashboard.spec.ts" time="1.226">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should display navigation menu" classname="dashboard.spec.ts" time="1.003">
+</testcase>
+<testcase name="Dashboard - API Integration › should load user data from API" classname="dashboard.spec.ts" time="1.488">
+</testcase>
+<testcase name="Dashboard - API Integration › should handle API errors gracefully" classname="dashboard.spec.ts" time="1.515">
+</testcase>
+<testcase name="Dashboard - User Actions › should remain on dashboard while authenticated" classname="dashboard.spec.ts" time="1.958">
+</testcase>
+</testsuite>
+<testsuite name="home.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="chromium" tests="4" failures="0" skipped="0" time="4.933" errors="0">
+<testcase name="Home Page › should display the home page" classname="home.spec.ts" time="1.174">
+</testcase>
+<testcase name="Home Page › should show sign in button when not authenticated" classname="home.spec.ts" time="1.317">
+</testcase>
+<testcase name="Home Page › should display feature grid" classname="home.spec.ts" time="1.379">
+</testcase>
+<testcase name="Home Page › should navigate to sign in page" classname="home.spec.ts" time="1.063">
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="firefox" tests="6" failures="0" skipped="0" time="51.657" errors="0">
+<testcase name="Authentication Flow › should show sign in form" classname="auth.spec.ts" time="9.218">
+</testcase>
+<testcase name="Authentication Flow › should allow accessing sign in page when unauthenticated" classname="auth.spec.ts" time="8.022">
+</testcase>
+<testcase name="Authentication Flow › should show error page with sign in link when unauthorized" classname="auth.spec.ts" time="9.712">
+</testcase>
+<testcase name="Authentication Flow › should allow accessing dashboard when authenticated" classname="auth.spec.ts" time="8.146">
+</testcase>
+<testcase name="Protected Routes › should block access to dashboard when not authenticated" classname="auth.spec.ts" time="5.522">
+</testcase>
+<testcase name="Protected Routes › should allow access to public pages" classname="auth.spec.ts" time="11.037">
+</testcase>
+</testsuite>
+<testsuite name="dashboard.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="firefox" tests="7" failures="0" skipped="0" time="48.817" errors="0">
+<testcase name="Dashboard Page - Unauthenticated › should redirect to sign in when accessing dashboard without auth" classname="dashboard.spec.ts" time="9.705">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should display dashboard heading" classname="dashboard.spec.ts" time="9.243">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should show user greeting" classname="dashboard.spec.ts" time="6.025">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should display navigation menu" classname="dashboard.spec.ts" time="7.331">
+</testcase>
+<testcase name="Dashboard - API Integration › should load user data from API" classname="dashboard.spec.ts" time="5.556">
+</testcase>
+<testcase name="Dashboard - API Integration › should handle API errors gracefully" classname="dashboard.spec.ts" time="5.341">
+</testcase>
+<testcase name="Dashboard - User Actions › should remain on dashboard while authenticated" classname="dashboard.spec.ts" time="5.616">
+</testcase>
+</testsuite>
+<testsuite name="home.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="firefox" tests="4" failures="0" skipped="0" time="11.536" errors="0">
+<testcase name="Home Page › should display the home page" classname="home.spec.ts" time="3.004">
+</testcase>
+<testcase name="Home Page › should show sign in button when not authenticated" classname="home.spec.ts" time="2.68">
+</testcase>
+<testcase name="Home Page › should display feature grid" classname="home.spec.ts" time="3.58">
+</testcase>
+<testcase name="Home Page › should navigate to sign in page" classname="home.spec.ts" time="2.272">
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="webkit" tests="6" failures="0" skipped="0" time="12.56" errors="0">
+<testcase name="Authentication Flow › should show sign in form" classname="auth.spec.ts" time="2.079">
+</testcase>
+<testcase name="Authentication Flow › should allow accessing sign in page when unauthenticated" classname="auth.spec.ts" time="1.591">
+</testcase>
+<testcase name="Authentication Flow › should show error page with sign in link when unauthorized" classname="auth.spec.ts" time="2.128">
+</testcase>
+<testcase name="Authentication Flow › should allow accessing dashboard when authenticated" classname="auth.spec.ts" time="2.137">
+</testcase>
+<testcase name="Protected Routes › should block access to dashboard when not authenticated" classname="auth.spec.ts" time="2.143">
+</testcase>
+<testcase name="Protected Routes › should allow access to public pages" classname="auth.spec.ts" time="2.482">
+</testcase>
+</testsuite>
+<testsuite name="dashboard.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="webkit" tests="7" failures="0" skipped="0" time="15.549" errors="0">
+<testcase name="Dashboard Page - Unauthenticated › should redirect to sign in when accessing dashboard without auth" classname="dashboard.spec.ts" time="1.961">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should display dashboard heading" classname="dashboard.spec.ts" time="2.292">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should show user greeting" classname="dashboard.spec.ts" time="2.059">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should display navigation menu" classname="dashboard.spec.ts" time="2.374">
+</testcase>
+<testcase name="Dashboard - API Integration › should load user data from API" classname="dashboard.spec.ts" time="2.526">
+</testcase>
+<testcase name="Dashboard - API Integration › should handle API errors gracefully" classname="dashboard.spec.ts" time="2.248">
+</testcase>
+<testcase name="Dashboard - User Actions › should remain on dashboard while authenticated" classname="dashboard.spec.ts" time="2.089">
+</testcase>
+</testsuite>
+<testsuite name="home.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="webkit" tests="4" failures="0" skipped="0" time="7.321" errors="0">
+<testcase name="Home Page › should display the home page" classname="home.spec.ts" time="1.868">
+</testcase>
+<testcase name="Home Page › should show sign in button when not authenticated" classname="home.spec.ts" time="1.815">
+</testcase>
+<testcase name="Home Page › should display feature grid" classname="home.spec.ts" time="1.794">
+</testcase>
+<testcase name="Home Page › should navigate to sign in page" classname="home.spec.ts" time="1.844">
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="Mobile Chrome" tests="6" failures="0" skipped="0" time="7.531" errors="0">
+<testcase name="Authentication Flow › should show sign in form" classname="auth.spec.ts" time="1.273">
+</testcase>
+<testcase name="Authentication Flow › should allow accessing sign in page when unauthenticated" classname="auth.spec.ts" time="1.065">
+</testcase>
+<testcase name="Authentication Flow › should show error page with sign in link when unauthorized" classname="auth.spec.ts" time="0.973">
+</testcase>
+<testcase name="Authentication Flow › should allow accessing dashboard when authenticated" classname="auth.spec.ts" time="1.624">
+</testcase>
+<testcase name="Protected Routes › should block access to dashboard when not authenticated" classname="auth.spec.ts" time="1.765">
+</testcase>
+<testcase name="Protected Routes › should allow access to public pages" classname="auth.spec.ts" time="0.831">
+</testcase>
+</testsuite>
+<testsuite name="dashboard.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="Mobile Chrome" tests="7" failures="0" skipped="0" time="8.147" errors="0">
+<testcase name="Dashboard Page - Unauthenticated › should redirect to sign in when accessing dashboard without auth" classname="dashboard.spec.ts" time="0.731">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should display dashboard heading" classname="dashboard.spec.ts" time="0.959">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should show user greeting" classname="dashboard.spec.ts" time="1.55">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should display navigation menu" classname="dashboard.spec.ts" time="1.484">
+</testcase>
+<testcase name="Dashboard - API Integration › should load user data from API" classname="dashboard.spec.ts" time="1.516">
+</testcase>
+<testcase name="Dashboard - API Integration › should handle API errors gracefully" classname="dashboard.spec.ts" time="0.956">
+</testcase>
+<testcase name="Dashboard - User Actions › should remain on dashboard while authenticated" classname="dashboard.spec.ts" time="0.951">
+</testcase>
+</testsuite>
+<testsuite name="home.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="Mobile Chrome" tests="4" failures="0" skipped="0" time="3.093" errors="0">
+<testcase name="Home Page › should display the home page" classname="home.spec.ts" time="0.856">
+</testcase>
+<testcase name="Home Page › should show sign in button when not authenticated" classname="home.spec.ts" time="0.783">
+</testcase>
+<testcase name="Home Page › should display feature grid" classname="home.spec.ts" time="0.792">
+</testcase>
+<testcase name="Home Page › should navigate to sign in page" classname="home.spec.ts" time="0.662">
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="Mobile Safari" tests="6" failures="0" skipped="0" time="8.942" errors="0">
+<testcase name="Authentication Flow › should show sign in form" classname="auth.spec.ts" time="1.21">
+</testcase>
+<testcase name="Authentication Flow › should allow accessing sign in page when unauthenticated" classname="auth.spec.ts" time="1.043">
+</testcase>
+<testcase name="Authentication Flow › should show error page with sign in link when unauthorized" classname="auth.spec.ts" time="1.444">
+</testcase>
+<testcase name="Authentication Flow › should allow accessing dashboard when authenticated" classname="auth.spec.ts" time="1.789">
+</testcase>
+<testcase name="Protected Routes › should block access to dashboard when not authenticated" classname="auth.spec.ts" time="1.516">
+</testcase>
+<testcase name="Protected Routes › should allow access to public pages" classname="auth.spec.ts" time="1.94">
+</testcase>
+</testsuite>
+<testsuite name="dashboard.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="Mobile Safari" tests="7" failures="0" skipped="0" time="11.928" errors="0">
+<testcase name="Dashboard Page - Unauthenticated › should redirect to sign in when accessing dashboard without auth" classname="dashboard.spec.ts" time="1.609">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should display dashboard heading" classname="dashboard.spec.ts" time="1.86">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should show user greeting" classname="dashboard.spec.ts" time="1.746">
+</testcase>
+<testcase name="Dashboard Page - Authenticated › should display navigation menu" classname="dashboard.spec.ts" time="1.692">
+</testcase>
+<testcase name="Dashboard - API Integration › should load user data from API" classname="dashboard.spec.ts" time="1.737">
+</testcase>
+<testcase name="Dashboard - API Integration › should handle API errors gracefully" classname="dashboard.spec.ts" time="1.669">
+</testcase>
+<testcase name="Dashboard - User Actions › should remain on dashboard while authenticated" classname="dashboard.spec.ts" time="1.615">
+</testcase>
+</testsuite>
+<testsuite name="home.spec.ts" timestamp="2026-02-06T03:32:46.771Z" hostname="Mobile Safari" tests="4" failures="0" skipped="0" time="5.361" errors="0">
+<testcase name="Home Page › should display the home page" classname="home.spec.ts" time="1.289">
+</testcase>
+<testcase name="Home Page › should show sign in button when not authenticated" classname="home.spec.ts" time="1.227">
+</testcase>
+<testcase name="Home Page › should display feature grid" classname="home.spec.ts" time="1.32">
+</testcase>
+<testcase name="Home Page › should navigate to sign in page" classname="home.spec.ts" time="1.525">
+</testcase>
+</testsuite>
+</testsuites>

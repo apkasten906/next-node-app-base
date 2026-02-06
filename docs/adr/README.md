@@ -42,6 +42,7 @@ Each ADR follows this structure:
 | [011](./011-backend-only-auth.md)                   | Backend-Only Authentication                                                   | Accepted                         | 2025-12-16 |
 | [012](./012-testing-framework-vitest.md)            | Use Vitest as the Primary Test Runner                                         | Accepted                         | 2026-02-02 |
 | [013](./013-correlation-ids-for-request-tracing.md) | Correlation IDs for Request Tracing                                           | Accepted                         | 2026-02-05 |
+| [014](./014-e2e-personas-json-over-admin-ui.md)     | E2E Personas — JSON Overrides over Admin UI                                   | Accepted                         | 2026-02-06 |
 
 <!-- adr-index:end -->
 

@@ -70,7 +70,8 @@ This document has two parts:
 
 ### Next Priorities
 
-- ⬜ **Deterministic E2E seeding (WSJF 7.33)** - Core dev-only, token-protected `POST /api/e2e/seed` endpoint and Playwright global setup are implemented; remaining work: wire seeding into CI runs, extend seeded personas, and document the deterministic E2E flow (see `docs/Planning/plan-httpSeedEndpoint.prompt.md`).
+- ✅ **Deterministic E2E seeding (WSJF 7.33)** - `POST /api/e2e/seed` is token-protected and wired into CI. Playwright prefers reusing existing dev servers when reachable, with `REUSE_EXISTING_SERVER` override. Docs updated to reflect triggers and env vars (see `apps/frontend/docs/E2E_TESTING.md`).
+- ✅ **Correlation IDs for request tracing** - End-to-end correlation-id propagation (`X-Correlation-ID`) across frontend (middleware + browser/SSR) and backend (Express + Winston injection), with tests + docs + ADR 013 (see `docs/CORRELATION_ID.md`, `docs/adr/013-correlation-ids-for-request-tracing.md`).
 - 📌 **Deployable template WSJF backlog (2026-01-25)** - If/when we shift focus to “deployable template” hardening, use `/docs/Planning/wsjf-deployable-template.md` as the WSJF-scored sub-backlog to avoid expanding this plan with lots of sub-bullets.
 - ✅ **Code Quality** - ESLint improvements completed (0 errors, 0 warnings) - commits `8e94d79`, `59f4c95`, `3ccab31`, `06d74f6`
 - ✅ **Testing Infrastructure - Storage** - Storage Service tests completed (28 tests) - commit `646dfbb`
@@ -97,10 +98,10 @@ This document has two parts:
 
 ### Actionable steps (short-term)
 
-- ⬜ NEXT (WSJF 7.33): Implement HTTP E2E seed endpoint and wire Playwright to call it once pre-run.
-  - Backend: dev-only, token-protected `POST /api/e2e/seed` (block when `NODE_ENV==='production'`; require `x-e2e-seed-token` to match `E2E_SEED_TOKEN`), idempotently upsert persona users (start with `test@example.com` / `admin@example.com`).
-  - Frontend E2E: call seed endpoint from Playwright global setup (or existing runner) using the backend base URL already used by API auth helpers.
-  - Persona strategy: start minimal “user-only” fixtures; add domain fixtures (preferences/roles/orgs) as follow-ups only if tests need them.
+- ✅ DONE (WSJF 7.33): Deterministic E2E seeding is wired into CI and documented.
+- ✅ DONE: Add lightweight persona management for forks (persona registry + optional JSON override via `E2E_PERSONAS_FILE`).
+- ⬜ NEXT: Expand seeded personas/fixtures only as tests demand (keep minimal + deterministic).
+- ⬜ NEXT: Continue with the next highest WSJF backlog items (Enhanced CI/CD hardening) and keep workflows DRY.
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
 - ✅ DONE: Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — see `docs/adr/009-artifact-registry-github-packages.md`.
@@ -120,7 +121,7 @@ This document has two parts:
 
 ### Next check-in
 
-- Next: Implement deterministic E2E seeding (`POST /api/e2e/seed`) and wire Playwright pre-run (see `docs/Planning/plan-httpSeedEndpoint.prompt.md`).
+- Next: Move on to the next WSJF priority area (Enhanced CI/CD hardening), using the deployable-template backlog as the source of truth if scope shifts.
 - If focus shifts to “deployable template” hardening, track WSJF items in `docs/Planning/wsjf-deployable-template.md` and keep this plan as a short pointer.
 
 ---

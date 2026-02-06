@@ -45,6 +45,10 @@ lerna-debug.log*
 !.env.example
 !.env.*.example
 
+# Local E2E persona overrides
+apps/frontend/e2e/fixtures/personas.local.json
+apps/**/e2e/fixtures/personas.local.json
+
 # NPM registry credentials
 .npmrc
 !.npmrc.template
