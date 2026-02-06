@@ -17,7 +17,6 @@ const reuseExisting =
   reuseExistingEnv === 'true' || (!process.env['CI'] && reuseExistingEnv !== 'false');
 
 const personasFile = process.env['E2E_PERSONAS_FILE'];
-
 export default defineConfig({
   testDir: './e2e',
   testIgnore: ['**/tests/**'],
