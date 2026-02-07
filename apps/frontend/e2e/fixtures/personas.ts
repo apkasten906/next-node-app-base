@@ -64,8 +64,15 @@ function parsePersonasJson(raw: unknown): E2ESeedPersona[] {
     const obj = item as Record<string, unknown>;
     const key = asNonEmptyString(obj['key'], `personas[${idx}].key`);
     const email = asNonEmptyString(obj['email'], `personas[${idx}].email`);
+    // Basic email format validation (keeps parity with backend validator)
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new TypeError(`Invalid personas[${idx}].email: not a valid email address`);
+    }
     const name = asNonEmptyString(obj['name'], `personas[${idx}].name`);
     const password = asNonEmptyString(obj['password'], `personas[${idx}].password`);
+    if (password.length < 8) {
+      throw new TypeError(`personas[${idx}].password must be at least 8 characters`);
+    }
     const roleRaw = obj['role'];
     if (!isRole(roleRaw)) {
       throw new TypeError(`Invalid personas[${idx}].role: expected USER or ADMIN`);
@@ -89,8 +96,15 @@ function loadPersonasFromEnvOrDefaults(): Record<string, E2ESeedPersona> {
   if (!file) return defaultPersonas;
 
   const resolved = resolvePersonasFile(file);
-  // eslint-disable-next-line security/detect-non-literal-fs-filename
-  const text = fs.readFileSync(resolved, 'utf8');
+
+  let text: string;
+  try {
+    text = fs.readFileSync(resolved, 'utf8');
+  } catch (err) {
+    throw new Error(
+      `E2E_PERSONAS_FILE not found or unreadable at ${resolved}: ${(err as Error).message}. Copy ${resolvePersonasFile('apps/frontend/e2e/fixtures/personas.example.json')} to this path to start.`
+    );
+  }
   const json = JSON.parse(text) as unknown;
   const personas = parsePersonasJson(json);
   return personasArrayToRecord(personas);

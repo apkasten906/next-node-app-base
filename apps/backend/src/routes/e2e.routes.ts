@@ -84,13 +84,20 @@ function resolvePersonasFile(filePath: string): string {
 
 function loadPersonasFromJsonFile(filePath: string): E2ESeedPersona[] {
   const resolved = resolvePersonasFile(filePath);
-  const text = fs.readFileSync(resolved, 'utf8');
+  let text: string;
+  try {
+    text = fs.readFileSync(resolved, 'utf8');
+  } catch (err) {
+    throw new Error(
+      `E2E_PERSONAS_FILE not found or unreadable at ${resolved}: ${(err as Error).message}`
+    );
+  }
   const json = JSON.parse(text) as unknown;
 
   const raw = Array.isArray(json) ? json : (json as { personas?: unknown })?.personas;
   const parsed = z.array(e2eSeedPersonaSchema).safeParse(raw);
   if (!parsed.success) {
-    throw new Error(`Invalid personas JSON in ${resolved}`);
+    throw new Error(`Invalid personas JSON in ${resolved}: ${JSON.stringify(parsed.error.issues)}`);
   }
 
   // Normalize to include keys (if missing) to keep behavior consistent with API payload handling.
