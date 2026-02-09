@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -7,11 +7,11 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./test/setup.ts'],
     coverage: {
-      provider: 'c8',
+      provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: ['node_modules/', 'src/tests/', '**/*.test.ts', '**/*.spec.ts', 'dist/'],
     },
-    include: ['src/**/*.{test,spec}.ts'],
+    include: ['src/**/*.{test,spec}.ts', 'test/**/*.{test,spec}.ts'],
     exclude: ['node_modules', 'dist'],
   },
   resolve: {

@@ -13,7 +13,7 @@ The project uses multiple testing frameworks:
 
 ## Backend Testing
 
-### Setup
+### Backend Setup
 
 The backend uses Vitest with the following configuration:
 
@@ -22,9 +22,9 @@ The backend uses Vitest with the following configuration:
 - **Environment**: Node.js
 - **Test Globals**: Enabled (describe, it, expect available globally)
 
-### Running Tests
+### Running Tests (Backend)
 
-```powershell
+````powershell
 # From the monorepo root
 cd apps\backend
 
@@ -34,9 +34,6 @@ pnpm test
 # Run tests in watch mode
 pnpm test:watch
 
-# Run with UI
-pnpm test:ui
-
 # Generate coverage report
 pnpm test:coverage
 
@@ -45,11 +42,20 @@ pnpm test:unit
 
 # Run only integration tests
 pnpm test:integration
-```
+```text
+```text
+end
+````
 
-### Test Structure
+<!-- end -->
 
-```
+### Backend Test Structure
+
+Tests are typically colocated under `src/tests/` for package-scoped organization, but tests placed in a top-level `test/` directory are also supported by the repository Vitest configs.
+
+Common layouts:
+
+```text
 apps/backend/src/tests/
 ├── setup.ts                      # Global test setup
 ├── services/                     # Unit tests for services
@@ -60,6 +66,17 @@ apps/backend/src/tests/
     ├── user.routes.test.ts       # API endpoint tests
     ├── database.test.ts          # Prisma database tests
     └── redis.test.ts             # Redis cache tests
+```
+
+Or, if you prefer a top-level test folder (also supported by Vitest config):
+
+```text
+apps/backend/test/
+├── setup.ts
+├── unit/
+│   └── services.spec.ts
+└── integration/
+    └── user.routes.spec.ts
 ```
 
 ### Unit Tests
@@ -83,7 +100,7 @@ Integration tests verify the interaction between components:
 Example unit test:
 
 ```typescript
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { container } from 'tsyringe';
 import { MyService } from '../../services/my.service';
 
@@ -120,9 +137,7 @@ describe('API Integration', () => {
 
 ## Frontend Unit Testing
 
-The frontend also supports unit tests using Vitest.
-
-### Running Tests
+### Running Tests (Frontend)
 
 ```powershell
 # From the monorepo root
@@ -141,7 +156,7 @@ See `apps/frontend/vitest.config.ts`.
 
 ## Frontend E2E Testing
 
-### Setup
+### Frontend Setup
 
 The frontend uses Playwright for end-to-end testing:
 
@@ -171,9 +186,9 @@ pnpm test:e2e:debug
 pnpm test:e2e:report
 ```
 
-### Test Structure
+### Frontend Test Structure
 
-```
+```text
 apps/frontend/e2e/
 ├── home.spec.ts                  # Home page tests
 ├── auth.spec.ts                  # Authentication flow tests
@@ -282,8 +297,6 @@ jobs:
 
 ## Environment Setup
 
-### Backend Tests
-
 Create `apps/backend/.env.test`:
 
 ```env
@@ -305,31 +318,31 @@ Playwright uses `baseURL: 'http://localhost:3000'` and auto-starts the dev serve
 
 ### Common Issues
 
-**1. Tests fail with module not found**
+#### 1. Tests fail with module not found
 
-- Check import paths are correct (relative paths from test file)
+- Ensure import paths are correct (relative paths from the test file)
 - Ensure `tsconfig.json` paths are configured
 - Verify `vitest.config.ts` has correct path aliases
 
-**2. Database tests fail**
+#### 2. Database tests fail
 
 - Ensure PostgreSQL is running
 - Database connection string is correct in `.env.test`
 - Run `pnpm prisma:generate` to update Prisma Client
 
-**3. Redis tests fail**
+#### 3. Redis tests fail
 
 - Ensure Redis server is running
 - Check Redis connection settings
 - Use separate DB for tests (e.g., `REDIS_DB=1`)
 
-**4. E2E tests timeout**
+#### 4. E2E tests timeout
 
 - Increase timeout in `playwright.config.ts`
 - Check if dev server is starting correctly
 - Verify baseURL is accessible
 
-**5. Coverage reports empty**
+#### 5. Coverage reports empty
 
 - Ensure test files are in correct directories
 - Check `vitest.config.ts` coverage exclude patterns

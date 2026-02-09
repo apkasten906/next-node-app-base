@@ -89,6 +89,27 @@ Reusable utilities for common tasks:
 - **ScreenshotHelpers**: Capture full-page or element screenshots
 - **AccessibilityHelpers**: Test keyboard navigation, ARIA roles
 
+#### Personas (seeded accounts)
+
+E2E tests use a small set of seeded user accounts (“personas”). The single source of truth is:
+
+- `apps/frontend/e2e/fixtures/personas.ts`
+
+`global-setup.ts` sends these personas to the backend seed endpoint (`POST /api/e2e/seed`). For forks, adding a new persona should usually be a one-file change: add it to `e2ePersonas` and use it from tests via `getPersona(...)`.
+
+##### JSON-based personas (recommended for forks)
+
+To avoid editing TypeScript in a fork, you can provide personas via a JSON file and an env var:
+
+- Example JSON: `apps/frontend/e2e/fixtures/personas.example.json`
+- Enable: set `E2E_PERSONAS_FILE` to a path (absolute or relative to `apps/frontend`)
+
+Example:
+
+```bash
+E2E_PERSONAS_FILE=./e2e/fixtures/personas.local.json pnpm --filter frontend test:e2e
+```
+
 ## Getting Started
 
 ### Prerequisites
@@ -486,6 +507,7 @@ Configured in GitHub Actions (env/secrets as appropriate):
 - `E2E_BACKEND_URL`: Backend base URL used by E2E global setup/seeding (default: `http://localhost:3001`)
 - `NEXT_PUBLIC_API_URL`: Backend URL (default: `http://localhost:3001`)
 - `E2E_SEED_TOKEN`: Token required by the backend E2E seed endpoint; set uniquely per CI run to make seeding deterministic
+- `E2E_PERSONAS_FILE`: Optional path to a JSON file defining personas (see “JSON-based personas” above)
 
 ### Test Sharding
 

@@ -1,0 +1,18 @@
+{
+  "personas": [
+    {
+      "key": "user",
+      "email": "test@example.com",
+      "name": "Test User",
+      "role": "USER",
+      "password": "Password123!"
+    },
+    {
+      "key": "admin",
+      "email": "admin@example.com",
+      "name": "Admin User",
+      "role": "ADMIN",
+      "password": "Admin123!"
+    }
+  ]
+}

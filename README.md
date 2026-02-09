@@ -1,12 +1,13 @@
 # Next.js + Node.js Monorepo Base Template
 
-A production-ready base repository for rapidly starting new web applications with a Next.js frontend, Node.js backend, comprehensive testing, and DevOps infrastructure.
+```bash
+# Seed the database
+pnpm prisma db seed
 
-## Features
-
-This template includes both implemented functionality and scaffolding for planned components.
-
-### Implemented
+# Start the development servers
+cd ../..
+pnpm dev
+```
 
 - Monorepo: Turborepo with pnpm workspaces
 - Frontend: Next.js (App Router) + TypeScript + Tailwind CSS
@@ -16,7 +17,7 @@ This template includes both implemented functionality and scaffolding for planne
 - Tests: Vitest (backend + frontend unit) and Playwright (E2E)
 - Observability: Correlation IDs for request tracing (`X-Correlation-ID`)
 
-### Scaffolded / Planned
+## Scaffolded / Planned
 
 - Contract tests (Pact)
 - Security testing (OWASP ZAP)
@@ -80,27 +81,10 @@ Note: By default, Postgres/Redis are not published to localhost ports (to avoid 
 
 ## Project Structure
 
-```
+````text
 next-node-app-base/
 ├── .devcontainer/          # Dev Container configuration
-├── apps/
-│   ├── frontend/           # Next.js application
-│   └── backend/            # Node.js API
-├── packages/               # Shared packages
-│   ├── types/              # Shared TypeScript types
-│   ├── utils/              # Common utilities
-│   ├── constants/          # Shared constants
-│   └── config/             # Shared configurations
-├── kubernetes/             # Kubernetes + Istio manifests
-├── docs/                   # Documentation
-└── scripts/                # Repo scripts (linting, BDD status/audit, etc.)
-```
-
-## Development
-
-### Available Scripts
-
-````bash
+```bash
 # Development
 pnpm dev                    # Start all apps in development mode
 pnpm dev:frontend           # Start only frontend
@@ -128,7 +112,30 @@ Install Playwright browsers (required for E2E tests):
 pnpm playwright install
 ````
 
-## Running Tests
+## Building
+
+pnpm build # Build all apps
+pnpm build:frontend # Build frontend
+pnpm build:backend # Build backend
+
+## Testing
+
+### First-Time Setup
+
+Install Playwright browsers (required for E2E tests):
+
+```bash
+# Windows
+.\scripts\setup-playwright.ps1
+
+# Linux/Mac
+./scripts/setup-playwright.sh
+
+# Or manually
+pnpm playwright install
+```
+
+### Running Tests
 
 **Important for E2E tests:** Playwright automatically starts both frontend and backend servers before running tests. No manual server startup required!
 
@@ -160,21 +167,23 @@ pnpm test:load              # Run load tests (requires k6 + scenarios; scaffolde
 
 See [TEST_EXPLORER_GUIDE.md](docs/TEST_EXPLORER_GUIDE.md) for VSCode Test Explorer setup.
 
-#### Code Quality
+### Code Quality
 
+```bash
 pnpm lint # Lint all code
 pnpm lint:fix # Fix linting issues
 pnpm lint:workflows # Lint GitHub Actions workflows (actionlint)
 pnpm format # Format code with Prettier
 pnpm typecheck # Run TypeScript type checking
+```
 
-#### Database
+### Database
 
+```bash
 pnpm db:migrate # Run database migrations
 pnpm db:seed # Seed database
 pnpm db:studio # Open Prisma Studio
-pnpm db:reset # Reset database
-
+pnpm db:reset # Reset database#
 ```
 
 ### Git hooks
@@ -273,12 +282,9 @@ Built with amazing open-source technologies:
 
 ## Support
 
-- 📧 Email: support@example.com
-- 💬 Slack: [Join our community](#)
-- 📖 Wiki: [Project Wiki](#)
+- 📧 Email: [support@example.com](mailto:support@example.com)
 - 🐛 Issues: [GitHub Issues](https://github.com/your-org/next-node-app-base/issues)
 
 ---
 
 **⭐ If this template helps you, please give it a star!**
-```

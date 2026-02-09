@@ -1,45 +1,38 @@
-name: Backend Unit Tests (CI)
+name: backend-tests
 
 on:
-  workflow_dispatch:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
 
 permissions:
   contents: read
 
 jobs:
-  backend-unit-tests:
-    name: Backend Unit Tests
+  backend-tests:
     runs-on: ubuntu-latest
-    env:
-      TEST_EXTERNAL_SERVICES: "false"
-      REDIS_MOCK: "true"
     steps:
-      - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
         with:
           version: 8.15.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: "25.x"
+          node-version: 25.x
           cache: "pnpm"
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm -w --filter backend db:generate
 
       - name: Run backend unit tests
-        run: pnpm -C apps/backend test:ci
+        run: pnpm -w --filter backend test:unit
 
-      - name: Upload vitest coverage (if produced)
+      - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: backend-test-reports
-          path: |
-            apps/backend/reports/**
-            apps/backend/coverage/**
-          if-no-files-found: warn
+          name: backend-coverage
+          path: apps/backend/coverage/
