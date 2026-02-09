@@ -99,6 +99,8 @@ function loadPersonasFromEnvOrDefaults(): Record<string, E2ESeedPersona> {
 
   let text: string;
   try {
+    // Intentional: E2E_PERSONAS_FILE is a controlled environment variable for test fixtures.
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     text = fs.readFileSync(resolved, 'utf8');
   } catch (err) {
     throw new Error(

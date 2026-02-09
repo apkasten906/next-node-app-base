@@ -31,7 +31,7 @@ interface E2ESeedPersona {
   password: string;
 }
 
-const e2eSeedPersonaSchema = z
+export const e2eSeedPersonaSchema = z
   .object({
     key: z
       .string()
@@ -59,7 +59,7 @@ const e2eSeedBodySchema = z
   })
   .strict();
 
-function buildDefaultPersonas(): E2ESeedPersona[] {
+export function buildDefaultPersonas(): E2ESeedPersona[] {
   return [
     {
       key: 'user',
@@ -78,11 +78,11 @@ function buildDefaultPersonas(): E2ESeedPersona[] {
   ];
 }
 
-function resolvePersonasFile(filePath: string): string {
+export function resolvePersonasFile(filePath: string): string {
   return path.isAbsolute(filePath) ? filePath : path.resolve(process.cwd(), filePath);
 }
 
-function loadPersonasFromJsonFile(filePath: string): E2ESeedPersona[] {
+export function loadPersonasFromJsonFile(filePath: string): E2ESeedPersona[] {
   const resolved = resolvePersonasFile(filePath);
   let text: string;
   try {
@@ -110,7 +110,7 @@ function loadPersonasFromJsonFile(filePath: string): E2ESeedPersona[] {
   }));
 }
 
-function normalizeSeedPersonas(
+export function normalizeSeedPersonas(
   raw: Array<z.infer<typeof e2eSeedPersonaSchema>> | undefined
 ): E2ESeedPersona[] {
   if (!raw || raw.length === 0) {

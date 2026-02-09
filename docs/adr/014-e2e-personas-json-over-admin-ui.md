@@ -54,20 +54,13 @@ An example file is provided in `apps/frontend/e2e/fixtures/personas.example.json
 
 ### Positive
 
-- Forks can add personas without editing TypeScript by providing a JSON file.
-- Personas remain deterministic and versionable (file-based, diff-friendly).
-- No additional UI/auth surface area is introduced into the template.
-- Keeps scope aligned with “shell template” goals.
-
 ### Negative
-
-- There is no GUI for editing personas; changes are made in a file.
-- Some teams may still want richer fixture management for complex domains (they can add it in their fork).
 
 ### Neutral
 
-- The JSON override is intentionally minimal; it covers “seeded accounts” well but is not a general fixture system.
-- If a fork later needs advanced fixture tooling, it can layer it on without breaking the template’s defaults.
+## Tests
+
+- Unit tests were added to validate the frontend persona registry and default seed payload. See `apps/frontend/test/personas.spec.ts` for Vitest tests that assert persona shape (email, password) and the default seed payload structure. These tests are intended to be lightweight smoke checks for the persona parsing/validation logic and should be run by CI.
 
 ## Alternatives Considered
 

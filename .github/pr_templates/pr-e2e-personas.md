@@ -14,14 +14,14 @@ Add lightweight E2E persona registry with optional JSON overrides, wire Playwrig
 
 ## Testing
 
-1.  From repo root set the persona file and run E2E:
+1. From repo root set the persona file and run E2E:
 
-    ```powershell
-    $env:E2E_PERSONAS_FILE='apps/frontend/e2e/fixtures/personas.local.json'
-    pnpm --filter frontend test:e2e
-    ```
+   ```powershell
+   $env:E2E_PERSONAS_FILE='apps/frontend/e2e/fixtures/personas.local.json'
+   pnpm --filter frontend test:e2e
+   ```
 
-2.  Playwright will call the backend seed endpoint at `/api/e2e/seed` using the dev seed token (`E2E_SEED_TOKEN`) and run the tests.
+2. Playwright will call the backend seed endpoint at `/api/e2e/seed` using the dev seed token (`E2E_SEED_TOKEN`) and run the tests.
 
 ## Checklist
 
