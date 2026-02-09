@@ -111,7 +111,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
       const fallbackUsers = new Map<
         string,
-        { id: string; name: string; role: 'USER' | 'ADMIN'; password: string }
+        { id: string; name: string; role: 'USER' | 'ADMIN' | 'MODERATOR'; password: string }
       >([
         [
           'test@example.com',
@@ -129,6 +129,15 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             name: 'Admin User',
             role: 'ADMIN',
             password: 'Admin123!',
+          },
+        ],
+        [
+          'moderator@example.com',
+          {
+            id: 'moderator-user-1',
+            name: 'Moderator User',
+            role: 'MODERATOR',
+            password: 'Moderator123!',
           },
         ],
       ]);
