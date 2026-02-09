@@ -50,8 +50,10 @@ runs:
       if: ${{ inputs.install == 'true' }}
       shell: pwsh
       working-directory: ${{ inputs.working-directory }}
+      env:
+        INSTALL_ARGS: ${{ inputs.install-args }}
       run: |
-        $rawArgs = '${{ inputs.install-args }}'
+        $rawArgs = $env:INSTALL_ARGS
         $allowedFlags = @(
           '--frozen-lockfile'
         )
@@ -82,7 +84,7 @@ runs:
         }
 
         if ($installArgs.Count -gt 0) {
-          pnpm install $($installArgs -join ' ')
+          pnpm install @installArgs
         } else {
           pnpm install
         }

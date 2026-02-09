@@ -55,6 +55,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           pnpm-version: ${{ env.PNPM_VERSION }}
+          install: "false"
 
       - name: Build all packages
         run: turbo run build --filter='./packages/*'
