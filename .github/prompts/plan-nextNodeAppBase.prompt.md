@@ -100,7 +100,7 @@ This document has two parts:
 
 - ✅ DONE (WSJF 7.33): Deterministic E2E seeding is wired into CI and documented.
 - ✅ DONE: Add lightweight persona management for forks (persona registry + optional JSON override via `E2E_PERSONAS_FILE`).
-- ⬜ NEXT: Expand seeded personas/fixtures only as tests demand (keep minimal + deterministic).
+- ✅ DONE: Expanded seeded personas minimally (added `moderator` + `MODERATOR` role) to keep fixtures deterministic and ready for new tests.
 - ⬜ NEXT: Continue with the next highest WSJF backlog items (Enhanced CI/CD hardening) and keep workflows DRY.
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)

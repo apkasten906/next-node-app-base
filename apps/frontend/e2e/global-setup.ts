@@ -81,15 +81,14 @@ async function seedE2E(
   } | null;
 
   if (seedResponse?.skipped) {
-    // eslint-disable-next-line no-console
-    console.log(`⚠️  E2E seed skipped: ${seedResponse.reason ?? 'unknown reason'}`);
+    process.stderr.write(`E2E seed skipped: ${seedResponse.reason ?? 'unknown reason'}\n`);
     return;
   }
 
   const seeded = seedResponse?.seeded;
   const seededCount = Array.isArray(seeded) ? seeded.length : 0;
   const suffix = seededCount ? ` (${seededCount} users)` : '';
-  console.log(`✅ E2E seed complete${suffix}`);
+  process.stdout.write(`E2E seed complete${suffix}\n`);
 }
 
 export default globalSetup;

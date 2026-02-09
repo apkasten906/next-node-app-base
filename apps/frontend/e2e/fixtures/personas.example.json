@@ -13,6 +13,13 @@
       "name": "Admin User",
       "role": "ADMIN",
       "password": "Admin123!"
+    },
+    {
+      "key": "moderator",
+      "email": "moderator@example.com",
+      "name": "Moderator User",
+      "role": "MODERATOR",
+      "password": "Moderator123!"
     }
   ]
 }

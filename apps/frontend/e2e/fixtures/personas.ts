@@ -1,4 +1,4 @@
-export type E2EPersonaRole = 'USER' | 'ADMIN';
+export type E2EPersonaRole = 'USER' | 'ADMIN' | 'MODERATOR';
 
 export interface E2ESeedPersona {
   key: string;
@@ -32,10 +32,17 @@ const defaultPersonas: Record<string, E2ESeedPersona> = {
     role: 'ADMIN',
     password: 'Admin123!',
   },
+  moderator: {
+    key: 'moderator',
+    email: 'moderator@example.com',
+    name: 'Moderator User',
+    role: 'MODERATOR',
+    password: 'Moderator123!',
+  },
 };
 
 function isRole(val: unknown): val is E2EPersonaRole {
-  return val === 'USER' || val === 'ADMIN';
+  return val === 'USER' || val === 'ADMIN' || val === 'MODERATOR';
 }
 
 function asNonEmptyString(val: unknown, field: string): string {
@@ -75,7 +82,7 @@ function parsePersonasJson(raw: unknown): E2ESeedPersona[] {
     }
     const roleRaw = obj['role'];
     if (!isRole(roleRaw)) {
-      throw new TypeError(`Invalid personas[${idx}].role: expected USER or ADMIN`);
+      throw new TypeError(`Invalid personas[${idx}].role: expected USER, ADMIN, or MODERATOR`);
     }
 
     return { key, email, name, role: roleRaw, password };

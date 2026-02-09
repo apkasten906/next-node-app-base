@@ -21,7 +21,7 @@ function getSeedToken(req: Request): string | undefined {
   return raw;
 }
 
-type E2EPersonaRole = 'USER' | 'ADMIN';
+type E2EPersonaRole = 'USER' | 'ADMIN' | 'MODERATOR';
 
 interface E2ESeedPersona {
   key: string;
@@ -48,7 +48,7 @@ export const e2eSeedPersonaSchema = z
         message: 'Invalid email address',
       }),
     name: z.string().trim().min(1).max(128),
-    role: z.enum(['USER', 'ADMIN']),
+    role: z.enum(['USER', 'ADMIN', 'MODERATOR']),
     password: z.string().min(8).max(128),
   })
   .strict();
@@ -75,6 +75,13 @@ export function buildDefaultPersonas(): E2ESeedPersona[] {
       role: 'ADMIN',
       password: 'Admin123!',
     },
+    {
+      key: 'moderator',
+      email: 'moderator@example.com',
+      name: 'Moderator User',
+      role: 'MODERATOR',
+      password: 'Moderator123!',
+    },
   ];
 }
 
@@ -86,6 +93,8 @@ export function loadPersonasFromJsonFile(filePath: string): E2ESeedPersona[] {
   const resolved = resolvePersonasFile(filePath);
   let text: string;
   try {
+    // Intentional: E2E_PERSONAS_FILE is a controlled environment variable for test fixtures.
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     text = fs.readFileSync(resolved, 'utf8');
   } catch (err) {
     throw new Error(
