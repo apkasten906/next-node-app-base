@@ -96,3 +96,4 @@ temp/
 
 # Sentry
 .sentryclirc
+.github/pr_templates/

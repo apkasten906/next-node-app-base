@@ -4,9 +4,28 @@
  */
 import { getDefaultSeedPayload } from './fixtures/personas';
 
+function writeLine(stream: NodeJS.WriteStream, line: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    stream.write(`${line}\n`, (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+function info(line: string): Promise<void> {
+  return writeLine(process.stdout, line);
+}
+
+function warn(line: string): Promise<void> {
+  return writeLine(process.stderr, line);
+}
+
 async function globalSetup(): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.log('🚀 Starting E2E test setup...');
+  await info('🚀 Starting E2E test setup...');
 
   const frontendBaseUrl = process.env['E2E_BASE_URL'] || 'http://localhost:3000';
   const backendBaseUrl =
@@ -22,8 +41,7 @@ async function globalSetup(): Promise<void> {
 
   await seedE2E(`${backendBaseUrl}/api/e2e/seed`, seedToken, getDefaultSeedPayload());
 
-  // eslint-disable-next-line no-console
-  console.log('✅ E2E test setup complete');
+  await info('✅ E2E test setup complete');
 }
 
 /**
@@ -37,13 +55,11 @@ async function waitForOk(url: string, name: string): Promise<void> {
     try {
       const response = await fetch(url);
       if (response.ok) {
-        // eslint-disable-next-line no-console
-        console.log(`✅ ${name} service ready at ${url}`);
+        await info(`✅ ${name} service ready at ${url}`);
         return;
       }
     } catch {
-      // eslint-disable-next-line no-console
-      console.log(`⏳ Waiting for ${name}... (${i + 1}/${maxAttempts})`);
+      await info(`⏳ Waiting for ${name}... (${i + 1}/${maxAttempts})`);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
@@ -56,8 +72,7 @@ async function seedE2E(
   seedToken: string,
   seedRequestBody: unknown
 ): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.log(`🌱 Seeding E2E fixtures via ${seedUrl}`);
+  await info(`🌱 Seeding E2E fixtures via ${seedUrl}`);
 
   const res = await fetch(seedUrl, {
     method: 'POST',
@@ -81,14 +96,14 @@ async function seedE2E(
   } | null;
 
   if (seedResponse?.skipped) {
-    process.stderr.write(`E2E seed skipped: ${seedResponse.reason ?? 'unknown reason'}\n`);
+    await warn(`E2E seed skipped: ${seedResponse.reason ?? 'unknown reason'}`);
     return;
   }
 
   const seeded = seedResponse?.seeded;
   const seededCount = Array.isArray(seeded) ? seeded.length : 0;
   const suffix = seededCount ? ` (${seededCount} users)` : '';
-  process.stdout.write(`E2E seed complete${suffix}\n`);
+  await info(`E2E seed complete${suffix}`);
 }
 
 export default globalSetup;
