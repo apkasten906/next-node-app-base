@@ -5,11 +5,11 @@ inputs:
   node-version:
     description: Node.js version to use
     required: false
-    default: 25.x
+    default: '25.x'
   pnpm-version:
     description: pnpm version to use
     required: false
-    default: 8.15.0
+    default: '8.15.0'
   cache-dependency-path:
     description: Path(s) (relative to repo root) or glob(s) to lockfile(s) for cache keying
     required: false
@@ -29,7 +29,7 @@ inputs:
   working-directory:
     description: Working directory for pnpm install
     required: false
-    default: .
+    default: '.'
 
 runs:
   using: composite

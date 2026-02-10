@@ -57,9 +57,14 @@ async function waitForOk(url: string, name: string): Promise<void> {
       if (response.ok) {
         await info(`✅ ${name} service ready at ${url}`);
         return;
+      } else {
+        await warn(
+          `⏳ ${name} returned ${response.status} ${response.statusText}. Waiting... (${i + 1}/${maxAttempts})`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     } catch {
-      await info(`⏳ Waiting for ${name}... (${i + 1}/${maxAttempts})`);
+      await warn(`⏳ ${name} not reachable yet. Waiting... (${i + 1}/${maxAttempts})`);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
