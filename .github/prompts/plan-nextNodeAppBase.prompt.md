@@ -101,8 +101,8 @@ This document has two parts:
 - ✅ DONE (WSJF 7.33): Deterministic E2E seeding is wired into CI and documented.
 - ✅ DONE: Add lightweight persona management for forks (persona registry + optional JSON override via `E2E_PERSONAS_FILE`).
 - 🟡 DONE (not merged): Expanded seeded personas minimally (added `moderator` + `MODERATOR` role) to keep fixtures deterministic and ready for new tests. (branch: `chore/e2e-personas-moderator`)
-- 🟡 DONE (not merged): CI workflow DRY hardening: extracted shared Node+pnpm setup into a composite action and reused it across core workflows. (branch: `chore/ci-dry-workflows`)
-- ⬜ NEXT: Merge the above branches when ready, then continue with the next Enhanced CI/CD hardening items.
+- ✅ DONE (merged): CI workflow DRY hardening: extracted shared Node+pnpm setup into a composite action and reused it across core workflows. (branch: `chore/ci-dry-workflows`, PR #29)
+- ⬜ NEXT: Continue Enhanced CI/CD hardening (Dependabot validation + workflow review policy). Merge `chore/e2e-personas-moderator` when ready.
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
 - ✅ DONE: Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — see `docs/adr/009-artifact-registry-github-packages.md`.
@@ -119,7 +119,6 @@ This document has two parts:
 ### In flight (branches on hold)
 
 - `chore/e2e-personas-moderator`: Adds `moderator` persona + `MODERATOR` role to backend seed + frontend fixtures; keeps dev auth fallback aligned.
-- `chore/ci-dry-workflows`: DRYs GitHub Actions workflows by introducing a shared `.github/actions/setup-node-pnpm` composite action and reusing it.
 
 ### Notes on service-mesh friendliness
 
