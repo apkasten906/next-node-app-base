@@ -101,14 +101,14 @@ async function seedE2E(
   } | null;
 
   if (seedResponse?.skipped) {
-    await warn(`E2E seed skipped: ${seedResponse.reason ?? 'unknown reason'}`);
+    await warn(`⚠️ E2E seed skipped: ${seedResponse.reason ?? 'unknown reason'}`);
     return;
   }
 
   const seeded = seedResponse?.seeded;
   const seededCount = Array.isArray(seeded) ? seeded.length : 0;
   const suffix = seededCount ? ` (${seededCount} users)` : '';
-  await info(`E2E seed complete${suffix}`);
+  await info(`✅ E2E seed complete${suffix}`);
 }
 
 export default globalSetup;
