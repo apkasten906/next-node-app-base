@@ -24,6 +24,7 @@ jobs:
         with:
           node-version: 25.x
           pnpm-version: 8.15.0
+          install: "true"
 
       - name: Validate BDD status tags
         run: pnpm -s bdd:status
