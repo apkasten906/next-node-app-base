@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: 25.x
           pnpm-version: 8.15.0
+          install: "true"
 
       - name: Generate Prisma client
         run: pnpm -w --filter backend db:generate

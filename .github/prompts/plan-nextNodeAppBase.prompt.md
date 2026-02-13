@@ -71,6 +71,9 @@ This document has two parts:
 ### Next Priorities
 
 - ✅ **Deterministic E2E seeding (WSJF 7.33)** - `POST /api/e2e/seed` is token-protected and wired into CI. Playwright prefers reusing existing dev servers when reachable, with `REUSE_EXISTING_SERVER` override. Docs updated to reflect triggers and env vars (see `apps/frontend/docs/E2E_TESTING.md`).
+- ✅ **CI DRY & Hardening (Feb 2026)** - Extracted shared Node+pnpm setup into a hardened composite action `.github/actions/setup-node-pnpm` (simplified API: removed free-form `install-args`, uses explicit `frozen-lockfile` input), rewired workflows to use it, and added `.github/actions/` to `CODEOWNERS`.
+- ✅ **Dependabot reduced (Feb 2026)** - `.github/dependabot.yml` reduced to GitHub Actions only per solo-maintainer preference; npm/package updates will be handled manually for now.
+- ✅ **Docs: Frontend build verification (Feb 2026)** - Verified `apps/frontend` production build locally and added a short note and Windows caveat to `SETUP.md`.
 - ✅ **Correlation IDs for request tracing** - End-to-end correlation-id propagation (`X-Correlation-ID`) across frontend (middleware + browser/SSR) and backend (Express + Winston injection), with tests + docs + ADR 013 (see `docs/CORRELATION_ID.md`, `docs/adr/013-correlation-ids-for-request-tracing.md`).
 - 📌 **Deployable template WSJF backlog (2026-01-25)** - If/when we shift focus to “deployable template” hardening, use `/docs/Planning/wsjf-deployable-template.md` as the WSJF-scored sub-backlog to avoid expanding this plan with lots of sub-bullets.
 - ✅ **Code Quality** - ESLint improvements completed (0 errors, 0 warnings) - commits `8e94d79`, `59f4c95`, `3ccab31`, `06d74f6`
@@ -102,6 +105,8 @@ This document has two parts:
 - ✅ DONE: Add lightweight persona management for forks (persona registry + optional JSON override via `E2E_PERSONAS_FILE`).
 - 🟡 DONE (not merged): Expanded seeded personas minimally (added `moderator` + `MODERATOR` role) to keep fixtures deterministic and ready for new tests. (branch: `chore/e2e-personas-moderator`)
 - ✅ DONE (merged): CI workflow DRY hardening: extracted shared Node+pnpm setup into a composite action and reused it across core workflows. (branch: `chore/ci-dry-workflows`, PR #29)
+- ✅ DONE (Feb 2026): Hardened composite action API (removed `install-args`) and validated workflows.
+- ✅ DONE (Feb 2026): Reduced Dependabot to Actions-only and updated plan/docs.
 - ⬜ NEXT: Continue Enhanced CI/CD hardening (Dependabot validation + workflow review policy). Merge `chore/e2e-personas-moderator` when ready.
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)

@@ -33,6 +33,7 @@ jobs:
         with:
           node-version: 25.x
           pnpm-version: 8.15.0
+          install: "true"
 
       - name: Build workspace packages required by backend
         run: pnpm --filter @repo/types build
