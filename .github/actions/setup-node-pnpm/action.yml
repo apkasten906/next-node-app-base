@@ -55,7 +55,7 @@ runs:
         }
 
         if ($installArgs.Count -gt 0) {
-          pnpm install @installArgs
+          pnpm install $installArgs
         } else {
           pnpm install
         }
