@@ -51,6 +51,10 @@
     "CI": "false"
   },
   "playwright.searchForWorkspaceFiles": true,
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-action.json": ".github/actions/**/action.yml",
+    "https://json.schemastore.org/github-action.json": ".github/actions/**/action.yaml"
+  },
   "cSpell.words": [
     "addgroup",
     "adduser",
