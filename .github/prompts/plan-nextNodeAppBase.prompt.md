@@ -1685,7 +1685,7 @@ spec:
 - Create mock API handlers for all backend endpoints
 - Configure MSW for browser and Node.js environments
 
-### Phase 11: Observability Stack
+### Phase 10: Observability Stack
 
 - Configure Prometheus for metrics collection
   - Istio service mesh metrics
