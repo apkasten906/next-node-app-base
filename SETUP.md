@@ -69,7 +69,7 @@ pnpm typecheck
 ## Frontend build verification
 
 - Build command: `pnpm -w -C apps/frontend run build`
-- Status: Verified locally (originally on branch `chore/ci-dry-workflows`, merged in PR #29) — the Next.js production build completes successfully.
+ - Status: Verified locally (originally on branch `chore/ci-dry-workflows`, merged in PR #29) — the Next.js production build completes successfully.
 - Windows caveat: On Windows the build may require Developer Mode to allow creation of filesystem symlinks. If Developer Mode is not enabled you can see `EPERM` errors during linking. Some setups may also emit a "IO error: provided value is too long when setting link name" warning for certain symlinked files; the build artifacts are still produced. Workarounds:
   - Enable Windows Developer Mode (recommended for native Windows development).
   - Use WSL2 or a Linux/macOS CI runner to avoid Windows symlink/long-path issues.
