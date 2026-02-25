@@ -386,6 +386,16 @@ interface ICacheService {
   invalidate(pattern: string): Promise<void>;
 }
 
+interface IFeatureFlagService {
+  isEnabled(flagKey: string, context?: FlagContext): Promise<boolean>;
+  getVariant(flagKey: string, context?: FlagContext): Promise<string | null>;
+  getAllFlags(context?: FlagContext): Promise<Record<string, boolean>>;
+  createFlag(flag: FeatureFlag): Promise<void>;
+  updateFlag(flagKey: string, updates: Partial<FeatureFlag>): Promise<void>;
+  deleteFlag(flagKey: string): Promise<void>;
+  evaluateRollout(flagKey: string, context?: FlagContext): Promise<boolean>;
+}
+
 // Implementations injected via TSyringe
 @injectable()
 class OAuth2AuthProvider implements IAuthenticationProvider {
@@ -442,6 +452,13 @@ class MultiLevelCacheService implements ICacheService {
   // L1: In-memory (node-cache)
   // L2: Redis
   // L3: CDN (for static assets)
+}
+
+@injectable()
+class FeatureFlagService implements IFeatureFlagService {
+  // Database + Redis cache for flag storage
+  // Evaluation engine with targeting rules
+  // Support for environment, user, and percentage-based flags
 }
 ```
 
@@ -621,6 +638,12 @@ next-node-app-base/
 │       │   │   │   ├── secrets.interface.ts
 │       │   │   │   ├── vault.service.ts
 │       │   │   │   └── aws-secrets.service.ts
+│       │   │   ├── feature-flags/  # Feature flag system
+│       │   │   │   ├── feature-flag.interface.ts
+│       │   │   │   ├── feature-flag.service.ts
+│       │   │   │   ├── feature-flag.repository.ts
+│       │   │   │   ├── evaluation-engine.ts
+│       │   │   │   └── flag-middleware.ts
 │       │   │   └── security/    # Security implementations (DI)
 │       │   │       ├── auth/
 │       │   │       │   ├── auth.interface.ts
@@ -749,6 +772,11 @@ next-node-app-base/
 │   ├── i18n/
 │   │   ├── translation-guide.md
 │   │   └── supported-locales.md
+│   ├── feature-flags/       # Feature flag documentation
+│   │   ├── feature-flag-guide.md
+│   │   ├── rollout-strategies.md
+│   │   ├── ab-testing.md
+│   │   └── flag-lifecycle.md
 │   ├── development/         # Development documentation
 │   │   ├── dev-containers.md
 │   │   ├── local-setup.md
@@ -1587,6 +1615,61 @@ spec:
 - Create translation files (en, es, fr, de)
 - Add language detection and switching
 
+### Phase 8.5: Feature Management System
+
+- Implement feature flag service interface with DI pattern
+- Create flag storage backend (database + Redis cache)
+- Add flag evaluation engine
+  - Environment-based flags (dev/staging/prod)
+  - User-based flags (user ID, role, attributes)
+  - Percentage-based rollouts (gradual releases)
+  - Time-based flags (scheduled activation)
+- Build flag management API (CRUD operations)
+  - Create/update/delete flags
+  - Enable/disable flags
+  - Set flag targeting rules
+  - Query flag status and history
+- Implement flag audit logging
+  - Track flag changes (who, what, when)
+  - Log flag evaluations for debugging
+  - Export flag usage analytics
+- Add flag override mechanism for testing
+  - Local development overrides
+  - QA environment flag controls
+  - Feature preview for stakeholders
+- Create admin UI for flag management (optional)
+  - Flag dashboard
+  - Visual flag editor
+  - Rollout progress visualization
+  - User targeting interface
+- Integrate with backend
+  - Flag middleware for request-level evaluation
+  - Service-level flag checks
+  - Flag-based route enabling/disabling
+- Integrate with frontend
+  - Feature flag provider (React Context)
+  - useFeatureFlag hook
+  - Feature flag component wrappers
+  - SSR-compatible flag evaluation
+- Document flag lifecycle and rollout strategies
+  - Flag naming conventions
+  - Rollout best practices (percentage stages)
+  - Deprecation and cleanup procedures
+  - Emergency kill switch workflows
+- Add flag-based A/B testing support
+  - Variant assignment (A/B/C)
+  - User bucketing and consistency
+  - Integration with analytics service
+  - Experiment result tracking
+- Create BDD scenarios for feature flag behavior
+  - Flag evaluation scenarios
+  - Rollout progression scenarios
+  - Permission-based flag access
+- Add unit tests for flag evaluation logic
+  - Targeting rule evaluation
+  - Percentage distribution
+  - Flag inheritance and defaults
+
 ### Phase 9: Frontend Core
 
 - Initialize Next.js with App Router
@@ -1597,7 +1680,7 @@ spec:
 - Configure Sentry error tracking
 - Add error boundaries
 - Implement i18n routing
-- Add feature flags support
+- Integrate feature flag system (from Phase 8.5)
 - Set up Mock Service Worker (MSW) for development and testing
 - Create mock API handlers for all backend endpoints
 - Configure MSW for browser and Node.js environments
@@ -1656,7 +1739,7 @@ spec:
   - Create reusable mock scenarios
   - Add MSW to Playwright tests for isolated E2E testing
 
-### Phase 12: Kubernetes & DevOps
+### Phase 13: Kubernetes & DevOps
 
 - Create Kubernetes base manifests
   - Namespace configurations
@@ -1681,7 +1764,7 @@ spec:
 - Configure security notifications and alerts
 - Implement database backup and recovery strategies
 
-### Phase 13: Documentation & Polish
+### Phase 14: Documentation & Polish
 
 - Create comprehensive README files (root, apps, packages)
 - Write Architecture Decision Records (ADRs)
