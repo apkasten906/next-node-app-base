@@ -393,7 +393,7 @@ interface IFeatureFlagService {
   createFlag(flag: FeatureFlag): Promise<void>;
   updateFlag(flagKey: string, updates: Partial<FeatureFlag>): Promise<void>;
   deleteFlag(flagKey: string): Promise<void>;
-  evaluateRollout(flagKey: string, userId: string): Promise<boolean>;
+  evaluateRollout(flagKey: string, context?: FlagContext): Promise<boolean>;
 }
 
 // Implementations injected via TSyringe
