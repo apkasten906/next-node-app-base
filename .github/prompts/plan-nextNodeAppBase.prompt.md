@@ -1713,7 +1713,7 @@ spec:
   - Slack/Teams notifications
 - Set up Kiali for service mesh observability
 
-### Phase 12: Testing Infrastructure
+### Phase 11: Testing Infrastructure
 
 - Configure Vitest for unit tests in both apps
 - Set up Cucumber with BDD scenarios
