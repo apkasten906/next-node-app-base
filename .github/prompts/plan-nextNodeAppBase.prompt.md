@@ -71,6 +71,9 @@ This document has two parts:
 ### Next Priorities
 
 - ✅ **Deterministic E2E seeding (WSJF 7.33)** - `POST /api/e2e/seed` is token-protected and wired into CI. Playwright prefers reusing existing dev servers when reachable, with `REUSE_EXISTING_SERVER` override. Docs updated to reflect triggers and env vars (see `apps/frontend/docs/E2E_TESTING.md`).
+- ✅ **CI DRY & Hardening (Feb 2026)** - Extracted shared Node+pnpm setup into a hardened composite action `.github/actions/setup-node-pnpm` (simplified API: removed free-form `install-args`, uses explicit `frozen-lockfile` input), rewired workflows to use it, and added `.github/actions/` to `CODEOWNERS`.
+- ✅ **Dependabot reduced (Feb 2026)** - `.github/dependabot.yml` reduced to GitHub Actions only per solo-maintainer preference; npm/package updates will be handled manually for now.
+- ✅ **Docs: Frontend build verification (Feb 2026)** - Verified `apps/frontend` production build locally and added a short note and Windows caveat to `SETUP.md`.
 - ✅ **Correlation IDs for request tracing** - End-to-end correlation-id propagation (`X-Correlation-ID`) across frontend (middleware + browser/SSR) and backend (Express + Winston injection), with tests + docs + ADR 013 (see `docs/CORRELATION_ID.md`, `docs/adr/013-correlation-ids-for-request-tracing.md`).
 - 📌 **Deployable template WSJF backlog (2026-01-25)** - If/when we shift focus to “deployable template” hardening, use `/docs/Planning/wsjf-deployable-template.md` as the WSJF-scored sub-backlog to avoid expanding this plan with lots of sub-bullets.
 - ✅ **Code Quality** - ESLint improvements completed (0 errors, 0 warnings) - commits `8e94d79`, `59f4c95`, `3ccab31`, `06d74f6`
@@ -100,25 +103,11 @@ This document has two parts:
 
 - ✅ DONE (WSJF 7.33): Deterministic E2E seeding is wired into CI and documented.
 - ✅ DONE: Add lightweight persona management for forks (persona registry + optional JSON override via `E2E_PERSONAS_FILE`).
-- ✅ DONE (Feb 2026): CI workflow DRY hardening with composite actions - merged PR #29.
-- ⬜ IN PROGRESS (Feb 2026): **Observability Stack (Phase 11)** - Begin implementation of comprehensive observability infrastructure.
-- ✅ DONE (Feb 2026): **Prometheus metrics collection infrastructure** - MetricsService with prom-client, Express middleware, Kubernetes manifests (commit `93f517d`)
-  - ✅ Set up Prometheus server for metrics aggregation
-  - ✅ Add custom metrics endpoints to backend (`/metrics`)
-  - ✅ Instrument application code with business metrics (HTTP, DB, cache, queue, WebSocket)
-  - ✅ Configure basic alert rules (application, infrastructure, auth monitoring)
-- ⬜ NEXT: Set up Grafana dashboards
-  - Create dashboard for API endpoint performance
-  - Create dashboard for database and Redis metrics
-  - Create dashboard for queue and WebSocket metrics
-  - Create dashboard for business KPIs
-- ⬜ NEXT: Configure distributed tracing with Jaeger
-  - Set up Jaeger for trace visualization
-  - Configure trace sampling and retention
-  - Add custom span annotations for critical business logic
-  - Integrate trace context with application logs
-- ⬜ NEXT: Choose and implement centralized logging (ELK Stack or Loki)
-- ⬜ NEXT: Expand seeded personas/fixtures only as tests demand (keep minimal + deterministic).
+- 🟡 DONE (not merged): Expanded seeded personas minimally (added `moderator` + `MODERATOR` role) to keep fixtures deterministic and ready for new tests. (branch: `chore/e2e-personas-moderator`)
+- ✅ DONE (merged): CI workflow DRY hardening: extracted shared Node+pnpm setup into a composite action and reused it across core workflows. (branch: `chore/ci-dry-workflows`, PR #29)
+- ✅ DONE (Feb 2026): Hardened composite action API (removed `install-args`) and validated workflows.
+- ✅ DONE (Feb 2026): Reduced Dependabot to Actions-only and updated plan/docs.
+- ⬜ NEXT: Continue Enhanced CI/CD hardening (Dependabot validation + workflow review policy). Merge `chore/e2e-personas-moderator` when ready.
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
 - ✅ DONE: Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — see `docs/adr/009-artifact-registry-github-packages.md`.
@@ -131,6 +120,10 @@ This document has two parts:
 - ✅ DONE: Improve cache service type safety - eliminated `any` types with IRedisClient interface (-11 warnings)
 - ✅ DONE: Replace remaining `any` types with `unknown` and type aliases (query-helpers, policy-engine) - improved type safety with runtime guards
 - ✅ DONE: Complete BDD @security scenario integration test coverage (JWT generation/validation, OWASP headers) - 18 new tests added
+
+### In flight (branches on hold)
+
+- `chore/e2e-personas-moderator`: Adds `moderator` persona + `MODERATOR` role to backend seed + frontend fixtures; keeps dev auth fallback aligned.
 
 ### Notes on service-mesh friendliness
 
@@ -402,6 +395,16 @@ interface ICacheService {
   invalidate(pattern: string): Promise<void>;
 }
 
+interface IFeatureFlagService {
+  isEnabled(flagKey: string, context?: FlagContext): Promise<boolean>;
+  getVariant(flagKey: string, context?: FlagContext): Promise<string | null>;
+  getAllFlags(context?: FlagContext): Promise<Record<string, boolean>>;
+  createFlag(flag: FeatureFlag): Promise<void>;
+  updateFlag(flagKey: string, updates: Partial<FeatureFlag>): Promise<void>;
+  deleteFlag(flagKey: string): Promise<void>;
+  evaluateRollout(flagKey: string, context?: FlagContext): Promise<boolean>;
+}
+
 // Implementations injected via TSyringe
 @injectable()
 class OAuth2AuthProvider implements IAuthenticationProvider {
@@ -458,6 +461,13 @@ class MultiLevelCacheService implements ICacheService {
   // L1: In-memory (node-cache)
   // L2: Redis
   // L3: CDN (for static assets)
+}
+
+@injectable()
+class FeatureFlagService implements IFeatureFlagService {
+  // Database + Redis cache for flag storage
+  // Evaluation engine with targeting rules
+  // Support for environment, user, and percentage-based flags
 }
 ```
 
@@ -637,6 +647,12 @@ next-node-app-base/
 │       │   │   │   ├── secrets.interface.ts
 │       │   │   │   ├── vault.service.ts
 │       │   │   │   └── aws-secrets.service.ts
+│       │   │   ├── feature-flags/  # Feature flag system
+│       │   │   │   ├── feature-flag.interface.ts
+│       │   │   │   ├── feature-flag.service.ts
+│       │   │   │   ├── feature-flag.repository.ts
+│       │   │   │   ├── evaluation-engine.ts
+│       │   │   │   └── flag-middleware.ts
 │       │   │   └── security/    # Security implementations (DI)
 │       │   │       ├── auth/
 │       │   │       │   ├── auth.interface.ts
@@ -765,6 +781,11 @@ next-node-app-base/
 │   ├── i18n/
 │   │   ├── translation-guide.md
 │   │   └── supported-locales.md
+│   ├── feature-flags/       # Feature flag documentation
+│   │   ├── feature-flag-guide.md
+│   │   ├── rollout-strategies.md
+│   │   ├── ab-testing.md
+│   │   └── flag-lifecycle.md
 │   ├── development/         # Development documentation
 │   │   ├── dev-containers.md
 │   │   ├── local-setup.md
@@ -1603,6 +1624,61 @@ spec:
 - Create translation files (en, es, fr, de)
 - Add language detection and switching
 
+### Phase 8.5: Feature Management System
+
+- Implement feature flag service interface with DI pattern
+- Create flag storage backend (database + Redis cache)
+- Add flag evaluation engine
+  - Environment-based flags (dev/staging/prod)
+  - User-based flags (user ID, role, attributes)
+  - Percentage-based rollouts (gradual releases)
+  - Time-based flags (scheduled activation)
+- Build flag management API (CRUD operations)
+  - Create/update/delete flags
+  - Enable/disable flags
+  - Set flag targeting rules
+  - Query flag status and history
+- Implement flag audit logging
+  - Track flag changes (who, what, when)
+  - Log flag evaluations for debugging
+  - Export flag usage analytics
+- Add flag override mechanism for testing
+  - Local development overrides
+  - QA environment flag controls
+  - Feature preview for stakeholders
+- Create admin UI for flag management (optional)
+  - Flag dashboard
+  - Visual flag editor
+  - Rollout progress visualization
+  - User targeting interface
+- Integrate with backend
+  - Flag middleware for request-level evaluation
+  - Service-level flag checks
+  - Flag-based route enabling/disabling
+- Integrate with frontend
+  - Feature flag provider (React Context)
+  - useFeatureFlag hook
+  - Feature flag component wrappers
+  - SSR-compatible flag evaluation
+- Document flag lifecycle and rollout strategies
+  - Flag naming conventions
+  - Rollout best practices (percentage stages)
+  - Deprecation and cleanup procedures
+  - Emergency kill switch workflows
+- Add flag-based A/B testing support
+  - Variant assignment (A/B/C)
+  - User bucketing and consistency
+  - Integration with analytics service
+  - Experiment result tracking
+- Create BDD scenarios for feature flag behavior
+  - Flag evaluation scenarios
+  - Rollout progression scenarios
+  - Permission-based flag access
+- Add unit tests for flag evaluation logic
+  - Targeting rule evaluation
+  - Percentage distribution
+  - Flag inheritance and defaults
+
 ### Phase 9: Frontend Core
 
 - Initialize Next.js with App Router
@@ -1613,7 +1689,7 @@ spec:
 - Configure Sentry error tracking
 - Add error boundaries
 - Implement i18n routing
-- Add feature flags support
+- Integrate feature flag system (from Phase 8.5)
 - Set up Mock Service Worker (MSW) for development and testing
 - Create mock API handlers for all backend endpoints
 - Configure MSW for browser and Node.js environments
@@ -1672,7 +1748,7 @@ spec:
   - Create reusable mock scenarios
   - Add MSW to Playwright tests for isolated E2E testing
 
-### Phase 12: Kubernetes & DevOps
+### Phase 13: Kubernetes & DevOps
 
 - Create Kubernetes base manifests
   - Namespace configurations
@@ -1697,7 +1773,7 @@ spec:
 - Configure security notifications and alerts
 - Implement database backup and recovery strategies
 
-### Phase 13: Documentation & Polish
+### Phase 14: Documentation & Polish
 
 - Create comprehensive README files (root, apps, packages)
 - Write Architecture Decision Records (ADRs)
