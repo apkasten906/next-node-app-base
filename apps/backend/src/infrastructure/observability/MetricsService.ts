@@ -43,7 +43,6 @@ export class MetricsService implements IMetricsService {
   registerDefaultMetrics(): void {
     promClient.collectDefaultMetrics({
       register: this.register,
-      prefix: 'nodejs_',
     });
   }
 
