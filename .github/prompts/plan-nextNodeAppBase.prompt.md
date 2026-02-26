@@ -1,4 +1,4 @@
-# Plan: Full-Stack Monorepo Base Template
+﻿# Plan: Full-Stack Monorepo Base Template
 
 This document has two parts:
 
@@ -87,8 +87,8 @@ This document has two parts:
 - ✅ **Queue system (WSJF 4.62)** - BullMQ queues + dashboard (commit `c201cb5`); docs: `docs/QUEUE_SYSTEM.md`
 - ✅ **WebSocket support (WSJF 4.15)** - Socket.io auth + scaling (commit `cb2f5c4`); docs: `docs/WEBSOCKET.md`
 - **Test Status (2025-12-14)**: 170 passing / 108 skipped (skips expected when `TEST_EXTERNAL_SERVICES=false`)
-- **Current Status**: Core features complete with comprehensive testing, i18n, error handling, Docker, queues, and WebSockets
-- **Next**: Continue with next highest WSJF priority items (Enhanced CI/CD 4.38)
+- **Current Status (Feb 2026)**: Core features complete with comprehensive testing, i18n, error handling, Docker, queues, WebSockets, and CI/CD hardening complete
+- **Next (Feb 2026)**: Implement Observability Stack (Phase 11) - Prometheus, Grafana, Jaeger, centralized logging, APM, alerting
 
 ### Priorities (A / B / C from original plan)
 
@@ -100,8 +100,25 @@ This document has two parts:
 
 - ✅ DONE (WSJF 7.33): Deterministic E2E seeding is wired into CI and documented.
 - ✅ DONE: Add lightweight persona management for forks (persona registry + optional JSON override via `E2E_PERSONAS_FILE`).
+- ✅ DONE (Feb 2026): CI workflow DRY hardening with composite actions - merged PR #29.
+- ⬜ IN PROGRESS (Feb 2026): **Observability Stack (Phase 11)** - Begin implementation of comprehensive observability infrastructure.
+- ⬜ NEXT: Start with Prometheus metrics collection infrastructure
+  - Set up Prometheus server for metrics aggregation
+  - Add custom metrics endpoints to backend (`/metrics`)
+  - Instrument application code with business metrics
+  - Configure basic alert rules
+- ⬜ NEXT: Set up Grafana dashboards
+  - Create dashboard for API endpoint performance
+  - Create dashboard for database and Redis metrics
+  - Create dashboard for queue and WebSocket metrics
+  - Create dashboard for business KPIs
+- ⬜ NEXT: Configure distributed tracing with Jaeger
+  - Set up Jaeger for trace visualization
+  - Configure trace sampling and retention
+  - Add custom span annotations for critical business logic
+  - Integrate trace context with application logs
+- ⬜ NEXT: Choose and implement centralized logging (ELK Stack or Loki)
 - ⬜ NEXT: Expand seeded personas/fixtures only as tests demand (keep minimal + deterministic).
-- ⬜ NEXT: Continue with the next highest WSJF backlog items (Enhanced CI/CD hardening) and keep workflows DRY.
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
 - ✅ DONE: Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — see `docs/adr/009-artifact-registry-github-packages.md`.
@@ -121,8 +138,17 @@ This document has two parts:
 
 ### Next check-in
 
-- Next: Move on to the next WSJF priority area (Enhanced CI/CD hardening), using the deployable-template backlog as the source of truth if scope shifts.
-- If focus shifts to “deployable template” hardening, track WSJF items in `docs/Planning/wsjf-deployable-template.md` and keep this plan as a short pointer.
+- **Current Focus (Feb 2026)**: Begin implementation of **Phase 11: Observability Stack**. Priority order:
+  1. Prometheus metrics collection (service mesh + application metrics)
+  2. Grafana dashboards (performance, infrastructure, business KPIs)
+  3. Distributed tracing with Jaeger (automatic via Istio + custom spans)
+  4. Centralized logging (choose ELK Stack or Loki + Grafana)
+  5. APM integration (Datadog or New Relic)
+  6. Alerting and incident management (Prometheus Alertmanager + PagerDuty/OpsGenie)
+  7. Kiali for service mesh observability
+- **Decision Point**: Choose between ELK Stack (full-featured, resource-intensive) or Loki (cost-effective, Grafana-native) for centralized logging based on infrastructure constraints and team preferences.
+- **Documentation**: Create ADR for observability stack decisions, update SETUP.md with observability setup instructions.
+- **Future**: After observability foundation is complete, continue with next WSJF priority items or shift to deployable template hardening using `/docs/Planning/wsjf-deployable-template.md` as the backlog.
 
 ---
 

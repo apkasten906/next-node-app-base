@@ -15,10 +15,12 @@ import { setupSwagger } from './config/swagger';
 import { apiVersionMiddleware } from './middleware/api-version.middleware';
 import { correlationIdMiddleware } from './middleware/correlation-id.middleware';
 import { attachUserIfPresent } from './middleware/jwt.middleware';
+import { metricsMiddleware } from './middleware/metrics.middleware';
 import authRouter from './routes/auth.routes';
 import bddAdminRouter from './routes/bdd-admin.routes';
 import e2eRouter from './routes/e2e.routes';
 import filesRouter from './routes/files.routes';
+import metricsRouter from './routes/metrics.routes';
 import { usersRouter } from './routes/users-v2.routes';
 import { AuditLogService } from './services/audit/audit-log.service';
 import { AuthorizationService } from './services/auth/authorization.service';
@@ -107,6 +109,9 @@ export class App {
     );
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true }));
+
+    // Metrics middleware for automatic HTTP metrics collection
+    this.app.use(metricsMiddleware);
 
     this.app.use(apiVersionMiddleware());
     this.app.use(attachUserIfPresent);
@@ -214,6 +219,7 @@ export class App {
         endpoints: {
           health: '/health',
           ready: '/ready',
+          metrics: '/metrics',
           users: '/api/users',
           documentation: '/api-docs',
           ...(process.env['NODE_ENV'] === 'development' &&
@@ -223,6 +229,7 @@ export class App {
     });
 
     // Register API routes
+    this.app.use('/metrics', metricsRouter);
     this.app.use('/api/auth', authRouter);
     this.app.use('/api/admin/bdd', bddAdminRouter);
     this.app.use('/api/e2e', e2eRouter);
