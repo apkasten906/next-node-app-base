@@ -102,11 +102,11 @@ This document has two parts:
 - ✅ DONE: Add lightweight persona management for forks (persona registry + optional JSON override via `E2E_PERSONAS_FILE`).
 - ✅ DONE (Feb 2026): CI workflow DRY hardening with composite actions - merged PR #29.
 - ⬜ IN PROGRESS (Feb 2026): **Observability Stack (Phase 11)** - Begin implementation of comprehensive observability infrastructure.
-- ⬜ NEXT: Start with Prometheus metrics collection infrastructure
-  - Set up Prometheus server for metrics aggregation
-  - Add custom metrics endpoints to backend (`/metrics`)
-  - Instrument application code with business metrics
-  - Configure basic alert rules
+- ✅ DONE (Feb 2026): **Prometheus metrics collection infrastructure** - MetricsService with prom-client, Express middleware, Kubernetes manifests (commit `93f517d`)
+  - ✅ Set up Prometheus server for metrics aggregation
+  - ✅ Add custom metrics endpoints to backend (`/metrics`)
+  - ✅ Instrument application code with business metrics (HTTP, DB, cache, queue, WebSocket)
+  - ✅ Configure basic alert rules (application, infrastructure, auth monitoring)
 - ⬜ NEXT: Set up Grafana dashboards
   - Create dashboard for API endpoint performance
   - Create dashboard for database and Redis metrics
