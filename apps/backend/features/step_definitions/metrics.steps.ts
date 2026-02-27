@@ -26,8 +26,19 @@ Given('the metrics service is initialized', function (this: MetricsWorld) {
 
   // Get metrics service from DI container
   this.metricsService = container.resolve<IMetricsService>('MetricsService');
-  this.metricsService?.clearMetrics();
+  this.metricsService?.resetMetrics();
   this.metricsService?.registerDefaultMetrics();
+
+  // Register test metrics used in BDD scenarios
+  this.metricsService?.registerCounter('test_counter_1', 'Test counter 1');
+  this.metricsService?.registerCounter('test_counter_total', 'Test counter total');
+  this.metricsService?.registerCounter('test_counter', 'Test counter');
+  this.metricsService?.registerGauge('test_gauge_1', 'Test gauge 1');
+  this.metricsService?.registerGauge('test_gauge', 'Test gauge');
+  this.metricsService?.registerHistogram('test_histogram_1', 'Test histogram 1');
+  this.metricsService?.registerHistogram('test_histogram', 'Test histogram');
+  this.metricsService?.registerHistogram('test_histogram_seconds', 'Test histogram seconds');
+  this.metricsService?.registerSummary('test_summary', 'Test summary');
 });
 
 Given('the metrics middleware is active', function (this: MetricsWorld) {
@@ -124,38 +135,56 @@ When('I end the timer', function (this: MetricsWorld) {
 When(
   'I observe a database query duration of {float} seconds',
   function (this: MetricsWorld, duration: number) {
-    this.metricsService!.observeHistogram('db_query_duration_seconds', duration, {});
+    this.metricsService!.observeHistogram('db_query_duration_seconds', duration, {
+      operation: 'SELECT',
+      table: 'users',
+    });
   }
 );
 
 When('I increment the database queries counter', function (this: MetricsWorld) {
-  this.metricsService!.incrementCounter('db_queries_total', {}, 1);
+  this.metricsService!.incrementCounter(
+    'db_queries_total',
+    {
+      operation: 'SELECT',
+      table: 'users',
+      status: 'success',
+    },
+    1
+  );
 });
 
 When(
   'I increment the cache hits counter {int} times',
   function (this: MetricsWorld, count: number) {
-    this.metricsService!.incrementCounter('cache_hits_total', {}, count);
+    this.metricsService!.incrementCounter('cache_hits_total', { cache_name: 'redis' }, count);
   }
 );
 
 When(
   'I increment the cache misses counter {int} times',
   function (this: MetricsWorld, count: number) {
-    this.metricsService!.incrementCounter('cache_misses_total', {}, count);
+    this.metricsService!.incrementCounter('cache_misses_total', { cache_name: 'redis' }, count);
   }
 );
 
 When('I set active jobs to {int}', function (this: MetricsWorld, value: number) {
-  this.metricsService!.setGauge('queue_jobs_active', value, {});
+  this.metricsService!.setGauge('queue_jobs_active', value, { queue_name: 'default' });
 });
 
 When('I set waiting jobs to {int}', function (this: MetricsWorld, value: number) {
-  this.metricsService!.setGauge('queue_jobs_waiting', value, {});
+  this.metricsService!.setGauge('queue_jobs_waiting', value, { queue_name: 'default' });
 });
 
 When('I increment completed jobs by {int}', function (this: MetricsWorld, count: number) {
-  this.metricsService!.incrementCounter('queue_jobs_completed_total', {}, count);
+  this.metricsService!.incrementCounter(
+    'queue_jobs_completed_total',
+    {
+      queue_name: 'default',
+      status: 'success',
+    },
+    count
+  );
 });
 
 When('I set active WebSocket connections to {int}', function (this: MetricsWorld, value: number) {
@@ -165,28 +194,56 @@ When('I set active WebSocket connections to {int}', function (this: MetricsWorld
 When(
   'I increment WebSocket messages counter by {int}',
   function (this: MetricsWorld, count: number) {
-    this.metricsService!.incrementCounter('websocket_messages_total', {}, count);
+    this.metricsService!.incrementCounter(
+      'websocket_messages_total',
+      {
+        event: 'message',
+        direction: 'inbound',
+      },
+      count
+    );
   }
 );
 
 When('I increment authentication attempts by {int}', function (this: MetricsWorld, count: number) {
-  this.metricsService!.incrementCounter('auth_attempts_total', {}, count);
+  this.metricsService!.incrementCounter(
+    'auth_attempts_total',
+    {
+      method: 'local',
+      status: 'success',
+    },
+    count
+  );
 });
 
 When('I increment authentication failures by {int}', function (this: MetricsWorld, count: number) {
-  this.metricsService!.incrementCounter('auth_failures_total', {}, count);
+  this.metricsService!.incrementCounter(
+    'auth_failures_total',
+    {
+      method: 'local',
+      reason: 'invalid_credentials',
+    },
+    count
+  );
 });
 
 When('I increment user registrations by {int}', function (this: MetricsWorld, count: number) {
-  this.metricsService!.incrementCounter('user_registrations_total', {}, count);
+  this.metricsService!.incrementCounter('user_registrations_total', { source: 'web' }, count);
 });
 
 When('I increment API errors by {int}', function (this: MetricsWorld, count: number) {
-  this.metricsService!.incrementCounter('api_errors_total', {}, count);
+  this.metricsService!.incrementCounter(
+    'api_errors_total',
+    {
+      route: '/api/test',
+      error_type: 'validation',
+    },
+    count
+  );
 });
 
 When('I clear all metrics', function (this: MetricsWorld) {
-  this.metricsService!.clearMetrics();
+  this.metricsService!.resetMetrics();
 });
 
 Then('the response status should be {int}', function (this: MetricsWorld, status: number) {

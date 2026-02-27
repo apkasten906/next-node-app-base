@@ -38,7 +38,7 @@ describe('Metrics Integration', () => {
 
   afterAll(() => {
     // Clean up
-    metricsService.clearMetrics();
+    metricsService.resetMetrics();
   });
 
   describe('GET /metrics', () => {
@@ -152,8 +152,15 @@ describe('Metrics Integration', () => {
   describe('Pre-registered Business Metrics', () => {
     it('should expose database metrics when used', async () => {
       // Simulate database operations
-      metricsService.observeHistogram('db_query_duration_seconds', 0.025);
-      metricsService.incrementCounter('db_queries_total');
+      metricsService.observeHistogram('db_query_duration_seconds', 0.025, {
+        operation: 'SELECT',
+        table: 'users',
+      });
+      metricsService.incrementCounter('db_queries_total', {
+        operation: 'SELECT',
+        table: 'users',
+        status: 'success',
+      });
 
       const response = await request(app).get('/metrics');
 
@@ -247,6 +254,8 @@ describe('Metrics Integration', () => {
 
   describe('Custom Metrics', () => {
     it('should expose custom counters', async () => {
+      // Register custom metric
+      metricsService.registerCounter('custom_events_total', 'Custom events counter');
       metricsService.incrementCounter('custom_events_total', undefined, 5);
 
       const response = await request(app).get('/metrics');
@@ -256,6 +265,7 @@ describe('Metrics Integration', () => {
     });
 
     it('should expose custom gauges', async () => {
+      metricsService.registerGauge('custom_active_users', 'Custom active users gauge');
       metricsService.setGauge('custom_active_users', 42);
 
       const response = await request(app).get('/metrics');
@@ -265,6 +275,10 @@ describe('Metrics Integration', () => {
     });
 
     it('should expose custom histograms', async () => {
+      metricsService.registerHistogram(
+        'custom_processing_time_seconds',
+        'Custom processing time histogram'
+      );
       metricsService.observeHistogram('custom_processing_time_seconds', 0.15);
       metricsService.observeHistogram('custom_processing_time_seconds', 0.25);
 
@@ -299,6 +313,7 @@ describe('Metrics Integration', () => {
     });
 
     it('should have metric values on separate lines', async () => {
+      metricsService.registerCounter('test_metric_total', 'Test metric counter');
       metricsService.incrementCounter('test_metric_total');
 
       const response = await request(app).get('/metrics');
@@ -371,6 +386,7 @@ describe('Metrics Integration', () => {
     });
 
     it('should maintain metrics between /metrics endpoint calls', async () => {
+      metricsService.registerCounter('persistent_counter_total', 'Persistent test counter');
       metricsService.incrementCounter('persistent_counter_total', undefined, 5);
 
       // First metrics call

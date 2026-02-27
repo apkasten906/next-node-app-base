@@ -58,7 +58,40 @@ export interface IMetricsService {
   registerDefaultMetrics(): void;
 
   /**
-   * Clear all metrics (useful for testing)
+   * Register a custom counter metric
+   * @param name Counter name
+   * @param help Help text
+   * @param labelNames Array of label names
    */
-  clearMetrics(): void;
+  registerCounter(name: string, help: string, labelNames?: string[]): void;
+
+  /**
+   * Register a custom gauge metric
+   * @param name Gauge name
+   * @param help Help text
+   * @param labelNames Array of label names
+   */
+  registerGauge(name: string, help: string, labelNames?: string[]): void;
+
+  /**
+   * Register a custom histogram metric
+   * @param name Histogram name
+   * @param help Help text
+   * @param labelNames Array of label names
+   */
+  registerHistogram(name: string, help: string, labelNames?: string[]): void;
+
+  /**
+   * Register a custom summary metric
+   * @param name Summary name
+   * @param help Help text
+   * @param labelNames Array of label names
+   */
+  registerSummary(name: string, help: string, labelNames?: string[]): void;
+
+  /**
+   * Reset all metric values to zero (useful for testing)
+   * Preserves metric definitions and labelNames
+   */
+  resetMetrics(): void;
 }

@@ -227,7 +227,7 @@ endTimer();
 
 1. **Metrics Endpoint Protection**: The `/metrics` endpoint should NOT be publicly accessible in production. Use Istio AuthorizationPolicy to restrict access to Prometheus only.
 
-2. **Sensitive Data**: Ensure metrics do not contain sensitive data (passwords, tokens, PII). The MetricsService automatically excludes sensitive data.
+2. **Sensitive Data**: Ensure metrics do not contain sensitive data (passwords, tokens, PII). Review metric labels and values to ensure no sensitive data is inadvertently exposed.
 
 3. **Resource Limits**: Prometheus can consume significant resources. Monitor and adjust resource limits based on usage.
 

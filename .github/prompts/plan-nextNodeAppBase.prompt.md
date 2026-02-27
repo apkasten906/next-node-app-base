@@ -2,9 +2,6 @@
 
 This document has two parts:
 
-1. **Current Focus (Execution Status)**: what’s done, what’s next, and what’s risky.
-2. **Target Blueprint**: the full template plan (architecture + capabilities).
-
 ---
 
 ## Goals / Non-goals

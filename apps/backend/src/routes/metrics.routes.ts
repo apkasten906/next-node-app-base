@@ -10,7 +10,7 @@ const router: IRouter = Router();
  *
  * Expose Prometheus metrics endpoint.
  * This endpoint should NOT be exposed publicly in production.
- * Use Istio VirtualService to restrict access to Prometheus scraper only.
+ * Use Istio AuthorizationPolicy and/or ingress gateway authentication/authorization to restrict access to the Prometheus scraper only.
  */
 router.get('/', async (_req: Request, res: Response) => {
   try {

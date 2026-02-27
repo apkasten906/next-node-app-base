@@ -15,17 +15,17 @@ data:
           - alert: HighErrorRate
             expr: |
               (
-                sum(rate(http_requests_total{status_code=~"5.."}[5m])) by (service)
+                sum(rate(http_requests_total{status_code=~"5.."}[5m])) by (app)
                 /
-                sum(rate(http_requests_total[5m])) by (service)
+                sum(rate(http_requests_total[5m])) by (app)
               ) * 100 > 5
             for: 5m
             labels:
               severity: warning
               component: application
             annotations:
-              summary: "High error rate detected for {{ $labels.service }}"
-              description: "Error rate is {{ $value | humanizePercentage }} for service {{ $labels.service }}"
+              summary: "High error rate detected for {{ $labels.app }}"
+              description: "Error rate is {{ $value | humanizePercentage }} for service {{ $labels.app }}"
 
           # API endpoint slow response time
           - alert: SlowResponseTime
@@ -88,7 +88,7 @@ data:
           # High CPU usage
           - alert: HighCPUUsage
             expr: |
-              100 - (avg by (instance) (rate(nodejs_process_cpu_seconds_total[5m])) * 100) < 20
+              100 - (avg by (instance) (rate(process_cpu_seconds_total[5m])) * 100) < 20
             for: 10m
             labels:
               severity: warning

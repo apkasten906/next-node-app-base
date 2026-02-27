@@ -54,6 +54,7 @@ export class MetricsService implements IMetricsService {
     this.createHistogram('http_request_duration_seconds', 'Duration of HTTP requests in seconds', [
       'method',
       'route',
+      'status_code',
     ]);
 
     this.createCounter('http_requests_total', 'Total number of HTTP requests', [
@@ -121,8 +122,8 @@ export class MetricsService implements IMetricsService {
    * Increment a counter metric
    */
   incrementCounter(name: string, labels?: Record<string, string>, value: number = 1): void {
-    const counter = this.getOrCreateCounter(name);
-    if (labels && Object.keys(labels).length > 0) {
+    const counter = this.getCounter(name);
+    if (labels) {
       counter.inc(labels, value);
     } else {
       counter.inc(value);
@@ -133,8 +134,8 @@ export class MetricsService implements IMetricsService {
    * Set a gauge metric
    */
   setGauge(name: string, value: number, labels?: Record<string, string>): void {
-    const gauge = this.getOrCreateGauge(name);
-    if (labels && Object.keys(labels).length > 0) {
+    const gauge = this.getGauge(name);
+    if (labels) {
       gauge.set(labels, value);
     } else {
       gauge.set(value);
@@ -145,8 +146,8 @@ export class MetricsService implements IMetricsService {
    * Observe a histogram metric
    */
   observeHistogram(name: string, value: number, labels?: Record<string, string>): void {
-    const histogram = this.getOrCreateHistogram(name);
-    if (labels && Object.keys(labels).length > 0) {
+    const histogram = this.getHistogram(name);
+    if (labels) {
       histogram.observe(labels, value);
     } else {
       histogram.observe(value);
@@ -157,8 +158,8 @@ export class MetricsService implements IMetricsService {
    * Observe a summary metric
    */
   observeSummary(name: string, value: number, labels?: Record<string, string>): void {
-    const summary = this.getOrCreateSummary(name);
-    if (labels && Object.keys(labels).length > 0) {
+    const summary = this.getSummary(name);
+    if (labels) {
       summary.observe(labels, value);
     } else {
       summary.observe(value);
@@ -169,19 +170,46 @@ export class MetricsService implements IMetricsService {
    * Start a timer for measuring duration
    */
   startTimer(name: string, labels?: Record<string, string>): () => number {
-    const histogram = this.getOrCreateHistogram(name);
+    const histogram = this.getHistogram(name);
     return histogram.startTimer(labels);
   }
 
   /**
-   * Clear all metrics (for testing)
+   * Reset all metric values to zero (for testing)
+   * Preserves metric definitions and labelNames
    */
-  clearMetrics(): void {
-    this.register.clear();
-    this.counters.clear();
-    this.gauges.clear();
-    this.histograms.clear();
-    this.summaries.clear();
+  resetMetrics(): void {
+    this.register.resetMetrics();
+  }
+
+  // Public methods for explicit metric registration
+
+  /**
+   * Register a custom counter metric
+   */
+  registerCounter(name: string, help: string, labelNames: string[] = []): void {
+    this.createCounter(name, help, labelNames);
+  }
+
+  /**
+   * Register a custom gauge metric
+   */
+  registerGauge(name: string, help: string, labelNames: string[] = []): void {
+    this.createGauge(name, help, labelNames);
+  }
+
+  /**
+   * Register a custom histogram metric
+   */
+  registerHistogram(name: string, help: string, labelNames: string[] = []): void {
+    this.createHistogram(name, help, labelNames);
+  }
+
+  /**
+   * Register a custom summary metric
+   */
+  registerSummary(name: string, help: string, labelNames: string[] = []): void {
+    this.createSummary(name, help, labelNames);
   }
 
   // Helper methods for creating metrics
@@ -234,27 +262,37 @@ export class MetricsService implements IMetricsService {
     return summary;
   }
 
-  private getOrCreateCounter(name: string): promClient.Counter {
-    let counter = this.counters.get(name);
-    counter ??= this.createCounter(name, `Custom counter: ${name}`);
+  // Helper methods for retrieving registered metrics
+
+  private getCounter(name: string): promClient.Counter {
+    const counter = this.counters.get(name);
+    if (!counter) {
+      throw new Error(`Counter '${name}' not registered. Call registerCounter() first.`);
+    }
     return counter;
   }
 
-  private getOrCreateGauge(name: string): promClient.Gauge {
-    let gauge = this.gauges.get(name);
-    gauge ??= this.createGauge(name, `Custom gauge: ${name}`);
+  private getGauge(name: string): promClient.Gauge {
+    const gauge = this.gauges.get(name);
+    if (!gauge) {
+      throw new Error(`Gauge '${name}' not registered. Call registerGauge() first.`);
+    }
     return gauge;
   }
 
-  private getOrCreateHistogram(name: string): promClient.Histogram {
-    let histogram = this.histograms.get(name);
-    histogram ??= this.createHistogram(name, `Custom histogram: ${name}`);
+  private getHistogram(name: string): promClient.Histogram {
+    const histogram = this.histograms.get(name);
+    if (!histogram) {
+      throw new Error(`Histogram '${name}' not registered. Call registerHistogram() first.`);
+    }
     return histogram;
   }
 
-  private getOrCreateSummary(name: string): promClient.Summary {
-    let summary = this.summaries.get(name);
-    summary ??= this.createSummary(name, `Custom summary: ${name}`);
+  private getSummary(name: string): promClient.Summary {
+    const summary = this.summaries.get(name);
+    if (!summary) {
+      throw new Error(`Summary '${name}' not registered. Call registerSummary() first.`);
+    }
     return summary;
   }
 }

@@ -13,23 +13,24 @@ const mockMetricsService: IMetricsService = {
   observeSummary: vi.fn(),
   startTimer: vi.fn(() => vi.fn()),
   registerDefaultMetrics: vi.fn(),
+  registerCounter: vi.fn(),
+  registerGauge: vi.fn(),
+  registerHistogram: vi.fn(),
+  registerSummary: vi.fn(),
   getMetrics: vi.fn().mockResolvedValue(''),
-  clearMetrics: vi.fn(),
+  resetMetrics: vi.fn(),
 };
 
 describe('Metrics Middleware', () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
   let next: NextFunction;
-  let endTimerMock: ReturnType<typeof vi.fn>;
+  let finishCallback: (() => void) | null;
 
   beforeEach(() => {
     // Reset all mocks
     vi.clearAllMocks();
-
-    // Setup endTimer mock
-    endTimerMock = vi.fn();
-    (mockMetricsService.startTimer as ReturnType<typeof vi.fn>).mockReturnValue(endTimerMock);
+    finishCallback = null;
 
     // Mock container.resolve
     vi.spyOn(container, 'resolve').mockReturnValue(mockMetricsService);
@@ -45,12 +46,22 @@ describe('Metrics Middleware', () => {
       path: '/users/123',
     };
 
-    // Setup response mock with send method
+    // Setup response mock with finish event support
     const sendFn = vi.fn();
     res = {
       statusCode: 200,
       send: sendFn.mockImplementation(function (this: Response, _body?: unknown) {
+        // Trigger finish event when send is called
+        if (finishCallback) {
+          finishCallback();
+        }
         return this;
+      }),
+      on: vi.fn((event: string, callback: () => void) => {
+        if (event === 'finish') {
+          finishCallback = callback;
+        }
+        return res as Response;
       }),
     };
 
@@ -58,22 +69,27 @@ describe('Metrics Middleware', () => {
   });
 
   describe('Request Timing', () => {
-    it('should start a timer when request begins', () => {
+    it('should register finish event listener when request begins', () => {
       metricsMiddleware(req as Request, res as Response, next);
 
-      expect(mockMetricsService.startTimer).toHaveBeenCalledWith('http_request_duration_seconds', {
-        method: 'GET',
-        route: '/api/users/:id',
-      });
+      expect(res.on).toHaveBeenCalledWith('finish', expect.any(Function));
     });
 
-    it('should end timer when response is sent', () => {
+    it('should record histogram when response finishes', () => {
       metricsMiddleware(req as Request, res as Response, next);
 
-      // Simulate response being sent
+      // Simulate response being sent (triggers finish event)
       res.send!('response body');
 
-      expect(endTimerMock).toHaveBeenCalled();
+      expect(mockMetricsService.observeHistogram).toHaveBeenCalledWith(
+        'http_request_duration_seconds',
+        expect.any(Number),
+        {
+          method: 'GET',
+          route: '/api/users/:id',
+          status_code: '200',
+        }
+      );
     });
 
     it('should call next() to continue middleware chain', () => {

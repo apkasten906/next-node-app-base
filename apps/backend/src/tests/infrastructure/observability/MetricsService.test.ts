@@ -8,7 +8,17 @@ describe('MetricsService', () => {
   beforeEach(() => {
     // Create a new instance with a clean registry for each test
     metricsService = new MetricsService();
-    // Don't call clearMetrics() here as it removes pre-registered metrics
+
+    // Register test metrics (explicit registration required post-Decision 4)
+    metricsService.registerCounter('test_counter_total', 'Test counter');
+    metricsService.registerCounter('test_counter', 'Test counter');
+    metricsService.registerGauge('test_gauge', 'Test gauge');
+    metricsService.registerHistogram('request_duration_seconds', 'Test request duration');
+    metricsService.registerSummary('response_time_ms', 'Test response time');
+    metricsService.registerHistogram('operation_duration_seconds', 'Test operation duration');
+    metricsService.registerHistogram('test_histogram', 'Test histogram');
+    metricsService.registerHistogram('test_histogram_seconds', 'Test histogram in seconds');
+    metricsService.registerCounter('loop_counter_total', 'Test loop counter');
   });
 
   describe('Counter Metrics', () => {
@@ -102,8 +112,8 @@ describe('MetricsService', () => {
     });
 
     it('should use pre-registered queue jobs gauge', async () => {
-      metricsService.setGauge('queue_jobs_active', 5);
-      metricsService.setGauge('queue_jobs_waiting', 12);
+      metricsService.setGauge('queue_jobs_active', 5, { queue_name: 'email' });
+      metricsService.setGauge('queue_jobs_waiting', 12, { queue_name: 'email' });
 
       const metrics = await metricsService.getMetrics();
       expect(metrics).toContain('queue_jobs_active');
@@ -247,8 +257,19 @@ describe('MetricsService', () => {
 
   describe('Pre-registered Business Metrics', () => {
     it('should have pre-registered database metrics', async () => {
-      metricsService.observeHistogram('db_query_duration_seconds', 0.05);
-      metricsService.incrementCounter('db_queries_total', undefined, 1);
+      metricsService.observeHistogram('db_query_duration_seconds', 0.05, {
+        operation: 'SELECT',
+        table: 'users',
+      });
+      metricsService.incrementCounter(
+        'db_queries_total',
+        {
+          operation: 'SELECT',
+          table: 'users',
+          status: 'success',
+        },
+        1
+      );
 
       const metrics = await metricsService.getMetrics();
       expect(metrics).toContain('db_query_duration_seconds');
@@ -256,8 +277,8 @@ describe('MetricsService', () => {
     });
 
     it('should have pre-registered cache metrics', async () => {
-      metricsService.incrementCounter('cache_hits_total', undefined, 8);
-      metricsService.incrementCounter('cache_misses_total', undefined, 2);
+      metricsService.incrementCounter('cache_hits_total', { cache_name: 'redis' }, 8);
+      metricsService.incrementCounter('cache_misses_total', { cache_name: 'redis' }, 2);
 
       const metrics = await metricsService.getMetrics();
       expect(metrics).toContain('cache_hits_total');
@@ -267,9 +288,16 @@ describe('MetricsService', () => {
     });
 
     it('should have pre-registered queue metrics', async () => {
-      metricsService.setGauge('queue_jobs_active', 5);
-      metricsService.setGauge('queue_jobs_waiting', 10);
-      metricsService.incrementCounter('queue_jobs_completed_total', undefined, 3);
+      metricsService.setGauge('queue_jobs_active', 5, { queue_name: 'email' });
+      metricsService.setGauge('queue_jobs_waiting', 10, { queue_name: 'email' });
+      metricsService.incrementCounter(
+        'queue_jobs_completed_total',
+        {
+          queue_name: 'email',
+          status: 'success',
+        },
+        3
+      );
 
       const metrics = await metricsService.getMetrics();
       expect(metrics).toContain('queue_jobs_active');
@@ -282,7 +310,14 @@ describe('MetricsService', () => {
 
     it('should have pre-registered WebSocket metrics', async () => {
       metricsService.setGauge('websocket_connections_active', 25);
-      metricsService.incrementCounter('websocket_messages_total', undefined, 100);
+      metricsService.incrementCounter(
+        'websocket_messages_total',
+        {
+          event: 'message',
+          direction: 'inbound',
+        },
+        100
+      );
 
       const metrics = await metricsService.getMetrics();
       expect(metrics).toContain('websocket_connections_active');
@@ -292,8 +327,22 @@ describe('MetricsService', () => {
     });
 
     it('should have pre-registered authentication metrics', async () => {
-      metricsService.incrementCounter('auth_attempts_total', undefined, 10);
-      metricsService.incrementCounter('auth_failures_total', undefined, 2);
+      metricsService.incrementCounter(
+        'auth_attempts_total',
+        {
+          method: 'local',
+          status: 'success',
+        },
+        10
+      );
+      metricsService.incrementCounter(
+        'auth_failures_total',
+        {
+          method: 'local',
+          reason: 'invalid_credentials',
+        },
+        2
+      );
 
       const metrics = await metricsService.getMetrics();
       expect(metrics).toContain('auth_attempts_total');
@@ -303,8 +352,15 @@ describe('MetricsService', () => {
     });
 
     it('should have pre-registered business metrics', async () => {
-      metricsService.incrementCounter('user_registrations_total', undefined, 5);
-      metricsService.incrementCounter('api_errors_total', undefined, 2);
+      metricsService.incrementCounter('user_registrations_total', { source: 'web' }, 5);
+      metricsService.incrementCounter(
+        'api_errors_total',
+        {
+          route: '/api/users',
+          error_type: 'validation',
+        },
+        2
+      );
 
       const metrics = await metricsService.getMetrics();
       expect(metrics).toContain('user_registrations_total');
@@ -349,52 +405,59 @@ describe('MetricsService', () => {
     });
   });
 
-  describe('Clear Metrics', () => {
-    it('should clear all metrics', async () => {
+  describe('Reset Metrics', () => {
+    it('should reset all metric values to zero', async () => {
       metricsService.incrementCounter('test_counter', undefined, 5);
       metricsService.setGauge('test_gauge', 10);
 
       let metrics = await metricsService.getMetrics();
       expect(metrics).toContain('test_counter');
       expect(metrics).toContain('test_gauge');
+      expect(metrics).toMatch(/test_counter\{[^}]*\}\s+5/);
+      expect(metrics).toMatch(/test_gauge\{[^}]*\}\s+10/);
 
-      metricsService.clearMetrics();
+      metricsService.resetMetrics();
 
       metrics = await metricsService.getMetrics();
-      expect(metrics).not.toContain('test_counter');
-      expect(metrics).not.toContain('test_gauge');
+      // Metrics still exist but values are reset to 0
+      expect(metrics).toContain('test_counter');
+      expect(metrics).toContain('test_gauge');
+      expect(metrics).toMatch(/test_counter\{[^}]*\}\s+0/);
+      expect(metrics).toMatch(/test_gauge\{[^}]*\}\s+0/);
     });
 
-    it('should allow re-registering metrics after clear', async () => {
+    it('should allow incrementing metrics after reset', async () => {
       metricsService.incrementCounter('test_counter', undefined, 1);
-      metricsService.clearMetrics();
+      metricsService.resetMetrics();
 
-      // Should not throw error
+      // Should not throw error - metric definition still exists
       expect(() => {
         metricsService.incrementCounter('test_counter', undefined, 2);
       }).not.toThrow();
 
       const metrics = await metricsService.getMetrics();
-      expect(metrics).toContain('test_counter 2');
+      expect(metrics).toMatch(/test_counter\{[^}]*\}\s+2/);
     });
   });
 
   describe('Error Handling', () => {
-    it('should handle invalid metric names gracefully', () => {
+    it('should throw error for unregistered metrics', () => {
       expect(() => {
-        metricsService.incrementCounter('', undefined, 1);
-      }).toThrow();
+        metricsService.incrementCounter('unregistered_counter', undefined, 1);
+      }).toThrow(/not registered/);
     });
 
     it('should handle negative counter increments', () => {
+      metricsService.registerCounter('negative_test_counter', 'Test counter for negative values');
       expect(() => {
-        metricsService.incrementCounter('test_counter', undefined, -1);
+        metricsService.incrementCounter('negative_test_counter', undefined, -1);
       }).toThrow();
     });
 
     it('should handle histogram observation errors', () => {
+      metricsService.registerHistogram('nan_test_histogram', 'Test histogram for NaN');
       expect(() => {
-        metricsService.observeHistogram('test_histogram', Number.NaN);
+        metricsService.observeHistogram('nan_test_histogram', Number.NaN);
       }).toThrow();
     });
   });
