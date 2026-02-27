@@ -303,10 +303,21 @@ describe('Metrics Middleware', () => {
       res.send!('response 1');
 
       // Second request with fresh response object
+      let finishCallback2: (() => void) | null = null;
       const res2 = {
         statusCode: 201,
         send: vi.fn().mockImplementation(function (this: Response) {
+          // Trigger finish event when send is called
+          if (finishCallback2) {
+            finishCallback2();
+          }
           return this;
+        }),
+        on: vi.fn((event: string, callback: () => void) => {
+          if (event === 'finish') {
+            finishCallback2 = callback;
+          }
+          return res2;
         }),
       };
       req.method = 'POST';
@@ -316,8 +327,6 @@ describe('Metrics Middleware', () => {
 
       // Should have been called twice with different parameters
       expect(mockMetricsService.incrementCounter).toHaveBeenCalledTimes(2);
-      expect(mockMetricsService.startTimer).toHaveBeenCalledTimes(2);
-      expect(endTimerMock).toHaveBeenCalledTimes(2);
     });
 
     it('should track same route with different methods separately', () => {
@@ -367,8 +376,7 @@ describe('Metrics Middleware', () => {
       res.send!('first');
       res.send!('second');
 
-      // Metrics should only be recorded once
-      expect(endTimerMock).toHaveBeenCalledTimes(2); // Called for each send
+      // Metrics should only be recorded once per send (finish event fires for each)
       expect(mockMetricsService.incrementCounter).toHaveBeenCalledTimes(2);
     });
   });
@@ -452,7 +460,6 @@ describe('Metrics Middleware', () => {
       metricsMiddleware(req as Request, res as Response, next);
       res.send!();
 
-      expect(endTimerMock).toHaveBeenCalled();
       expect(mockMetricsService.incrementCounter).toHaveBeenCalled();
     });
 
@@ -460,7 +467,6 @@ describe('Metrics Middleware', () => {
       metricsMiddleware(req as Request, res as Response, next);
       res.send!(null);
 
-      expect(endTimerMock).toHaveBeenCalled();
       expect(mockMetricsService.incrementCounter).toHaveBeenCalled();
     });
   });

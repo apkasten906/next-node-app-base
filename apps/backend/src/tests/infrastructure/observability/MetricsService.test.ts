@@ -13,6 +13,8 @@ describe('MetricsService', () => {
     metricsService.registerCounter('test_counter_total', 'Test counter');
     metricsService.registerCounter('test_counter', 'Test counter');
     metricsService.registerGauge('test_gauge', 'Test gauge');
+    metricsService.registerGauge('active_connections', 'Active connections');
+    metricsService.registerGauge('queue_size', 'Queue size');
     metricsService.registerHistogram('request_duration_seconds', 'Test request duration');
     metricsService.registerSummary('response_time_ms', 'Test response time');
     metricsService.registerHistogram('operation_duration_seconds', 'Test operation duration');
