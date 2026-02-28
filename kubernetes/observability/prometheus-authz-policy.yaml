@@ -1,0 +1,89 @@
+# Istio AuthorizationPolicy for Prometheus
+# Restricts access to admin and lifecycle endpoints to prevent unauthorized config changes
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: prometheus-admin-api-deny
+  namespace: observability
+  labels:
+    app: prometheus
+    component: monitoring-security
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+  action: DENY
+  rules:
+    # Block admin API endpoints from all sources
+    - to:
+        - operation:
+            paths:
+              - /api/v1/admin/*
+              - /api/v2/admin/*
+      from:
+        - source:
+            notNamespaces: ['non-existent-namespace'] # Deny from all namespaces
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: prometheus-lifecycle-allow
+  namespace: observability
+  labels:
+    app: prometheus
+    component: monitoring-security
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+  action: ALLOW
+  rules:
+    # Allow lifecycle endpoints only from specific authorized workloads
+    - to:
+        - operation:
+            paths:
+              - /-/reload
+              - /-/quit
+      from:
+        - source:
+            principals:
+              # Only allow from prometheus-reload service account (for config updates)
+              - cluster.local/ns/observability/sa/prometheus-admin
+            namespaces:
+              - observability
+    # Allow read-only query and UI endpoints from observability namespace
+    - to:
+        - operation:
+            paths:
+              - /api/v1/query*
+              - /api/v1/series*
+              - /api/v1/labels*
+              - /api/v1/label/*
+              - /api/v1/metadata*
+              - /api/v1/targets*
+              - /api/v1/rules*
+              - /api/v1/alerts*
+              - /api/v1/alertmanagers*
+              - /api/v1/status/*
+              - /graph*
+              - /metrics*
+              - /-/healthy
+              - /-/ready
+      from:
+        - source:
+            namespaces:
+              - observability
+              - istio-system
+    # Allow Grafana to query metrics
+    - to:
+        - operation:
+            paths:
+              - /api/v1/query*
+              - /api/v1/series*
+              - /api/v1/labels*
+              - /api/v1/label/*
+      from:
+        - source:
+            principals:
+              - cluster.local/ns/observability/sa/grafana

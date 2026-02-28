@@ -12,8 +12,10 @@ AfterAll(async function () {
 });
 
 Before(async function (this: World) {
-  // Initialize test app for each scenario
-  await this.initializeApp();
+  // Initialize test app for each scenario (if method exists)
+  if (typeof this.initializeApp === 'function') {
+    await this.initializeApp();
+  }
 });
 
 After(async function (this: World, { result, pickle }) {
@@ -27,6 +29,8 @@ After(async function (this: World, { result, pickle }) {
     console.log(`✅ Scenario passed: ${pickle.name}`);
   }
 
-  // Cleanup after each scenario
-  await this.cleanup();
+  // Cleanup after each scenario (if method exists)
+  if (typeof this.cleanup === 'function') {
+    await this.cleanup();
+  }
 });

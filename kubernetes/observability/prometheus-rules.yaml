@@ -1,0 +1,164 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.0/configmap-v1.json
+# Prometheus Alert Rules
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: observability
+data:
+  alert-rules.yml: |
+    groups:
+      - name: application
+        interval: 30s
+        rules:
+          # High error rate
+          - alert: HighErrorRate
+            expr: |
+              (
+                sum(rate(http_requests_total{status_code=~"5.."}[5m])) by (app)
+                /
+                sum(rate(http_requests_total[5m])) by (app)
+              ) * 100 > 5
+            for: 5m
+            labels:
+              severity: warning
+              component: application
+            annotations:
+              summary: "High error rate detected for {{ $labels.app }}"
+              description: "Error rate is {{ $value | humanizePercentage }} for service {{ $labels.app }}"
+
+          # API endpoint slow response time
+          - alert: SlowResponseTime
+            expr: |
+              histogram_quantile(0.95,
+                sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route, method)
+              ) > 1
+            for: 10m
+            labels:
+              severity: warning
+              component: application
+            annotations:
+              summary: "Slow response time on {{ $labels.method }} {{ $labels.route }}"
+              description: "95th percentile response time is {{ $value | humanizeDuration }} for {{ $labels.method }} {{ $labels.route }}"
+
+          # Database query slow
+          - alert: SlowDatabaseQueries
+            expr: |
+              histogram_quantile(0.95,
+                sum(rate(db_query_duration_seconds_bucket[5m])) by (le, operation)
+              ) > 0.5
+            for: 10m
+            labels:
+              severity: warning
+              component: database
+            annotations:
+              summary: "Slow database queries detected"
+              description: "95th percentile query time is {{ $value | humanizeDuration }} for {{ $labels.operation }}"
+
+          # Cache miss rate high
+          - alert: HighCacheMissRate
+            expr: |
+              (
+                sum(rate(cache_misses_total[5m])) by (cache_name)
+                /
+                (sum(rate(cache_hits_total[5m])) by (cache_name) + sum(rate(cache_misses_total[5m])) by (cache_name))
+              ) * 100 > 50
+            for: 15m
+            labels:
+              severity: info
+              component: cache
+            annotations:
+              summary: "High cache miss rate for {{ $labels.cache_name }}"
+              description: "Cache miss rate is {{ $value | humanizePercentage }} for {{ $labels.cache_name }}"
+
+          # Queue jobs backing up
+          - alert: QueueJobsBackingUp
+            expr: queue_jobs_waiting > 1000
+            for: 10m
+            labels:
+              severity: warning
+              component: queue
+            annotations:
+              summary: "Queue {{ $labels.queue_name }} has many waiting jobs"
+              description: "{{ $labels.queue_name }} has {{ $value }} waiting jobs"
+
+      - name: infrastructure
+        interval: 30s
+        rules:
+          # High CPU usage
+          - alert: HighCPUUsage
+            expr: |
+              100 - (avg by (instance) (rate(process_cpu_seconds_total[5m])) * 100) < 20
+            for: 10m
+            labels:
+              severity: warning
+              component: infrastructure
+            annotations:
+              summary: "High CPU usage on {{ $labels.instance }}"
+              description: "CPU usage is above 80% on {{ $labels.instance }}"
+
+          # High memory usage
+          - alert: HighMemoryUsage
+            expr: |
+              (nodejs_heap_size_used_bytes / nodejs_heap_size_total_bytes) * 100 > 90
+            for: 5m
+            labels:
+              severity: critical
+              component: infrastructure
+            annotations:
+              summary: "High memory usage on {{ $labels.instance }}"
+              description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+          # Pod restarts
+          - alert: PodRestarts
+            expr: |
+              rate(kube_pod_container_status_restarts_total[15m]) > 0
+            for: 10m
+            labels:
+              severity: warning
+              component: kubernetes
+            annotations:
+              summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is restarting"
+              description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has restarted {{ $value }} times in the last 15 minutes"
+
+          # Node down
+          - alert: NodeDown
+            expr: up{job="kubernetes-nodes"} == 0
+            for: 5m
+            labels:
+              severity: critical
+              component: kubernetes
+            annotations:
+              summary: "Node {{ $labels.instance }} is down"
+              description: "Kubernetes node {{ $labels.instance }} has been down for more than 5 minutes"
+
+      - name: authentication
+        interval: 30s
+        rules:
+          # High authentication failure rate
+          - alert: HighAuthFailureRate
+            expr: |
+              (
+                sum(rate(auth_failures_total[5m])) by (method)
+                /
+                sum(rate(auth_attempts_total[5m])) by (method)
+              ) * 100 > 30
+            for: 5m
+            labels:
+              severity: warning
+              component: security
+            annotations:
+              summary: "High authentication failure rate for {{ $labels.method }}"
+              description: "Authentication failure rate is {{ $value | humanizePercentage }} for {{ $labels.method }}"
+
+          # Potential brute force attack
+          - alert: PotentialBruteForceAttack
+            expr: |
+              sum(rate(auth_failures_total[1m])) by (method) > 10
+            for: 2m
+            labels:
+              severity: critical
+              component: security
+            annotations:
+              summary: "Potential brute force attack detected"
+              description: "{{ $value }} failed authentication attempts per second for {{ $labels.method }}"
