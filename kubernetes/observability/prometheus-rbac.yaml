@@ -7,6 +7,18 @@ metadata:
   labels:
     app: prometheus
 ---
+# Prometheus Admin ServiceAccount
+# Used for administrative operations (config reload, etc.)
+# Referenced in Istio AuthorizationPolicy for lifecycle endpoint access
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-admin
+  namespace: observability
+  labels:
+    app: prometheus
+    component: admin
+---
 # Prometheus ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

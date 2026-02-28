@@ -225,13 +225,257 @@ endTimer();
 
 ## Security Considerations
 
-1. **Metrics Endpoint Protection**: The `/metrics` endpoint should NOT be publicly accessible in production. Use Istio AuthorizationPolicy to restrict access to Prometheus only.
+### Overview
 
-2. **Sensitive Data**: Ensure metrics do not contain sensitive data (passwords, tokens, PII). Review metric labels and values to ensure no sensitive data is inadvertently exposed.
+The Prometheus deployment implements multiple layers of security controls to protect against unauthorized access and configuration changes:
 
-3. **Resource Limits**: Prometheus can consume significant resources. Monitor and adjust resource limits based on usage.
+1. **Istio AuthorizationPolicy**: Fine-grained access control at the service mesh layer
+2. **NetworkPolicy**: Defense-in-depth network isolation at L3/L4
+3. **Disabled Admin API**: High-risk admin endpoints disabled by default
+4. **Lifecycle Endpoint Protection**: Config reload endpoints restricted to authorized principals
+5. **Service Account Isolation**: Separate ServiceAccounts for operational vs. administrative access
 
-4. **Data Retention**: Default retention is 30 days. Adjust based on compliance and storage requirements.
+### Security Controls Deployed
+
+#### 1. Istio AuthorizationPolicy (`prometheus-authz-policy.yaml`)
+
+**Deny All Admin API Access** (`prometheus-admin-api-deny`):
+
+- Blocks all access to `/api/v1/admin/*` and `/api/v2/admin/*` endpoints
+- Prevents unauthorized TSDB operations (snapshots, series deletion, etc.)
+- Applied even if `--web.enable-admin-api` flag is enabled
+
+**Restrict Lifecycle Endpoints** (`prometheus-lifecycle-allow`):
+
+- Allows `/-/reload` and `/-/quit` only from `prometheus-admin` ServiceAccount
+- Permits read-only query and UI endpoints from observability namespace
+- Allows Grafana ServiceAccount to query metrics
+- Blocks all other access by default
+
+**Allowed Endpoints** (from observability namespace):
+
+- `/api/v1/query*` - PromQL queries
+- `/api/v1/series*` - Series data
+- `/api/v1/labels*` - Label queries
+- `/api/v1/metadata*` - Metadata queries
+- `/api/v1/targets*` - Scrape target status
+- `/api/v1/rules*` - Alert rules
+- `/api/v1/alerts*` - Active alerts
+- `/api/v1/status/*` - Status info
+- `/graph*` - Web UI
+- `/metrics*` - Prometheus own metrics
+- `/-/healthy`, `/-/ready` - Health checks
+
+#### 2. NetworkPolicy (`prometheus-network-policy.yaml`)
+
+**Ingress Rules**:
+
+- Allows connections from Grafana pods in observability namespace
+- Allows connections from other monitoring tools in observability namespace
+- Allows Istio control plane access for sidecar injection
+- Permits access to Prometheus UI (port 9090) and Istio Envoy metrics (port 15090)
+
+**Egress Rules**:
+
+- Allows Prometheus to scrape metrics from pods in all namespaces
+- Permits DNS resolution (kube-dns)
+- Allows Kubernetes API access for service discovery
+
+#### 3. Disabled Admin API
+
+The `--web.enable-admin-api` flag is **disabled by default** in the base deployment:
+
+```yaml
+# SECURITY: --web.enable-admin-api is DISABLED by default
+# Admin API allows runtime TSDB operations (snapshot, delete series)
+# If needed in dev/staging, enable via Kustomize overlay
+# - '--web.enable-admin-api'
+```
+
+**Blast Radius if Enabled**:
+
+- `/api/v1/admin/tsdb/snapshot` - Create TSDB snapshot
+- `/api/v1/admin/tsdb/delete_series` - Delete time series data
+- `/api/v1/admin/tsdb/clean_tombstones` - Remove tombstones
+
+**Recommendation**: Only enable in **development** environments via Kustomize overlays. In production, use Prometheus Operator or external backup solutions instead of the admin API.
+
+#### 4. Lifecycle Endpoint Protection
+
+The `--web.enable-lifecycle` flag is **enabled** but **protected**:
+
+```yaml
+# Access restricted via Istio AuthorizationPolicy
+# Only prometheus-admin ServiceAccount can access
+- '--web.enable-lifecycle'
+```
+
+**Protected Endpoints**:
+
+- `/-/reload` - Reload configuration from disk (useful for ConfigMap updates)
+- `/-/quit` - Graceful shutdown
+
+**Use Case**: Enables automated configuration reloads without requiring pod restarts. A controller or operator running with the `prometheus-admin` ServiceAccount can trigger reloads.
+
+#### 5. ServiceAccount Isolation
+
+**prometheus ServiceAccount**:
+
+- Used for Prometheus pod workload identity
+- Has ClusterRole permissions for service discovery and metric scraping
+- Cannot access lifecycle or admin endpoints
+
+**prometheus-admin ServiceAccount**:
+
+- Used for administrative operations (config reloads)
+- Referenced in Istio AuthorizationPolicy for lifecycle endpoint access
+- Should only be assigned to trusted automation (CI/CD, operators)
+- Not used by Prometheus pod itself
+
+### Applying Security Policies
+
+Deploy all security controls:
+
+```bash
+# Deploy RBAC (includes prometheus and prometheus-admin ServiceAccounts)
+kubectl apply -f prometheus-rbac.yaml
+
+# Deploy Istio AuthorizationPolicy
+kubectl apply -f prometheus-authz-policy.yaml
+
+# Deploy NetworkPolicy
+kubectl apply -f prometheus-network-policy.yaml
+
+# Deploy Prometheus (with secure defaults)
+kubectl apply -f prometheus-deployment.yaml
+```
+
+### Verifying Security Controls
+
+#### Test Admin API Access (Should Fail)
+
+```bash
+# Port forward to Prometheus
+kubectl port-forward -n observability svc/prometheus 9090:9090
+
+# Attempt to create snapshot (should be blocked)
+curl -X POST http://localhost:9090/api/v1/admin/tsdb/snapshot
+# Expected: 403 Forbidden or RBAC: access denied
+```
+
+#### Test Lifecycle Endpoint (Should Fail Without Admin SA)
+
+```bash
+# Attempt config reload without proper ServiceAccount
+curl -X POST http://localhost:9090/-/reload
+# Expected: 403 Forbidden or RBAC: access denied
+```
+
+#### Test Query Endpoint (Should Succeed from Observability Namespace)
+
+```bash
+# Query should work from within the cluster
+kubectl run -it --rm curl --image=curlimages/curl:latest -n observability -- \
+  curl -s http://prometheus.observability.svc.cluster.local:9090/api/v1/query?query=up
+```
+
+### Environment-Specific Configuration
+
+#### Development/Staging
+
+If you need admin API access in non-production environments, create a Kustomize overlay:
+
+```yaml
+# kubernetes/observability/overlays/development/prometheus-patch.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: observability
+spec:
+  template:
+    spec:
+      containers:
+        - name: prometheus
+          args:
+            # Add admin API flag for development only
+            - '--web.enable-admin-api'
+```
+
+**WARNING**: Never enable `--web.enable-admin-api` in production without additional authentication layers (OAuth proxy, mutual TLS client certificates, etc.).
+
+#### Production
+
+In production, consider:
+
+1. **Prometheus Operator**: Use Prometheus Operator for declarative configuration management instead of lifecycle endpoints
+2. **External Snapshots**: Use VolumeSnapshot CRD or backup operators instead of admin API snapshots
+3. **Immutable Infrastructure**: Treat Prometheus as cattle, not pets - replace pods instead of reloading configs
+4. **Alert on Violations**: Set up alerts for unauthorized access attempts to admin/lifecycle endpoints
+
+### Metrics Endpoint Protection
+
+The backend application exposes `/metrics` endpoint. To restrict access to Prometheus only:
+
+```yaml
+# Create AuthorizationPolicy for backend metrics endpoint
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: backend-metrics
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  action: ALLOW
+  rules:
+    - to:
+        - operation:
+            paths:
+              - /metrics
+      from:
+        - source:
+            principals:
+              - cluster.local/ns/observability/sa/prometheus
+```
+
+### Sensitive Data in Metrics
+
+1. **Avoid PII**: Never include user IDs, email addresses, or personal information in metric labels
+2. **Sanitize Errors**: Ensure error messages in metrics don't leak sensitive data
+3. **Review Labels**: Audit all metric labels to ensure no sensitive data exposure
+4. **Use Aggregation**: Aggregate sensitive dimensions before exposing metrics
+
+### Audit Logging
+
+Monitor for suspicious access patterns:
+
+- Failed authorization attempts to admin/lifecycle endpoints
+- Unusual query patterns from unexpected namespaces
+- Changes to Prometheus configuration
+- ServiceAccount token usage for `prometheus-admin`
+
+### Incident Response
+
+If admin API compromise is suspected:
+
+1. **Immediate**: Scale Prometheus to 0 replicas to stop serving
+2. **Investigate**: Check audit logs for unauthorized access
+3. **Rotate Secrets**: Rotate all ServiceAccount tokens
+4. **Redeploy**: Deploy fresh Prometheus pod with clean config
+5. **Review**: Audit AuthorizationPolicy and NetworkPolicy rules
+6. **Snapshot**: Take TSDB snapshot before cleanup if forensics needed
+
+### Compliance Notes
+
+1. **Data Retention**: Default retention is 30 days. Adjust based on compliance and storage requirements.
+
+2. **Resource Limits**: Prometheus can consume significant resources. Monitor and adjust resource limits based on usage.
+
+3. **Access Logs**: Istio access logs capture all requests to Prometheus endpoints (queryable in centralized logging)
+
+4. **Change Management**: All Prometheus configuration changes should go through GitOps workflow (no manual `/-/reload` calls)
 
 ## Troubleshooting
 

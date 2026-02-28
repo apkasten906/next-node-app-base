@@ -34,10 +34,15 @@ spec:
             - '--storage.tsdb.path=/prometheus'
             - '--storage.tsdb.retention.time=30d'
             - '--storage.tsdb.retention.size=10GB'
+            # SECURITY: --web.enable-lifecycle allows /-/reload and /-/quit endpoints
+            # Access restricted via Istio AuthorizationPolicy (prometheus-lifecycle-allow)
+            # Only prometheus-admin ServiceAccount can access these endpoints
             - '--web.enable-lifecycle'
-            # SECURITY: --web.enable-admin-api enables runtime config reload and admin endpoints.
-            # Disable in production or restrict access via Istio AuthorizationPolicy/NetworkPolicy.
-            - '--web.enable-admin-api'
+            # SECURITY: --web.enable-admin-api is DISABLED by default for security
+            # Admin API allows runtime TSDB operations (snapshot, delete series)
+            # If needed in dev/staging, enable via Kustomize overlay and ensure
+            # prometheus-admin-api-deny AuthorizationPolicy blocks all admin endpoints
+            # - '--web.enable-admin-api'
             - '--web.console.libraries=/etc/prometheus/console_libraries'
             - '--web.console.templates=/etc/prometheus/consoles'
           ports:
