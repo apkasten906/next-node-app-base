@@ -80,6 +80,8 @@ spec:
               readOnly: true
             - name: storage
               mountPath: /prometheus
+            - name: tmp
+              mountPath: /tmp
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -93,6 +95,8 @@ spec:
         - name: storage
           persistentVolumeClaim:
             claimName: prometheus-storage
+        - name: tmp
+          emptyDir: {}
 ---
 # Prometheus Service
 apiVersion: v1

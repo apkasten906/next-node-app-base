@@ -1,4 +1,4 @@
-﻿# Plan: Full-Stack Monorepo Base Template
+# Plan: Full-Stack Monorepo Base Template
 
 This document has two parts:
 
