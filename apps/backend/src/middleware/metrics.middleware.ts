@@ -22,7 +22,7 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
     res.on('finish', () => {
       try {
         const duration = (Date.now() - startTime) / 1000; // Convert to seconds
-        const route = req.route?.path || req.path;
+        const route = req.route ? `${req.baseUrl}${req.route.path}` : req.path;
         const method = req.method;
         const statusCode = res.statusCode.toString();
 

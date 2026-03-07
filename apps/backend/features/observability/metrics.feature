@@ -42,7 +42,7 @@ Feature: Prometheus Metrics Collection
 
   @impl_prometheus_metrics
   Scenario: Create and set gauge metric
-    When I create a gauge named "active_connections"
+    When I create a gauge named "websocket_connections_active"
     And I set the gauge to 42
     Then the gauge value should be 42
     When I increment the gauge by 8
@@ -52,7 +52,7 @@ Feature: Prometheus Metrics Collection
 
   @impl_prometheus_metrics
   Scenario: Observe histogram values
-    When I create a histogram named "request_duration_ms" with buckets [10, 50, 100, 500]
+    When I create a histogram named "http_request_duration_seconds" with buckets [10, 50, 100, 500]
     And I observe the following values:
       | value |
       | 5     |

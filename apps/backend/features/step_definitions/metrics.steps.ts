@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+// Non-null assertions are necessary in Cucumber test contexts where properties
+// are initialized in Given steps and used in When/Then steps
 import { DataTable, Given, Then, When } from '@cucumber/cucumber';
 import express, { Express } from 'express';
 import request from 'supertest';
@@ -12,6 +15,8 @@ interface MetricsWorld {
   metricsService?: IMetricsService;
   metricsResponse?: request.Response;
   timerEndFunction?: () => void;
+  currentGaugeName?: string;
+  currentHistogramName?: string;
 }
 
 Given('the metrics service is initialized', function (this: MetricsWorld) {
@@ -83,45 +88,65 @@ When('I increment the counter by {int}', function (this: MetricsWorld, value: nu
 });
 
 When('I create a gauge named {string}', function (this: MetricsWorld, name: string) {
+  this.currentGaugeName = name;
+  this.metricsService!.registerGauge(name, `Test gauge ${name}`);
   this.metricsService!.setGauge(name, 0, {}); // Initialize
 });
 
 When('I set the gauge to {int}', function (this: MetricsWorld, value: number) {
-  this.metricsService!.setGauge('test_gauge', value, {});
+  const gaugeName = this.currentGaugeName || 'test_gauge';
+  this.metricsService!.setGauge(gaugeName, value, {});
 });
 
 When('I increment the gauge by {int}', async function (this: MetricsWorld, value: number) {
+  const gaugeName = this.currentGaugeName || 'test_gauge';
   // For testing, we'll just add to the current value
   const currentMetrics = await this.metricsService!.getMetrics();
-  const match = currentMetrics.match(/test_gauge\s+(\d+)/);
-  const current = match && match[1] ? Number.parseInt(match[1]) : 0;
-  this.metricsService!.setGauge('test_gauge', current + value, {});
+  const regex = new RegExp(String.raw`${gaugeName}\s+(\d+)`);
+  const match = regex.exec(currentMetrics);
+  const current = match?.[1] ? Number.parseInt(match[1]) : 0;
+  this.metricsService!.setGauge(gaugeName, current + value, {});
 });
 
 When('I decrement the gauge by {int}', async function (this: MetricsWorld, value: number) {
+  const gaugeName = this.currentGaugeName || 'test_gauge';
   const currentMetrics = await this.metricsService!.getMetrics();
-  const match = currentMetrics.match(/test_gauge\s+(\d+)/);
-  const current = match && match[1] ? Number.parseInt(match[1]) : 0;
-  this.metricsService!.setGauge('test_gauge', current - value, {});
+  const regex = new RegExp(String.raw`${gaugeName}\s+(\d+)`);
+  const match = regex.exec(currentMetrics);
+  const current = match?.[1] ? Number.parseInt(match[1]) : 0;
+  this.metricsService!.setGauge(gaugeName, current - value, {});
 });
 
 When(
-  'I create a histogram named {string} with buckets {word}',
+  'I create a histogram named {string} with buckets {string}',
   function (this: MetricsWorld, name: string, _bucketsStr: string) {
+    this.currentHistogramName = name;
+    // Note: MetricsService doesn't support custom buckets yet, using defaults
+    // Parse buckets from string for future use: "[10, 50, 100, 500]"
+    // const buckets = JSON.parse(_bucketsStr) as number[];
+    this.metricsService!.registerHistogram(name, `Test histogram ${name}`);
     // Initialize histogram with first observation
     this.metricsService!.observeHistogram(name, 0, {});
   }
 );
 
 When('I observe the following values:', function (this: MetricsWorld, dataTable: DataTable) {
+  const histogramName = this.currentHistogramName || 'test_histogram';
   const values = dataTable.hashes().map((row) => Number.parseFloat(row['value'] || '0'));
   values.forEach((value) => {
-    this.metricsService!.observeHistogram('test_histogram', value, {});
+    this.metricsService!.observeHistogram(histogramName, value, {});
   });
 });
 
 When('I start a timer for operation {string}', function (this: MetricsWorld, operation: string) {
-  this.timerEndFunction = this.metricsService!.startTimer(`${operation}_duration_seconds`);
+  const histogramName = `${operation}_duration_seconds`;
+  // Register histogram before starting timer
+  try {
+    this.metricsService!.registerHistogram(histogramName, `Duration of ${operation} operation`);
+  } catch {
+    // Histogram may already be registered, ignore error
+  }
+  this.timerEndFunction = this.metricsService!.startTimer(histogramName);
 });
 
 When('I wait for {int} milliseconds', async function (this: MetricsWorld, ms: number) {
@@ -308,19 +333,22 @@ Then(
   'the counter value should be {int}',
   async function (this: MetricsWorld, expectedValue: number) {
     const metrics = await this.metricsService!.getMetrics();
-    const match = metrics.match(/test_counter_total\s+(\d+)/);
+    const regex = /test_counter_total\s+(\d+)/;
+    const match = regex.exec(metrics);
     expect(match).toBeTruthy();
-    if (match && match[1]) {
+    if (match?.[1]) {
       expect(Number.parseInt(match[1])).toBe(expectedValue);
     }
   }
 );
 
 Then('the gauge value should be {int}', async function (this: MetricsWorld, expectedValue: number) {
+  const gaugeName = this.currentGaugeName || 'test_gauge';
   const metrics = await this.metricsService!.getMetrics();
-  const match = metrics.match(/test_gauge\s+(\d+)/);
+  const regex = new RegExp(String.raw`${gaugeName}\s+(\d+)`);
+  const match = regex.exec(metrics);
   expect(match).toBeTruthy();
-  if (match && match[1]) {
+  if (match?.[1]) {
     expect(Number.parseInt(match[1])).toBe(expectedValue);
   }
 });
@@ -351,8 +379,9 @@ Then(
     expect(metrics).toContain(`${metricName}_bucket`);
 
     // Extract sum for approximate verification
-    const sumMatch = metrics.match(new RegExp(String.raw`${metricName}_sum\s+(\d+\.?\d*)`));
-    if (sumMatch && sumMatch[1]) {
+    const regex = new RegExp(String.raw`${metricName}_sum\s+(\d+\.?\d*)`);
+    const sumMatch = regex.exec(metrics);
+    if (sumMatch?.[1]) {
       const actualValue = Number.parseFloat(sumMatch[1]);
       expect(actualValue).toBeGreaterThan(expectedValue * 0.8);
       expect(actualValue).toBeLessThan(expectedValue * 1.2);
@@ -377,9 +406,9 @@ Then(
   async function (this: MetricsWorld, metricName: string, expectedValue: number) {
     const metrics = await this.metricsService!.getMetrics();
     const regex = new RegExp(String.raw`${metricName}\s+(\d+)`);
-    const match = metrics.match(regex);
+    const match = regex.exec(metrics);
     expect(match).toBeTruthy();
-    if (match && match[1]) {
+    if (match?.[1]) {
       expect(Number.parseInt(match[1])).toBe(expectedValue);
     }
   }
@@ -389,10 +418,12 @@ Then(
   'the cache hit ratio should be {int}%',
   async function (this: MetricsWorld, expectedRatio: number) {
     const metrics = await this.metricsService!.getMetrics();
-    const hitsMatch = metrics.match(/cache_hits_total\s+(\d+)/);
-    const missesMatch = metrics.match(/cache_misses_total\s+(\d+)/);
+    const hitsRegex = /cache_hits_total\s+(\d+)/;
+    const missesRegex = /cache_misses_total\s+(\d+)/;
+    const hitsMatch = hitsRegex.exec(metrics);
+    const missesMatch = missesRegex.exec(metrics);
 
-    if (hitsMatch && hitsMatch[1] && missesMatch && missesMatch[1]) {
+    if (hitsMatch?.[1] && missesMatch?.[1]) {
       const hits = Number.parseInt(hitsMatch[1]);
       const misses = Number.parseInt(missesMatch[1]);
       const ratio = Math.round((hits / (hits + misses)) * 100);
@@ -407,9 +438,9 @@ Then(
   async function (this: MetricsWorld, metricName: string, expectedValue: number) {
     const metrics = await this.metricsService!.getMetrics();
     const regex = new RegExp(String.raw`${metricName}\s+(\d+)`);
-    const match = metrics.match(regex);
+    const match = regex.exec(metrics);
     expect(match).toBeTruthy();
-    if (match && match[1]) {
+    if (match?.[1]) {
       expect(Number.parseInt(match[1])).toBe(expectedValue);
     }
   }
@@ -419,10 +450,12 @@ Then(
   'the authentication success rate should be {int}%',
   async function (this: MetricsWorld, expectedRate: number) {
     const metrics = await this.metricsService!.getMetrics();
-    const attemptsMatch = metrics.match(/auth_attempts_total\s+(\d+)/);
-    const failuresMatch = metrics.match(/auth_failures_total\s+(\d+)/);
+    const attemptsRegex = /auth_attempts_total\s+(\d+)/;
+    const failuresRegex = /auth_failures_total\s+(\d+)/;
+    const attemptsMatch = attemptsRegex.exec(metrics);
+    const failuresMatch = failuresRegex.exec(metrics);
 
-    if (attemptsMatch && attemptsMatch[1] && failuresMatch && failuresMatch[1]) {
+    if (attemptsMatch?.[1] && failuresMatch?.[1]) {
       const attempts = Number.parseInt(attemptsMatch[1]);
       const failures = Number.parseInt(failuresMatch[1]);
       const successRate = Math.round(((attempts - failures) / attempts) * 100);
