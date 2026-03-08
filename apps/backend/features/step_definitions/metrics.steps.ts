@@ -139,14 +139,27 @@ When('I observe the following values:', function (this: MetricsWorld, dataTable:
 });
 
 When('I start a timer for operation {string}', function (this: MetricsWorld, operation: string) {
-  const histogramName = `${operation}_duration_seconds`;
-  // Register histogram before starting timer
+  // Map operation name to actual metric name in MetricsService
+  let histogramName: string;
+  if (operation === 'db_query') {
+    histogramName = 'db_query_duration_seconds';
+  } else {
+    histogramName = `${operation}_duration_seconds`;
+  }
+
+  // Register histogram before starting timer if it doesn't exist
   try {
-    this.metricsService!.registerHistogram(histogramName, `Duration of ${operation} operation`);
+    this.metricsService!.registerHistogram(histogramName, `Duration of ${operation} operation`, [
+      'operation',
+      'table',
+    ]);
   } catch {
     // Histogram may already be registered, ignore error
   }
-  this.timerEndFunction = this.metricsService!.startTimer(histogramName);
+  this.timerEndFunction = this.metricsService!.startTimer(histogramName, {
+    operation: 'SELECT',
+    table: 'users',
+  });
 });
 
 When('I wait for {int} milliseconds', async function (this: MetricsWorld, ms: number) {

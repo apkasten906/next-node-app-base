@@ -52,28 +52,28 @@ Feature: Prometheus Metrics Collection
 
   @impl_prometheus_metrics
   Scenario: Observe histogram values
-    When I create a histogram named "http_request_duration_seconds" with buckets [10, 50, 100, 500]
+    When I create a histogram named "http_request_duration_seconds" with buckets "[0.01, 0.05, 0.1, 0.5]"
     And I observe the following values:
       | value |
-      | 5     |
-      | 25    |
-      | 75    |
-      | 150   |
-      | 600   |
+      | 0.005 |
+      | 0.025 |
+      | 0.075 |
+      | 0.15  |
+      | 0.6   |
     Then the histogram should have counts in buckets:
       | bucket | count |
-      | 10     | 1     |
-      | 50     | 2     |
-      | 100    | 3     |
-      | 500    | 4     |
+      | 0.01   | 1     |
+      | 0.05   | 2     |
+      | 0.1    | 3     |
+      | 0.5    | 4     |
       | +Inf   | 5     |
 
   @impl_prometheus_metrics
   Scenario: Use timer to track operation duration
-    When I start a timer for operation "database_query"
+    When I start a timer for operation "db_query"
     And I wait for 100 milliseconds
     And I end the timer
-    Then the "database_query_duration_seconds" histogram should have a value around 0.1
+    Then the "db_query_duration_seconds" histogram should have a value around 0.1
 
   @impl_prometheus_metrics
   Scenario: Collect default Node.js metrics
