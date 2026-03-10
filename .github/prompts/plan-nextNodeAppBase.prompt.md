@@ -88,13 +88,7 @@ This document has two parts:
 - ✅ **WebSocket support (WSJF 4.15)** - Socket.io auth + scaling (commit `cb2f5c4`); docs: `docs/WEBSOCKET.md`
 - **Test Status (2025-12-14)**: 170 passing / 108 skipped (skips expected when `TEST_EXTERNAL_SERVICES=false`)
 - **Current Status (March 2026)**: Core features complete with comprehensive testing, i18n, error handling, Docker, queues, WebSockets, and CI/CD hardening complete
-- **In Progress (March 2026)**: Phase 10: Observability Stack - Prometheus metrics collection (PR #38 in progress), Grafana dashboards, Jaeger distributed tracing, centralized logging, APM integration, alerting and incident management
-
-### Priorities (A / B / C from original plan)
-
-1. ✅ **B (COMPLETED)**: Convert `@security` BDD scenarios to integration tests and make tests resilient to external services (MockRedis, toggles). All 15 critical security scenarios now covered.
-2. ✅ **C (COMPLETED)**: Finalize artifact registry and publishing flow (GitHub Packages default), add `scripts/publish-packages.js`, `.npmrc.template`, and GitHub Actions publish workflow. Make publish flow registry-agnostic via `REGISTRY_URL` so we can route to an internal registry through the service mesh. All components verified and tested.
-3. ✅ **A (COMPLETED)**: Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy. Upgraded to Prisma 7.1.0, documented CLI config parsing bug, implemented hybrid migration strategy (manual SQL + Prisma 6 fallback). See ADR-010.
+- ✅ **Prometheus rules management** - add `prometheus-rules` ConfigMap, mount at `/etc/prometheus/rules`, include rule files in repo and CI review
 
 ### Actionable steps (short-term)
 
