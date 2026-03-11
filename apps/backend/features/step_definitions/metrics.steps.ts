@@ -529,9 +529,39 @@ Then('the response should contain {string}', function (this: MetricsWorld, text:
 
 Then(
   'the {string} histogram should include {float}',
-  async function (this: MetricsWorld, metricName: string, _value: number) {
+  async function (this: MetricsWorld, metricName: string, expectedValue: number) {
     const metrics = await this.metricsService!.getMetrics();
-    expect(metrics).toContain(metricName);
+
+    const escapeRegex = (value: string): string =>
+      value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`);
+
+    const safeMetricName = escapeRegex(metricName);
+    const numberPattern = '[-+]?\\d*\\.?\\d+(?:[eE][-+]?\\d+)?';
+
+    const sumLineRegex = new RegExp(
+      String.raw`^${safeMetricName}_sum(?:\{[^}]*\})?\s+(${numberPattern})\s*$`,
+      'gm'
+    );
+    const countLineRegex = new RegExp(
+      String.raw`^${safeMetricName}_count(?:\{[^}]*\})?\s+(${numberPattern})\s*$`,
+      'gm'
+    );
+
+    const sums = Array.from(metrics.matchAll(sumLineRegex))
+      .map((m) => Number.parseFloat(m[1] ?? 'NaN'))
+      .filter((v) => Number.isFinite(v));
+    const counts = Array.from(metrics.matchAll(countLineRegex))
+      .map((m) => Number.parseFloat(m[1] ?? 'NaN'))
+      .filter((v) => Number.isFinite(v));
+
+    expect(sums.length).toBeGreaterThan(0);
+    expect(counts.length).toBeGreaterThan(0);
+
+    const maxSum = Math.max(...sums);
+    const maxCount = Math.max(...counts);
+
+    expect(maxCount).toBeGreaterThan(0);
+    expect(maxSum).toBeGreaterThanOrEqual(expectedValue);
   }
 );
 
