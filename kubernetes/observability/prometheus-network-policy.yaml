@@ -47,7 +47,8 @@ spec:
         - protocol: TCP
           port: 15090 # Istio Envoy metrics
   egress:
-    # Allow Prometheus to scrape metrics from all pods
+    # Allow Prometheus to scrape metrics from pods on allowlisted ports.
+    # Keep this list aligned with the allowlist in prometheus-config.yaml.
     - to:
         - namespaceSelector: {}
       ports:
@@ -70,7 +71,7 @@ spec:
       ports:
         - protocol: UDP
           port: 53
-    # Allow Kubernetes API access for service discovery
+    # Allow Kubernetes API access for service discovery and node metrics proxy scraping
     - to:
         - namespaceSelector: {}
       ports:

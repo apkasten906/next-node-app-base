@@ -1,3 +1,8 @@
+# Prometheus Operator example (requires the Prometheus Operator CRDs)
+#
+# This file is intentionally NOT referenced by the default (ConfigMap-mounted) Prometheus deployment.
+# If you use the Prometheus Operator, you can apply this PrometheusRule instead of the ConfigMap-based rules.
+---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:

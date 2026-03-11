@@ -28,7 +28,7 @@ export class MetricsService implements IMetricsService {
     // Add default labels (app name, version, etc.)
     this.register.setDefaultLabels({
       app: 'backend',
-      version: process.env['npm_package_version'] || '1.0.0',
+      app_version: process.env['npm_package_version'] || '1.0.0',
     });
 
     // Register default metrics by default

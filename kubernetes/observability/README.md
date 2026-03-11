@@ -9,9 +9,11 @@ This directory contains Kubernetes manifests for the observability stack includi
 Prometheus is the metrics collection and alerting system that scrapes metrics from:
 
 - Backend application (`/metrics` endpoint)
-- Kubernetes cluster (nodes, pods, services)
+- Kubernetes cluster (nodes, and pods annotated with `prometheus.io/scrape: 'true'` on allowed ports)
 - Istio service mesh (control plane and data plane)
 - Envoy sidecar proxies
+
+This template is secure-by-default: Prometheus pod scraping is constrained to an allowlisted set of ports and node metrics are scraped via the Kubernetes API server proxy to align with restrictive NetworkPolicy egress. See `docs/adr/016-secure-by-default-prometheus-scraping.md`.
 
 ### Grafana
 
@@ -58,7 +60,8 @@ kubectl apply -f prometheus-rbac.yaml
 kubectl apply -f prometheus-config.yaml
 
 # Deploy Prometheus alert rules
-kubectl apply -f prometheus-rules.yaml
+# Deploy Prometheus alert rules (ConfigMap-based)
+kubectl apply -f prometheus-rules-configmap.yaml
 
 # Deploy Prometheus
 kubectl apply -f prometheus-deployment.yaml
@@ -222,6 +225,8 @@ endTimer();
 3. Deploy Jaeger for distributed tracing (see `jaeger/`)
 4. Set up centralized logging (see `logging/`)
 5. Integrate with PagerDuty/OpsGenie for incident management
+
+> Note: If you are using the Prometheus Operator, an Operator-specific `PrometheusRule` example lives under `operator/`.
 
 ## Security Considerations
 

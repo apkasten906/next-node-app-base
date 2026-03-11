@@ -97,6 +97,7 @@
     "isready",
     "istiod",
     "Kiali",
+    "kubelet",
     "labelmap",
     "libc",
     "Meili",

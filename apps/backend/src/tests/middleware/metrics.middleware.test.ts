@@ -39,7 +39,8 @@ describe('Metrics Middleware', () => {
     req = {
       method: 'GET',
       route: {
-        path: '/api/users/:id',
+        // In Express, `route.path` is typically relative to `baseUrl`.
+        path: '/users/:id',
       },
       originalUrl: '/api/users/123',
       baseUrl: '/api',
@@ -54,6 +55,8 @@ describe('Metrics Middleware', () => {
         // Trigger finish event when send is called
         if (finishCallback) {
           finishCallback();
+          // Express emits `finish` once per response.
+          finishCallback = null;
         }
         return this;
       }),
@@ -112,7 +115,7 @@ describe('Metrics Middleware', () => {
     });
 
     it('should use route path when available', () => {
-      req.route = { path: '/api/posts/:postId' };
+      req.route = { path: '/posts/:postId' };
       req.method = 'POST';
       res.statusCode = 201;
 
@@ -310,6 +313,7 @@ describe('Metrics Middleware', () => {
           // Trigger finish event when send is called
           if (finishCallback2) {
             finishCallback2();
+            finishCallback2 = null;
           }
           return this;
         }),
@@ -321,7 +325,7 @@ describe('Metrics Middleware', () => {
         }),
       };
       req.method = 'POST';
-      req.route = { path: '/api/posts' };
+      req.route = { path: '/posts' };
       metricsMiddleware(req as Request, res2 as unknown as Response, next);
       res2.send('response 2');
 
@@ -332,7 +336,7 @@ describe('Metrics Middleware', () => {
     it('should track same route with different methods separately', () => {
       // GET request
       req.method = 'GET';
-      req.route = { path: '/api/users/:id' };
+      req.route = { path: '/users/:id' };
       metricsMiddleware(req as Request, res as Response, next);
       res.send!('user data');
 
@@ -376,8 +380,8 @@ describe('Metrics Middleware', () => {
       res.send!('first');
       res.send!('second');
 
-      // Metrics should only be recorded once per send (finish event fires for each)
-      expect(mockMetricsService.incrementCounter).toHaveBeenCalledTimes(2);
+      // Metrics should only be recorded once per request/response (finish event fires once)
+      expect(mockMetricsService.incrementCounter).toHaveBeenCalledTimes(1);
     });
   });
 
