@@ -43,15 +43,60 @@ Choose between:
 
 ### Prerequisites
 
-1. Kubernetes cluster with Istio installed
+1. Kubernetes cluster
 2. `kubectl` configured to access the cluster
 3. Sufficient cluster resources (4 CPU, 8GB RAM minimum)
+
+#### Optional: Istio (recommended for the `AuthorizationPolicy` examples)
+
+The core Prometheus deployment in this folder does **not** require Istio.
+
+Istio is only required if you want to apply/dry-run Istio resources such as:
+
+- `prometheus-authz-policy.yaml` (`kind: AuthorizationPolicy`)
+- The AuthorizationPolicy example snippet under “Metrics Endpoint Protection”
+
+If Istio is not installed (no `AuthorizationPolicy` CRD), `kubectl apply --dry-run=client -R` will fail with:
+
+> no matches for kind `AuthorizationPolicy` in version `security.istio.io/v1beta1`
+
+In that case, either:
+
+- Skip applying `prometheus-authz-policy.yaml`, or
+- Install Istio first (see below)
+
+##### Minimal Istio install (local/dev)
+
+This repo intentionally does not vendor Istio installation YAML. Use the official install flow, then verify the CRDs exist.
+
+1. Install `istioctl` (Windows): download the Istio release ZIP from <https://istio.io/latest/docs/setup/getting-started/#download>, extract it, and add the `bin` directory (contains `istioctl.exe`) to your `PATH`.
+2. Install the control plane (minimal profile is enough for CRDs + `istiod`):
+
+   ```bash
+   istioctl install --set profile=minimal -y
+   ```
+
+3. Verify the CRDs you need are present:
+
+   ```bash
+   kubectl get crd authorizationpolicies.security.istio.io
+   ```
+
+4. (Optional) Verify control-plane pods are running:
+
+   ```bash
+   kubectl get pods -n istio-system
+   ```
 
 ### Deploy Prometheus
 
 ```bash
 # Create observability namespace
 kubectl apply -f namespace.yaml
+
+# Optional (requires Istio): restrict Prometheus endpoints via AuthorizationPolicy
+# If Istio is not installed, keep this commented out.
+# kubectl apply -f prometheus-authz-policy.yaml
 
 # Deploy Prometheus RBAC
 kubectl apply -f prometheus-rbac.yaml
@@ -143,7 +188,6 @@ Prometheus is configured with the following alert rules:
 
 - **HighCPUUsage**: Triggers when CPU usage exceeds 80% for 10 minutes
 - **HighMemoryUsage**: Triggers when memory usage exceeds 90% for 5 minutes
-- **PodRestarts**: Triggers when pod restarts occur
 - **NodeDown**: Triggers when Kubernetes node is down for 5 minutes
 
 ### Security Alerts
@@ -226,6 +270,31 @@ endTimer();
 5. Integrate with PagerDuty/OpsGenie for incident management
 
 > Note: If you are using the Prometheus Operator, an Operator-specific `PrometheusRule` example lives under `operator/`.
+
+If the Prometheus Operator CRDs are **not** installed, `kubectl apply --dry-run=client -R` will fail on `kind: PrometheusRule` with an error like:
+
+> no matches for kind `PrometheusRule` in version `monitoring.coreos.com/v1`
+
+In that case, skip the `operator/` examples (or install the Prometheus Operator / kube-prometheus-stack first).
+
+If you only want local validation for the `operator/` example (without installing the full Operator), you can install just the `PrometheusRule` CRD:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.89.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+kubectl get crd prometheusrules.monitoring.coreos.com
+```
+
+Windows shortcut:
+
+```powershell
+./scripts/install-prometheus-operator-crds.ps1
+```
+
+Linux/macOS shortcut:
+
+```bash
+./scripts/install-prometheus-operator-crds.sh
+```
 
 ## Security Considerations
 
@@ -379,7 +448,7 @@ curl -X POST http://localhost:9090/-/reload
 
 ```bash
 # Query should work from within the cluster
-kubectl run -it --rm curl --image=curlimages/curl:latest -n observability -- \
+kubectl run -it --rm curl --image=curlimages/curl:8.11.1 -n observability -- \
   curl -s http://prometheus.observability.svc.cluster.local:9090/api/v1/query?query=up
 ```
 
