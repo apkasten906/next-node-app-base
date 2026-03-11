@@ -15,11 +15,16 @@ import type { IMetricsService } from '../infrastructure/observability';
  */
 export function metricsMiddleware(req: Request, res: Response, next: NextFunction): void {
   try {
+    if (req.path === '/metrics') {
+      next();
+      return;
+    }
+
     const metricsService = container.resolve<IMetricsService>('MetricsService');
     const startTime = Date.now();
 
     // Listen for response finish event (after routing and response completion)
-    res.on('finish', () => {
+    res.once('finish', () => {
       try {
         const duration = (Date.now() - startTime) / 1000; // Convert to seconds
         const route = req.route ? `${req.baseUrl}${req.route.path}` : req.path;

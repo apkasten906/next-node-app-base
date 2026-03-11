@@ -133,7 +133,7 @@ Feature: Prometheus Metrics Collection
   Scenario: Metrics include application labels
     When I request the "/metrics" endpoint
     Then all metrics should have the label "app" with value "backend"
-    And all metrics should have the label "version"
+    And all metrics should have the label "app_version"
 
   @impl_prometheus_metrics
   Scenario: Clear metrics for testing

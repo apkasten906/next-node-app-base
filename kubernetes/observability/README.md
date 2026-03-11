@@ -59,7 +59,6 @@ kubectl apply -f prometheus-rbac.yaml
 # Deploy Prometheus ConfigMap
 kubectl apply -f prometheus-config.yaml
 
-# Deploy Prometheus alert rules
 # Deploy Prometheus alert rules (ConfigMap-based)
 kubectl apply -f prometheus-rules-configmap.yaml
 

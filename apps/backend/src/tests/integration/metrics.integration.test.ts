@@ -1,6 +1,6 @@
 import express, { Express } from 'express';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { container } from '../../container';
 import { IMetricsService } from '../../infrastructure/observability';
@@ -34,6 +34,10 @@ describe('Metrics Integration', () => {
 
     // Resolve metrics service
     metricsService = container.resolve<IMetricsService>('MetricsService');
+  });
+
+  beforeEach(() => {
+    metricsService.resetMetrics();
   });
 
   afterAll(() => {

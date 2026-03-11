@@ -12,7 +12,7 @@ data:
       - name: example.rules
         rules:
           - alert: HighPrometheusCPU
-            expr: process_cpu_seconds_total > 0.5
+            expr: rate(process_cpu_seconds_total[5m]) > 0.5
             for: 2m
             labels:
               severity: warning

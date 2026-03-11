@@ -54,6 +54,9 @@ spec:
     - to:
         - operation:
             paths:
+              - /
+              - /static/*
+              - /favicon.ico
               - /api/v1/query*
               - /api/v1/series*
               - /api/v1/labels*
