@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { MetricsService } from '../../../infrastructure/observability/MetricsService';
 
@@ -21,6 +21,10 @@ describe('MetricsService', () => {
     metricsService.registerHistogram('test_histogram', 'Test histogram');
     metricsService.registerHistogram('test_histogram_seconds', 'Test histogram in seconds');
     metricsService.registerCounter('loop_counter_total', 'Test loop counter');
+  });
+
+  afterEach(() => {
+    metricsService.stopDefaultMetricsCollection();
   });
 
   describe('Counter Metrics', () => {

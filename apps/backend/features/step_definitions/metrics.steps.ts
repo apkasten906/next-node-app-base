@@ -297,6 +297,14 @@ When('I increment API errors by {int}', function (this: MetricsWorld, count: num
 });
 
 When('I clear all metrics', function (this: MetricsWorld) {
+  if (this.metricsService && 'stopDefaultMetricsCollection' in this.metricsService) {
+    (
+      this.metricsService as unknown as {
+        stopDefaultMetricsCollection: () => void;
+      }
+    ).stopDefaultMetricsCollection();
+  }
+
   // Swap in a fresh isolated registry/service. This removes any previously-registered
   // `test_*` metrics while keeping default/business metrics available.
   const registry = new promClient.Registry();

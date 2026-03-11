@@ -475,4 +475,32 @@ describe('Metrics Middleware', () => {
       expect(mockMetricsService.incrementCounter).toHaveBeenCalled();
     });
   });
+
+  describe('Metrics Exclusion', () => {
+    it('should exclude /metrics and /metrics/* routes only', () => {
+      const metricsReq = {
+        ...req,
+        originalUrl: '/metrics',
+        path: '/metrics',
+      };
+
+      metricsMiddleware(metricsReq as Request, res as Response, next);
+
+      expect(res.once).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalled();
+    });
+
+    it('should not exclude routes that merely start with /metrics', () => {
+      const notMetricsReq = {
+        ...req,
+        originalUrl: '/metrics-foo',
+        path: '/metrics-foo',
+      };
+
+      metricsMiddleware(notMetricsReq as Request, res as Response, next);
+
+      expect(res.once).toHaveBeenCalledWith('finish', expect.any(Function));
+      expect(next).toHaveBeenCalled();
+    });
+  });
 });

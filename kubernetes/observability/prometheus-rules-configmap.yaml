@@ -41,7 +41,7 @@ data:
           - alert: SlowResponseTime
             expr: |
               histogram_quantile(0.95,
-                sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route, method)
+                sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route, method, app)
               ) > 1
             for: 10m
             labels:

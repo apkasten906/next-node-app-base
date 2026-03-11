@@ -17,7 +17,8 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
   try {
     // Exclude the entire metrics mount (e.g. /metrics and /metrics/*) to avoid
     // instrumenting the Prometheus scrape endpoint.
-    if (req.originalUrl.startsWith('/metrics')) {
+    const pathOnly = req.originalUrl.split('?')[0];
+    if (pathOnly && /^\/metrics(?:\/|$)/.test(pathOnly)) {
       next();
       return;
     }

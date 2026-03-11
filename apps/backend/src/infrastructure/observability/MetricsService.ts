@@ -17,6 +17,7 @@ export class MetricsService implements IMetricsService {
   private readonly histograms: Map<string, promClient.Histogram>;
   private readonly summaries: Map<string, promClient.Summary>;
   private defaultMetricsRegistered = false;
+  private defaultMetricsInterval: NodeJS.Timeout | undefined;
 
   constructor(@inject('PrometheusRegistry') registry?: promClient.Registry) {
     this.register = registry ?? new promClient.Registry();
@@ -46,11 +47,24 @@ export class MetricsService implements IMetricsService {
       return;
     }
 
-    promClient.collectDefaultMetrics({
+    this.defaultMetricsInterval = promClient.collectDefaultMetrics({
       register: this.register,
     });
 
     this.defaultMetricsRegistered = true;
+  }
+
+  /**
+   * Stop background collection interval created by collectDefaultMetrics().
+   * Useful for tests/BDD scenarios that construct many isolated registries.
+   */
+  stopDefaultMetricsCollection(): void {
+    if (!this.defaultMetricsInterval) {
+      return;
+    }
+
+    clearInterval(this.defaultMetricsInterval);
+    this.defaultMetricsInterval = undefined;
   }
 
   /**

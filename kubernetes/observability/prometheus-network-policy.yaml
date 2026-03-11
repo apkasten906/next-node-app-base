@@ -36,7 +36,7 @@ spec:
       ports:
         - protocol: TCP
           port: 9090
-    # Allow Istio sidecar injection
+    # Allow Istio control plane components to query/scrape Prometheus
     - from:
         - namespaceSelector:
             matchLabels:
@@ -70,6 +70,8 @@ spec:
               k8s-app: kube-dns
       ports:
         - protocol: UDP
+          port: 53
+        - protocol: TCP
           port: 53
     # Allow Kubernetes API access for service discovery and node metrics proxy scraping
     - to:

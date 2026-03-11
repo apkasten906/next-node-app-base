@@ -43,4 +43,8 @@ After(async function (this: World, { result, pickle }) {
   if (typeof this.cleanup === 'function') {
     await this.cleanup();
   }
+
+  // Stop default metrics background interval to avoid leaking timers across scenarios.
+  const metricsService = container.resolve<MetricsService>('MetricsService');
+  metricsService.stopDefaultMetricsCollection();
 });
