@@ -1,12 +1,10 @@
----
-title: '014 - Prometheus rules management: ConfigMap-mounted files vs PrometheusRule CRD'
-status: Accepted
-date: 2026-03-11
-authors:
-  - apkasten906
----
+# ADR 015: Prometheus Rules Management (ConfigMap-mounted rule files)
 
-# Context
+Status: Accepted
+Date: 2026-03-11
+Authors: apkasten906
+
+## Context
 
 The repository adds Prometheus configuration and manifests under `kubernetes/observability/`.
 
@@ -16,13 +14,13 @@ The repository adds Prometheus configuration and manifests under `kubernetes/obs
 
 Decisions must balance operational simplicity, CI/PR reviewability, and compatibility with the current manifests and environment (developer machines, CI, and cluster privileges).
 
-# Decision
+## Decision
 
 We will manage Prometheus alerting rules as plain YAML rule files stored in a repository-managed ConfigMap (`prometheus-rules`) and mount them at `/etc/prometheus/rules` for the Prometheus server to load via `rule_files`.
 
-Status: Accepted — implement using file-based rules via `kubernetes/observability/prometheus-rules-configmap.yaml`.
+Implemented via `kubernetes/observability/prometheus-rules-configmap.yaml`.
 
-# Rationale
+## Rationale
 
 - Matches existing `prometheus-config.yaml` and `prometheus-deployment.yaml` (no operator required).
 - Simpler operational model for a small monorepo template: no extra operator lifecycle or CRD permissions required.
@@ -30,7 +28,7 @@ Status: Accepted — implement using file-based rules via `kubernetes/observabil
 - Works in clusters without the Prometheus Operator installed (more portable for developers and CI).
 - Allows CI checks (promtool) to validate rules as part of PR pipelines without requiring cluster-admin privileges.
 
-# Consequences
+## Consequences
 
 - Pros:
   - Lower operational complexity and fewer cluster dependencies.
@@ -41,7 +39,7 @@ Status: Accepted — implement using file-based rules via `kubernetes/observabil
   - Lacks some Operator conveniences (automated rollouts, namespaced reconciliation, and tighter operator-driven lifecycle features).
   - If multiple Prometheus instances or namespaces need different rules, additional management is required.
 
-# Alternatives Considered
+## Alternatives Considered
 
 - Prometheus Operator / `PrometheusRule` CRD:
   - Pros: richer lifecycle, namespace-scoped rule management, tighter integration with Alertmanager and Operator workflows.
@@ -51,7 +49,7 @@ Status: Accepted — implement using file-based rules via `kubernetes/observabil
   - Pros: single ConfigMap to manage Prometheus configuration and rules.
   - Cons: larger ConfigMap churn, less separation of concerns, and more reviewer friction for unrelated config changes.
 
-# Migration Path
+## Migration Path
 
 If the project later adopts the Prometheus Operator, migrate by:
 
@@ -59,8 +57,8 @@ If the project later adopts the Prometheus Operator, migrate by:
 2. Removing the `prometheus-rules` ConfigMap and updating `prometheus-deployment.yaml` (or switching to an Operator-managed Prometheus Deployment).
 3. Update CI to validate `PrometheusRule` objects (if tooling is added) and the migration plan in an ADR.
 
-# References
+## References
 
-- [prometheus-config.yaml](kubernetes/observability/prometheus-config.yaml#L1)
-- [prometheus-deployment.yaml](kubernetes/observability/prometheus-deployment.yaml#L1)
-- [prometheus-rules-configmap.yaml](kubernetes/observability/prometheus-rules-configmap.yaml#L1)
+- [prometheus-config.yaml](../../kubernetes/observability/prometheus-config.yaml)
+- [prometheus-deployment.yaml](../../kubernetes/observability/prometheus-deployment.yaml)
+- [prometheus-rules-configmap.yaml](../../kubernetes/observability/prometheus-rules-configmap.yaml)
