@@ -78,8 +78,9 @@ export interface IMetricsService {
    * @param name Histogram name
    * @param help Help text
    * @param labelNames Array of label names
+   * @param buckets Optional histogram buckets (prom-client "buckets" option)
    */
-  registerHistogram(name: string, help: string, labelNames?: string[]): void;
+  registerHistogram(name: string, help: string, labelNames?: string[], buckets?: number[]): void;
 
   /**
    * Register a custom summary metric

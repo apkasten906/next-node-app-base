@@ -44,7 +44,6 @@ Given('the metrics service is initialized', function (this: MetricsWorld) {
   this.metricsService?.registerGauge('test_gauge', 'Test gauge');
   this.metricsService?.registerHistogram('test_histogram_1', 'Test histogram 1');
   this.metricsService?.registerHistogram('test_histogram', 'Test histogram');
-  this.metricsService?.registerHistogram('test_histogram_seconds', 'Test histogram seconds');
   this.metricsService?.registerSummary('test_summary', 'Test summary');
 });
 
@@ -131,18 +130,33 @@ When('I decrement the gauge by {int}', async function (this: MetricsWorld, value
 
 When(
   'I create a histogram named {string} with buckets {string}',
-  function (this: MetricsWorld, name: string, _bucketsStr: string) {
+  function (this: MetricsWorld, name: string, bucketsStr: string) {
     this.currentHistogramName = name;
-    // Note: MetricsService doesn't support custom buckets yet, using defaults
-    // Parse buckets from string for future use: "[10, 50, 100, 500]"
-    // const buckets = JSON.parse(_bucketsStr) as number[];
+    let buckets: number[] | undefined;
+
     try {
-      this.metricsService!.registerHistogram(name, `Test histogram ${name}`);
+      const parsed = JSON.parse(bucketsStr) as unknown;
+      if (
+        Array.isArray(parsed) &&
+        parsed.every((v) => typeof v === 'number' && Number.isFinite(v))
+      ) {
+        buckets = parsed;
+      }
+    } catch {
+      // Fall through to error below.
+    }
+
+    if (!buckets || buckets.length === 0) {
+      throw new TypeError(
+        `Invalid buckets string: '${bucketsStr}'. Expected JSON array of numbers.`
+      );
+    }
+
+    try {
+      this.metricsService!.registerHistogram(name, `Test histogram ${name}`, [], buckets);
     } catch {
       // Metric may already exist (pre-registered business metrics), ignore.
     }
-    // Initialize histogram with first observation
-    this.metricsService!.observeHistogram(name, 0, {});
   }
 );
 
@@ -410,15 +424,84 @@ Then(
     const metrics = await this.metricsService!.getMetrics();
     const expectedBuckets = dataTable.hashes();
 
+    const histogramName = this.currentHistogramName || 'test_histogram_seconds';
+
+    const escapeRegex = (value: string): string =>
+      value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`);
+
+    const bucketLineRegex = new RegExp(
+      String.raw`^${escapeRegex(histogramName)}_bucket\{([^}]*)\}\s+(\d+(?:\.\d+)?)\s*$`
+    );
+
+    const bucketCounts = new Map<string, number>();
+
+    metrics
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith(`${histogramName}_bucket{`))
+      .forEach((line) => {
+        const match = bucketLineRegex.exec(line);
+        if (!match?.[1] || !match[2]) {
+          return;
+        }
+
+        const labelsPart = match[1];
+        const count = Number.parseFloat(match[2]);
+        const leMatch = /\ble="([^"]+)"/.exec(labelsPart);
+
+        if (leMatch?.[1] && Number.isFinite(count)) {
+          bucketCounts.set(leMatch[1], count);
+        }
+      });
+
+    const resolveBucketKey = (bucket: string): string | undefined => {
+      if (bucketCounts.has(bucket)) {
+        return bucket;
+      }
+      if (bucket === '+Inf') {
+        return undefined;
+      }
+
+      const desired = Number.parseFloat(bucket);
+      if (!Number.isFinite(desired)) {
+        return undefined;
+      }
+
+      for (const key of bucketCounts.keys()) {
+        if (key === '+Inf') {
+          continue;
+        }
+        const keyNum = Number.parseFloat(key);
+        if (Number.isFinite(keyNum) && Math.abs(keyNum - desired) < 1e-12) {
+          return key;
+        }
+      }
+
+      return undefined;
+    };
+
     expectedBuckets.forEach((row) => {
       const bucket = row['bucket'];
-      // Note: Actual count verification would require more sophisticated parsing
-
-      if (bucket === '+Inf') {
-        expect(metrics).toContain('le="+Inf"');
-      } else {
-        expect(metrics).toContain(`le="${bucket}"`);
+      const expectedCount = Number.parseFloat(row['count'] || 'NaN');
+      if (!bucket) {
+        throw new TypeError('Bucket value missing in table');
       }
+      if (!Number.isFinite(expectedCount)) {
+        throw new TypeError(`Invalid expected count for bucket '${bucket}'`);
+      }
+
+      const resolvedKey = resolveBucketKey(bucket);
+      if (!resolvedKey) {
+        throw new Error(
+          `Bucket line not found for ${histogramName} le=${bucket}. Found: ${Array.from(bucketCounts.keys()).join(', ')}`
+        );
+      }
+
+      const actualCount = bucketCounts.get(resolvedKey);
+      if (typeof actualCount !== 'number') {
+        throw new Error(`Bucket count not found for ${histogramName} le=${bucket}`);
+      }
+      expect(actualCount).toBe(expectedCount);
     });
   }
 );

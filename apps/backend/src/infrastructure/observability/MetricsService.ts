@@ -220,8 +220,13 @@ export class MetricsService implements IMetricsService {
   /**
    * Register a custom histogram metric
    */
-  registerHistogram(name: string, help: string, labelNames: string[] = []): void {
-    this.createHistogram(name, help, labelNames);
+  registerHistogram(
+    name: string,
+    help: string,
+    labelNames: string[] = [],
+    buckets?: number[]
+  ): void {
+    this.createHistogram(name, help, labelNames, buckets);
   }
 
   /**
@@ -258,12 +263,14 @@ export class MetricsService implements IMetricsService {
   private createHistogram(
     name: string,
     help: string,
-    labelNames: string[] = []
+    labelNames: string[] = [],
+    buckets?: number[]
   ): promClient.Histogram {
     const histogram = new promClient.Histogram({
       name,
       help,
       labelNames,
+      ...(buckets ? { buckets } : {}),
       registers: [this.register],
     });
     this.histograms.set(name, histogram);

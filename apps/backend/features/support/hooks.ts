@@ -44,7 +44,8 @@ After(async function (this: World, { result, pickle }) {
     await this.cleanup();
   }
 
-  // Stop default metrics background interval to avoid leaking timers across scenarios.
+  // Defensive teardown: `prom-client@15` default metrics don't run on an interval,
+  // but we keep the method for compatibility with older implementations/tests.
   const metricsService = container.resolve<MetricsService>('MetricsService');
   metricsService.stopDefaultMetricsCollection();
 });

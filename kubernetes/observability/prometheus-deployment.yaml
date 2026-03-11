@@ -17,9 +17,6 @@ spec:
       labels:
         app: prometheus
         component: monitoring
-      annotations:
-        prometheus.io/scrape: 'true'
-        prometheus.io/port: '9090'
     spec:
       serviceAccountName: prometheus
       securityContext:
@@ -43,8 +40,6 @@ spec:
             # If needed in dev/staging, enable via Kustomize overlay and ensure
             # prometheus-admin-api-deny AuthorizationPolicy blocks all admin endpoints
             # - '--web.enable-admin-api'
-            - '--web.console.libraries=/etc/prometheus/console_libraries'
-            - '--web.console.templates=/etc/prometheus/consoles'
           ports:
             - name: web
               containerPort: 9090
@@ -76,7 +71,8 @@ spec:
               ephemeral-storage: 5Gi
           volumeMounts:
             - name: config
-              mountPath: /etc/prometheus
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
               readOnly: true
             - name: rules
               mountPath: /etc/prometheus/rules
