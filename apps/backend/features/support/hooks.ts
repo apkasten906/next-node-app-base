@@ -1,4 +1,8 @@
 import { After, AfterAll, Before, BeforeAll, Status, setDefaultTimeout } from '@cucumber/cucumber';
+import * as promClient from 'prom-client';
+import { container } from 'tsyringe';
+
+import { MetricsService } from '../../src/infrastructure/observability';
 import { World } from './world';
 
 BeforeAll(async function () {
@@ -12,6 +16,12 @@ AfterAll(async function () {
 });
 
 Before(async function (this: World) {
+  // Fresh metrics registry per scenario to prevent cross-scenario leakage.
+  const registry = new promClient.Registry();
+  const metricsService = new MetricsService(registry);
+  container.registerInstance('PrometheusRegistry', registry);
+  container.registerInstance('MetricsService', metricsService);
+
   // Initialize test app for each scenario (if method exists)
   if (typeof this.initializeApp === 'function') {
     await this.initializeApp();

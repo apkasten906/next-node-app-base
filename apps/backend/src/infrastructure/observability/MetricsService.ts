@@ -1,5 +1,5 @@
 import * as promClient from 'prom-client';
-import { injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 
 import type { IMetricsService } from './IMetricsService';
 
@@ -16,9 +16,10 @@ export class MetricsService implements IMetricsService {
   private readonly gauges: Map<string, promClient.Gauge>;
   private readonly histograms: Map<string, promClient.Histogram>;
   private readonly summaries: Map<string, promClient.Summary>;
+  private defaultMetricsRegistered = false;
 
-  constructor() {
-    this.register = new promClient.Registry();
+  constructor(@inject('PrometheusRegistry') registry?: promClient.Registry) {
+    this.register = registry ?? new promClient.Registry();
     this.counters = new Map();
     this.gauges = new Map();
     this.histograms = new Map();
@@ -41,9 +42,15 @@ export class MetricsService implements IMetricsService {
    * Register default Node.js metrics
    */
   registerDefaultMetrics(): void {
+    if (this.defaultMetricsRegistered) {
+      return;
+    }
+
     promClient.collectDefaultMetrics({
       register: this.register,
     });
+
+    this.defaultMetricsRegistered = true;
   }
 
   /**

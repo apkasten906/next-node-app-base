@@ -10,9 +10,9 @@ Feature: Prometheus Metrics Collection
   @impl_prometheus_metrics
   Scenario: Expose metrics endpoint in Prometheus format
     When I request the "/metrics" endpoint
-    Then the response status should be 200
-    And the response content-type should be "text/plain; version=0.0.4; charset=utf-8"
-    And the response should contain Prometheus metrics
+    Then the metrics response status should be 200
+    And the metrics response content-type should be "text/plain; version=0.0.4; charset=utf-8"
+    And the metrics response should contain Prometheus metrics
 
   @impl_prometheus_metrics
   Scenario: Track HTTP request duration
@@ -34,7 +34,7 @@ Feature: Prometheus Metrics Collection
 
   @impl_prometheus_metrics
   Scenario: Create and increment custom counter
-    When I create a counter named "user_registrations_total"
+    When I create a counter named "test_counter_total"
     And I increment the counter by 1
     Then the counter value should be 1
     When I increment the counter by 3
@@ -52,7 +52,7 @@ Feature: Prometheus Metrics Collection
 
   @impl_prometheus_metrics
   Scenario: Observe histogram values
-    When I create a histogram named "http_request_duration_seconds" with buckets "[0.01, 0.05, 0.1, 0.5]"
+    When I create a histogram named "test_histogram_seconds" with buckets "[0.01, 0.05, 0.1, 0.5]"
     And I observe the following values:
       | value |
       | 0.005 |

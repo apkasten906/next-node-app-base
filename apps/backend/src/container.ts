@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 
+import * as promClient from 'prom-client';
 import { container } from 'tsyringe';
 
 // Register authentication services
@@ -27,6 +28,7 @@ container.registerSingleton(AuditLogService);
 container.registerSingleton(EnvironmentSecretsManager);
 
 // Register observability services
+container.registerInstance('PrometheusRegistry', new promClient.Registry());
 container.registerSingleton('MetricsService', MetricsService);
 
 // Register user domain bindings
