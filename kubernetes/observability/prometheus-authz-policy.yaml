@@ -46,7 +46,7 @@ spec:
       from:
         - source:
             principals:
-              # Only allow from prometheus-reload service account (for config updates)
+              # Only allow from prometheus-admin service account (for config updates)
               - cluster.local/ns/observability/sa/prometheus-admin
             namespaces:
               - observability

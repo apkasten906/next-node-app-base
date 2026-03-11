@@ -26,6 +26,7 @@ describe('Metrics Middleware', () => {
   let res: Partial<Response>;
   let next: NextFunction;
   let finishCallback: (() => void) | null;
+  let sendMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     // Reset all mocks
@@ -48,10 +49,10 @@ describe('Metrics Middleware', () => {
     };
 
     // Setup response mock with finish event support
-    const sendFn = vi.fn();
+    sendMock = vi.fn();
     res = {
       statusCode: 200,
-      send: sendFn.mockImplementation(function (this: Response, _body?: unknown) {
+      send: sendMock.mockImplementation(function (this: Response, _body?: unknown) {
         // Trigger finish event when send is called
         if (finishCallback) {
           finishCallback();
@@ -59,8 +60,8 @@ describe('Metrics Middleware', () => {
           finishCallback = null;
         }
         return this;
-      }),
-      on: vi.fn((event: string, callback: () => void) => {
+      }) as unknown as Response['send'],
+      once: vi.fn((event: string, callback: () => void) => {
         if (event === 'finish') {
           finishCallback = callback;
         }
@@ -75,7 +76,7 @@ describe('Metrics Middleware', () => {
     it('should register finish event listener when request begins', () => {
       metricsMiddleware(req as Request, res as Response, next);
 
-      expect(res.on).toHaveBeenCalledWith('finish', expect.any(Function));
+      expect(res.once).toHaveBeenCalledWith('finish', expect.any(Function));
     });
 
     it('should record histogram when response finishes', () => {
@@ -317,7 +318,7 @@ describe('Metrics Middleware', () => {
           }
           return this;
         }),
-        on: vi.fn((event: string, callback: () => void) => {
+        once: vi.fn((event: string, callback: () => void) => {
           if (event === 'finish') {
             finishCallback2 = callback;
           }
@@ -362,7 +363,7 @@ describe('Metrics Middleware', () => {
   describe('Response Interception', () => {
     it('should preserve original res.send functionality', () => {
       const responseBody = { data: 'test' };
-      const originalSendMock = res.send as ReturnType<typeof vi.fn>;
+      const originalSendMock = sendMock;
 
       metricsMiddleware(req as Request, res as Response, next);
       const result = res.send!(responseBody);

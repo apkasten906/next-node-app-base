@@ -10,12 +10,14 @@ import type { IMetricsService } from '../infrastructure/observability';
  * - Request duration
  * - Request count by method, route, and status code
  *
- * Uses res.on('finish') to capture metrics after routing and response completion,
+ * Uses res.once('finish') to capture metrics after routing and response completion,
  * ensuring req.route is available for accurate route templating.
  */
 export function metricsMiddleware(req: Request, res: Response, next: NextFunction): void {
   try {
-    if (req.path === '/metrics') {
+    // Exclude the entire metrics mount (e.g. /metrics and /metrics/*) to avoid
+    // instrumenting the Prometheus scrape endpoint.
+    if (req.originalUrl.startsWith('/metrics')) {
       next();
       return;
     }
