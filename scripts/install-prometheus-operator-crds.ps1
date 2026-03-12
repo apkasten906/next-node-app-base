@@ -17,14 +17,13 @@ function Write-Warn([string]$Message) {
   Write-Host $Message -ForegroundColor Yellow
 }
 
-function Ensure-Command([string]$Name) {
-  $cmd = Get-Command $Name -ErrorAction SilentlyContinue
-  if (-not $cmd) {
-    throw "Required command not found on PATH: $Name"
-  }
+function Test-CommandAvailable([string]$Name) {
+  return $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
-Ensure-Command "kubectl"
+if (-not (Test-CommandAvailable "kubectl")) {
+  throw "Required command not found on PATH: kubectl"
+}
 
 $crdName = "prometheusrules.monitoring.coreos.com"
 
