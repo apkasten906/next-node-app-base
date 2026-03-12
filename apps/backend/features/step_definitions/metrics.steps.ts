@@ -21,6 +21,28 @@ interface MetricsWorld {
   currentHistogramName?: string;
 }
 
+const requireDefined = <T>(value: T | null | undefined, message: string): T => {
+  if (value == null) {
+    throw new Error(message);
+  }
+  return value;
+};
+
+const requireMetricsApp = (world: MetricsWorld): Express =>
+  requireDefined(world.metricsApp, 'Metrics app is not initialized');
+
+const requireMetricsService = (world: MetricsWorld): IMetricsService =>
+  requireDefined(world.metricsService, 'Metrics service is not initialized');
+
+const requireMetricsResponse = (world: MetricsWorld): request.Response =>
+  requireDefined(
+    world.metricsResponse,
+    'Metrics response is not set (did you request the /metrics endpoint?)'
+  );
+
+const requireTimerEndFunction = (world: MetricsWorld): (() => void) =>
+  requireDefined(world.timerEndFunction, 'Timer was not started');
+
 Given('the metrics service is initialized', function (this: MetricsWorld) {
   // Create Express app with metrics
   this.metricsApp = express();
@@ -32,106 +54,118 @@ Given('the metrics service is initialized', function (this: MetricsWorld) {
   this.metricsApp.post('/api/users', (_req, res) => res.status(201).json({ id: '123' }));
 
   // Get metrics service from DI container
-  this.metricsService = container.resolve<IMetricsService>('MetricsService');
-  this.metricsService?.resetMetrics();
-  this.metricsService?.registerDefaultMetrics();
+  const metricsService = container.resolve<IMetricsService>('MetricsService');
+  this.metricsService = metricsService;
+  metricsService.resetMetrics();
+  metricsService.registerDefaultMetrics();
 
   // Register test metrics used in BDD scenarios
-  this.metricsService?.registerCounter('test_counter_1', 'Test counter 1');
-  this.metricsService?.registerCounter('test_counter_total', 'Test counter total');
-  this.metricsService?.registerCounter('test_counter', 'Test counter');
-  this.metricsService?.registerGauge('test_gauge_1', 'Test gauge 1');
-  this.metricsService?.registerGauge('test_gauge', 'Test gauge');
-  this.metricsService?.registerHistogram('test_histogram_1', 'Test histogram 1');
-  this.metricsService?.registerHistogram('test_histogram', 'Test histogram');
-  this.metricsService?.registerSummary('test_summary', 'Test summary');
+  metricsService.registerCounter('test_counter_1', 'Test counter 1');
+  metricsService.registerCounter('test_counter_total', 'Test counter total');
+  metricsService.registerCounter('test_counter', 'Test counter');
+  metricsService.registerGauge('test_gauge_1', 'Test gauge 1');
+  metricsService.registerGauge('test_gauge', 'Test gauge');
+  metricsService.registerHistogram('test_histogram_1', 'Test histogram 1');
+  metricsService.registerHistogram('test_histogram', 'Test histogram');
+  metricsService.registerSummary('test_summary', 'Test summary');
 });
 
 Given('the metrics middleware is active', function (this: MetricsWorld) {
-  // Already set up in background
-  expect(this.metricsApp).toBeDefined();
+  requireMetricsApp(this);
 });
 
 Given('default metrics are registered', function (this: MetricsWorld) {
-  this.metricsService!.registerDefaultMetrics();
+  const metricsService = requireMetricsService(this);
+  metricsService.registerDefaultMetrics();
 });
 
 Given('I have created several metrics', function (this: MetricsWorld) {
-  this.metricsService!.incrementCounter('test_counter_1', {}, 1);
-  this.metricsService!.setGauge('test_gauge_1', 10, {});
-  this.metricsService!.observeHistogram('test_histogram_1', 0.5, {});
+  const metricsService = requireMetricsService(this);
+  metricsService.incrementCounter('test_counter_1', {}, 1);
+  metricsService.setGauge('test_gauge_1', 10, {});
+  metricsService.observeHistogram('test_histogram_1', 0.5, {});
 });
 
 When('I request the {string} endpoint', async function (this: MetricsWorld, endpoint: string) {
-  this.metricsResponse = await request(this.metricsApp!).get(endpoint);
+  const app = requireMetricsApp(this);
+  this.metricsResponse = await request(app).get(endpoint);
 });
 
 When('I make a GET request to {string}', async function (this: MetricsWorld, path: string) {
-  await request(this.metricsApp!).get(path);
+  const app = requireMetricsApp(this);
+  await request(app).get(path);
 });
 
 When(
   'I make {int} GET requests to {string}',
   async function (this: MetricsWorld, count: number, path: string) {
+    const app = requireMetricsApp(this);
     for (let i = 0; i < count; i++) {
-      await request(this.metricsApp!).get(path);
+      await request(app).get(path);
     }
   }
 );
 
 When('I create a counter named {string}', function (this: MetricsWorld, name: string) {
   this.currentCounterName = name;
+  const metricsService = requireMetricsService(this);
   // If the counter already exists (e.g. from pre-registered metrics), ignore.
   try {
-    this.metricsService!.registerCounter(name, `Test counter ${name}`);
+    metricsService.registerCounter(name, `Test counter ${name}`);
   } catch {
     // ignore
   }
 });
 
 When('I increment the counter by {int}', function (this: MetricsWorld, value: number) {
+  const metricsService = requireMetricsService(this);
   const counterName = this.currentCounterName || 'test_counter_total';
-  this.metricsService!.incrementCounter(counterName, undefined, value);
+  metricsService.incrementCounter(counterName, undefined, value);
 });
 
 When('I create a gauge named {string}', function (this: MetricsWorld, name: string) {
   this.currentGaugeName = name;
+  const metricsService = requireMetricsService(this);
   try {
-    this.metricsService!.registerGauge(name, `Test gauge ${name}`);
+    metricsService.registerGauge(name, `Test gauge ${name}`);
   } catch {
     // Metric may already exist (pre-registered business metrics), ignore.
   }
-  this.metricsService!.setGauge(name, 0, {}); // Initialize
+  metricsService.setGauge(name, 0, {}); // Initialize
 });
 
 When('I set the gauge to {int}', function (this: MetricsWorld, value: number) {
+  const metricsService = requireMetricsService(this);
   const gaugeName = this.currentGaugeName || 'test_gauge';
-  this.metricsService!.setGauge(gaugeName, value, {});
+  metricsService.setGauge(gaugeName, value, {});
 });
 
 When('I increment the gauge by {int}', async function (this: MetricsWorld, value: number) {
+  const metricsService = requireMetricsService(this);
   const gaugeName = this.currentGaugeName || 'test_gauge';
   // For testing, we'll just add to the current value
-  const currentMetrics = await this.metricsService!.getMetrics();
+  const currentMetrics = await metricsService.getMetrics();
   const regex = new RegExp(String.raw`${gaugeName}(?:\{[^}]*\})?\s+(\d+(?:\.\d+)?)`);
   const match = regex.exec(currentMetrics);
-  const current = match?.[1] ? Number.parseInt(match[1]) : 0;
-  this.metricsService!.setGauge(gaugeName, current + value, {});
+  const current = match?.[1] ? Number.parseInt(match[1], 10) : 0;
+  metricsService.setGauge(gaugeName, current + value, {});
 });
 
 When('I decrement the gauge by {int}', async function (this: MetricsWorld, value: number) {
+  const metricsService = requireMetricsService(this);
   const gaugeName = this.currentGaugeName || 'test_gauge';
-  const currentMetrics = await this.metricsService!.getMetrics();
+  const currentMetrics = await metricsService.getMetrics();
   const regex = new RegExp(String.raw`${gaugeName}(?:\{[^}]*\})?\s+(\d+(?:\.\d+)?)`);
   const match = regex.exec(currentMetrics);
-  const current = match?.[1] ? Number.parseInt(match[1]) : 0;
-  this.metricsService!.setGauge(gaugeName, current - value, {});
+  const current = match?.[1] ? Number.parseInt(match[1], 10) : 0;
+  metricsService.setGauge(gaugeName, current - value, {});
 });
 
 When(
   'I create a histogram named {string} with buckets {string}',
   function (this: MetricsWorld, name: string, bucketsStr: string) {
     this.currentHistogramName = name;
+    const metricsService = requireMetricsService(this);
     let buckets: number[] | undefined;
 
     try {
@@ -153,7 +187,7 @@ When(
     }
 
     try {
-      this.metricsService!.registerHistogram(name, `Test histogram ${name}`, [], buckets);
+      metricsService.registerHistogram(name, `Test histogram ${name}`, [], buckets);
     } catch {
       // Metric may already exist (pre-registered business metrics), ignore.
     }
@@ -161,14 +195,16 @@ When(
 );
 
 When('I observe the following values:', function (this: MetricsWorld, dataTable: DataTable) {
+  const metricsService = requireMetricsService(this);
   const histogramName = this.currentHistogramName || 'test_histogram';
   const values = dataTable.hashes().map((row) => Number.parseFloat(row['value'] || '0'));
   values.forEach((value) => {
-    this.metricsService!.observeHistogram(histogramName, value, {});
+    metricsService.observeHistogram(histogramName, value, {});
   });
 });
 
 When('I start a timer for operation {string}', function (this: MetricsWorld, operation: string) {
+  const metricsService = requireMetricsService(this);
   // Map operation name to actual metric name in MetricsService
   let histogramName: string;
   if (operation === 'db_query') {
@@ -179,14 +215,14 @@ When('I start a timer for operation {string}', function (this: MetricsWorld, ope
 
   // Register histogram before starting timer if it doesn't exist
   try {
-    this.metricsService!.registerHistogram(histogramName, `Duration of ${operation} operation`, [
+    metricsService.registerHistogram(histogramName, `Duration of ${operation} operation`, [
       'operation',
       'table',
     ]);
   } catch {
     // Histogram may already be registered, ignore error
   }
-  this.timerEndFunction = this.metricsService!.startTimer(histogramName, {
+  this.timerEndFunction = metricsService.startTimer(histogramName, {
     operation: 'SELECT',
     table: 'users',
   });
@@ -197,13 +233,15 @@ When('I wait for {int} milliseconds', async function (this: MetricsWorld, ms: nu
 });
 
 When('I end the timer', function (this: MetricsWorld) {
-  this.timerEndFunction!();
+  const end = requireTimerEndFunction(this);
+  end();
 });
 
 When(
   'I observe a database query duration of {float} seconds',
   function (this: MetricsWorld, duration: number) {
-    this.metricsService!.observeHistogram('db_query_duration_seconds', duration, {
+    const metricsService = requireMetricsService(this);
+    metricsService.observeHistogram('db_query_duration_seconds', duration, {
       operation: 'SELECT',
       table: 'users',
     });
@@ -211,7 +249,8 @@ When(
 );
 
 When('I increment the database queries counter', function (this: MetricsWorld) {
-  this.metricsService!.incrementCounter(
+  const metricsService = requireMetricsService(this);
+  metricsService.incrementCounter(
     'db_queries_total',
     {
       operation: 'SELECT',
@@ -225,27 +264,32 @@ When('I increment the database queries counter', function (this: MetricsWorld) {
 When(
   'I increment the cache hits counter {int} times',
   function (this: MetricsWorld, count: number) {
-    this.metricsService!.incrementCounter('cache_hits_total', { cache_name: 'redis' }, count);
+    const metricsService = requireMetricsService(this);
+    metricsService.incrementCounter('cache_hits_total', { cache_name: 'redis' }, count);
   }
 );
 
 When(
   'I increment the cache misses counter {int} times',
   function (this: MetricsWorld, count: number) {
-    this.metricsService!.incrementCounter('cache_misses_total', { cache_name: 'redis' }, count);
+    const metricsService = requireMetricsService(this);
+    metricsService.incrementCounter('cache_misses_total', { cache_name: 'redis' }, count);
   }
 );
 
 When('I set active jobs to {int}', function (this: MetricsWorld, value: number) {
-  this.metricsService!.setGauge('queue_jobs_active', value, { queue_name: 'default' });
+  const metricsService = requireMetricsService(this);
+  metricsService.setGauge('queue_jobs_active', value, { queue_name: 'default' });
 });
 
 When('I set waiting jobs to {int}', function (this: MetricsWorld, value: number) {
-  this.metricsService!.setGauge('queue_jobs_waiting', value, { queue_name: 'default' });
+  const metricsService = requireMetricsService(this);
+  metricsService.setGauge('queue_jobs_waiting', value, { queue_name: 'default' });
 });
 
 When('I increment completed jobs by {int}', function (this: MetricsWorld, count: number) {
-  this.metricsService!.incrementCounter(
+  const metricsService = requireMetricsService(this);
+  metricsService.incrementCounter(
     'queue_jobs_completed_total',
     {
       queue_name: 'default',
@@ -256,13 +300,15 @@ When('I increment completed jobs by {int}', function (this: MetricsWorld, count:
 });
 
 When('I set active WebSocket connections to {int}', function (this: MetricsWorld, value: number) {
-  this.metricsService!.setGauge('websocket_connections_active', value, {});
+  const metricsService = requireMetricsService(this);
+  metricsService.setGauge('websocket_connections_active', value, {});
 });
 
 When(
   'I increment WebSocket messages counter by {int}',
   function (this: MetricsWorld, count: number) {
-    this.metricsService!.incrementCounter(
+    const metricsService = requireMetricsService(this);
+    metricsService.incrementCounter(
       'websocket_messages_total',
       {
         event: 'message',
@@ -274,7 +320,8 @@ When(
 );
 
 When('I increment authentication attempts by {int}', function (this: MetricsWorld, count: number) {
-  this.metricsService!.incrementCounter(
+  const metricsService = requireMetricsService(this);
+  metricsService.incrementCounter(
     'auth_attempts_total',
     {
       method: 'local',
@@ -285,7 +332,8 @@ When('I increment authentication attempts by {int}', function (this: MetricsWorl
 });
 
 When('I increment authentication failures by {int}', function (this: MetricsWorld, count: number) {
-  this.metricsService!.incrementCounter(
+  const metricsService = requireMetricsService(this);
+  metricsService.incrementCounter(
     'auth_failures_total',
     {
       method: 'local',
@@ -296,11 +344,13 @@ When('I increment authentication failures by {int}', function (this: MetricsWorl
 });
 
 When('I increment user registrations by {int}', function (this: MetricsWorld, count: number) {
-  this.metricsService!.incrementCounter('user_registrations_total', { source: 'web' }, count);
+  const metricsService = requireMetricsService(this);
+  metricsService.incrementCounter('user_registrations_total', { source: 'web' }, count);
 });
 
 When('I increment API errors by {int}', function (this: MetricsWorld, count: number) {
-  this.metricsService!.incrementCounter(
+  const metricsService = requireMetricsService(this);
+  metricsService.incrementCounter(
     'api_errors_total',
     {
       route: '/api/test',
@@ -329,13 +379,15 @@ When('I clear all metrics', function (this: MetricsWorld) {
 });
 
 Then('the metrics response status should be {int}', function (this: MetricsWorld, status: number) {
-  expect(this.metricsResponse!.status).toBe(status);
+  const metricsResponse = requireMetricsResponse(this);
+  expect(metricsResponse.status).toBe(status);
 });
 
 Then(
   'the metrics response content-type should be {string}',
   function (this: MetricsWorld, contentType: string) {
-    const actual = this.metricsResponse!.headers['content-type'] as string;
+    const metricsResponse = requireMetricsResponse(this);
+    const actual = metricsResponse.headers['content-type'] as string;
     contentType
       .split(';')
       .map((p) => p.trim())
@@ -347,7 +399,8 @@ Then(
 );
 
 Then('the metrics response should contain Prometheus metrics', function (this: MetricsWorld) {
-  const text = this.metricsResponse!.text;
+  const metricsResponse = requireMetricsResponse(this);
+  const text = metricsResponse.text;
   expect(text).toMatch(/# HELP/);
   expect(text).toMatch(/# TYPE/);
 });
@@ -355,7 +408,8 @@ Then('the metrics response should contain Prometheus metrics', function (this: M
 Then(
   'the {string} histogram should be observed',
   async function (this: MetricsWorld, metricName: string) {
-    const metrics = await this.metricsService!.getMetrics();
+    const metricsService = requireMetricsService(this);
+    const metrics = await metricsService.getMetrics();
     expect(metrics).toContain(`${metricName}_bucket`);
   }
 );
@@ -363,7 +417,8 @@ Then(
 Then(
   'the histogram should have labels:',
   async function (this: MetricsWorld, dataTable: DataTable) {
-    const metrics = await this.metricsService!.getMetrics();
+    const metricsService = requireMetricsService(this);
+    const metrics = await metricsService.getMetrics();
     const expectedLabels = dataTable.hashes()[0];
 
     if (expectedLabels) {
@@ -377,7 +432,8 @@ Then(
 Then(
   'the {string} counter should be incremented by {int}',
   async function (this: MetricsWorld, metricName: string, expectedIncrement: number) {
-    const metrics = await this.metricsService!.getMetrics();
+    const metricsService = requireMetricsService(this);
+    const metrics = await metricsService.getMetrics();
 
     const escapeRegex = (value: string): string =>
       value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`);
@@ -415,7 +471,8 @@ Then(
 );
 
 Then('the counter should have labels:', async function (this: MetricsWorld, dataTable: DataTable) {
-  const metrics = await this.metricsService!.getMetrics();
+  const metricsService = requireMetricsService(this);
+  const metrics = await metricsService.getMetrics();
   const expectedLabels = dataTable.hashes()[0];
 
   if (expectedLabels) {
@@ -428,30 +485,35 @@ Then('the counter should have labels:', async function (this: MetricsWorld, data
 Then(
   'the counter value should be {int}',
   async function (this: MetricsWorld, expectedValue: number) {
-    const metrics = await this.metricsService!.getMetrics();
+    const metricsService = requireMetricsService(this);
+    const metrics = await metricsService.getMetrics();
     const counterName = this.currentCounterName || 'test_counter_total';
     const regex = new RegExp(String.raw`${counterName}(?:\{[^}]*\})?\s+(\d+)`);
     const match = regex.exec(metrics);
-    expect(match).toBeTruthy();
-    expect(match?.[1]).toBeDefined();
-    expect(Number.parseInt(match![1], 10)).toBe(expectedValue);
+    if (!match?.[1]) {
+      throw new Error(`Counter sample not found for '${counterName}'`);
+    }
+    expect(Number.parseInt(match[1], 10)).toBe(expectedValue);
   }
 );
 
 Then('the gauge value should be {int}', async function (this: MetricsWorld, expectedValue: number) {
   const gaugeName = this.currentGaugeName || 'test_gauge';
-  const metrics = await this.metricsService!.getMetrics();
+  const metricsService = requireMetricsService(this);
+  const metrics = await metricsService.getMetrics();
   const regex = new RegExp(String.raw`${gaugeName}(?:\{[^}]*\})?\s+(\d+)`);
   const match = regex.exec(metrics);
-  expect(match).toBeTruthy();
-  expect(match?.[1]).toBeDefined();
-  expect(Number.parseInt(match![1], 10)).toBe(expectedValue);
+  if (!match?.[1]) {
+    throw new Error(`Gauge sample not found for '${gaugeName}'`);
+  }
+  expect(Number.parseInt(match[1], 10)).toBe(expectedValue);
 });
 
 Then(
   'the histogram should have counts in buckets:',
   async function (this: MetricsWorld, dataTable: DataTable) {
-    const metrics = await this.metricsService!.getMetrics();
+    const metricsService = requireMetricsService(this);
+    const metrics = await metricsService.getMetrics();
     const expectedBuckets = dataTable.hashes();
 
     const histogramName = this.currentHistogramName || 'test_histogram_seconds';
@@ -529,7 +591,7 @@ Then(
 
       const actualCount = bucketCounts.get(resolvedKey);
       if (typeof actualCount !== 'number') {
-        throw new Error(`Bucket count not found for ${histogramName} le=${bucket}`);
+        throw new TypeError(`Bucket count not found for ${histogramName} le=${bucket}`);
       }
       expect(actualCount).toBe(expectedCount);
     });
@@ -539,16 +601,18 @@ Then(
 Then(
   'the {string} histogram should have a value around {float}',
   async function (this: MetricsWorld, metricName: string, expectedValue: number) {
-    const metrics = await this.metricsService!.getMetrics();
+    const metricsService = requireMetricsService(this);
+    const metrics = await metricsService.getMetrics();
     expect(metrics).toContain(`${metricName}_bucket`);
 
     // Extract sum for approximate verification
     const regex = new RegExp(String.raw`${metricName}_sum\s+(\d+\.?\d*)`);
     const sumMatch = regex.exec(metrics);
-    expect(sumMatch).toBeTruthy();
-    expect(sumMatch?.[1]).toBeDefined();
+    if (!sumMatch?.[1]) {
+      throw new Error(`Histogram sum line not found for '${metricName}_sum'`);
+    }
 
-    const actualValue = Number.parseFloat(sumMatch![1]);
+    const actualValue = Number.parseFloat(sumMatch[1]);
     expect(Number.isFinite(actualValue)).toBe(true);
     expect(actualValue).toBeGreaterThan(expectedValue * 0.8);
     expect(actualValue).toBeLessThan(expectedValue * 1.2);
@@ -556,19 +620,21 @@ Then(
 );
 
 Then('the response should contain {string}', function (this: MetricsWorld, text: string) {
-  expect(this.metricsResponse!.text).toContain(text);
+  const metricsResponse = requireMetricsResponse(this);
+  expect(metricsResponse.text).toContain(text);
 });
 
 Then(
   'the {string} histogram should include {float}',
   async function (this: MetricsWorld, metricName: string, expectedValue: number) {
-    const metrics = await this.metricsService!.getMetrics();
+    const metricsService = requireMetricsService(this);
+    const metrics = await metricsService.getMetrics();
 
     const escapeRegex = (value: string): string =>
       value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`);
 
     const safeMetricName = escapeRegex(metricName);
-    const numberPattern = '[-+]?\\d*\\.?\\d+(?:[eE][-+]?\\d+)?';
+    const numberPattern = String.raw`[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?`;
 
     const sumLineRegex = new RegExp(
       String.raw`^${safeMetricName}_sum(?:\{[^}]*\})?\s+(${numberPattern})\s*$`,
@@ -600,29 +666,36 @@ Then(
 Then(
   'the {string} counter should be {int}',
   async function (this: MetricsWorld, metricName: string, expectedValue: number) {
-    const metrics = await this.metricsService!.getMetrics();
+    const metricsService = requireMetricsService(this);
+    const metrics = await metricsService.getMetrics();
     const regex = new RegExp(String.raw`${metricName}(?:\{[^}]*\})?\s+(\d+)`);
     const match = regex.exec(metrics);
-    expect(match).toBeTruthy();
-    expect(match?.[1]).toBeDefined();
-    expect(Number.parseInt(match![1], 10)).toBe(expectedValue);
+    if (!match?.[1]) {
+      throw new Error(`Counter sample not found for '${metricName}'`);
+    }
+    expect(Number.parseInt(match[1], 10)).toBe(expectedValue);
   }
 );
 
 Then(
   'the cache hit ratio should be {int}%',
   async function (this: MetricsWorld, expectedRatio: number) {
-    const metrics = await this.metricsService!.getMetrics();
+    const metricsService = requireMetricsService(this);
+    const metrics = await metricsService.getMetrics();
     const hitsRegex = /cache_hits_total\{[^}]*cache_name="redis"[^}]*\}\s+(\d+)/;
     const missesRegex = /cache_misses_total\{[^}]*cache_name="redis"[^}]*\}\s+(\d+)/;
     const hitsMatch = hitsRegex.exec(metrics);
     const missesMatch = missesRegex.exec(metrics);
 
-    expect(hitsMatch).toBeTruthy();
-    expect(missesMatch).toBeTruthy();
+    if (!hitsMatch?.[1]) {
+      throw new Error('cache_hits_total sample not found for cache_name="redis"');
+    }
+    if (!missesMatch?.[1]) {
+      throw new Error('cache_misses_total sample not found for cache_name="redis"');
+    }
 
-    const hits = Number.parseInt(hitsMatch![1], 10);
-    const misses = Number.parseInt(missesMatch![1], 10);
+    const hits = Number.parseInt(hitsMatch[1], 10);
+    const misses = Number.parseInt(missesMatch[1], 10);
     const total = hits + misses;
     const ratio = total === 0 ? 0 : Math.round((hits / total) * 100);
 
@@ -633,19 +706,22 @@ Then(
 Then(
   'the {string} gauge should be {int}',
   async function (this: MetricsWorld, metricName: string, expectedValue: number) {
-    const metrics = await this.metricsService!.getMetrics();
+    const metricsService = requireMetricsService(this);
+    const metrics = await metricsService.getMetrics();
     const regex = new RegExp(String.raw`${metricName}(?:\{[^}]*\})?\s+(\d+)`);
     const match = regex.exec(metrics);
-    expect(match).toBeTruthy();
-    expect(match?.[1]).toBeDefined();
-    expect(Number.parseInt(match![1], 10)).toBe(expectedValue);
+    if (!match?.[1]) {
+      throw new Error(`Gauge sample not found for '${metricName}'`);
+    }
+    expect(Number.parseInt(match[1], 10)).toBe(expectedValue);
   }
 );
 
 Then(
   'the authentication success rate should be {int}%',
   async function (this: MetricsWorld, expectedRate: number) {
-    const metrics = await this.metricsService!.getMetrics();
+    const metricsService = requireMetricsService(this);
+    const metrics = await metricsService.getMetrics();
     const attemptsRegex =
       /auth_attempts_total\{[^}]*method="local"[^}]*status="success"[^}]*\}\s+(\d+)/;
     const failuresRegex =
@@ -653,11 +729,17 @@ Then(
     const attemptsMatch = attemptsRegex.exec(metrics);
     const failuresMatch = failuresRegex.exec(metrics);
 
-    expect(attemptsMatch).toBeTruthy();
-    expect(failuresMatch).toBeTruthy();
+    if (!attemptsMatch?.[1]) {
+      throw new Error('auth_attempts_total sample not found for method="local" status="success"');
+    }
+    if (!failuresMatch?.[1]) {
+      throw new Error(
+        'auth_failures_total sample not found for method="local" reason="invalid_credentials"'
+      );
+    }
 
-    const attempts = Number.parseInt(attemptsMatch![1], 10);
-    const failures = Number.parseInt(failuresMatch![1], 10);
+    const attempts = Number.parseInt(attemptsMatch[1], 10);
+    const failures = Number.parseInt(failuresMatch[1], 10);
     const successRate = attempts === 0 ? 0 : Math.round(((attempts - failures) / attempts) * 100);
 
     expect(successRate).toBe(expectedRate);
@@ -667,7 +749,8 @@ Then(
 Then(
   'all metrics should have the label {string} with value {string}',
   function (this: MetricsWorld, labelKey: string, labelValue: string) {
-    const metrics = this.metricsResponse!.text;
+    const metricsResponse = requireMetricsResponse(this);
+    const metrics = metricsResponse.text;
     const metricsWithLabels = metrics.split('\n').filter((line) => line.includes('{'));
 
     metricsWithLabels.forEach((line) => {
@@ -679,7 +762,8 @@ Then(
 );
 
 Then('all metrics should have the label {string}', function (this: MetricsWorld, labelKey: string) {
-  const metrics = this.metricsResponse!.text;
+  const metricsResponse = requireMetricsResponse(this);
+  const metrics = metricsResponse.text;
   const metricsWithLabels = metrics.split('\n').filter((line) => line.includes('{'));
 
   metricsWithLabels.forEach((line) => {
@@ -690,7 +774,8 @@ Then('all metrics should have the label {string}', function (this: MetricsWorld,
 });
 
 Then('the metrics registry should be empty', async function (this: MetricsWorld) {
-  const metrics = await this.metricsService!.getMetrics();
+  const metricsService = requireMetricsService(this);
+  const metrics = await metricsService.getMetrics();
   // `resetMetrics()` preserves metric definitions but resets values to zero.
   // Verify any `test_` metrics present have value 0 (no non-zero leftovers).
   const metricRegex = /test_[\w:]+\s+(\d+(?:\.\d+)?)/g;
@@ -704,7 +789,8 @@ Then('the metrics registry should be empty', async function (this: MetricsWorld)
 Then(
   'requesting {string} should return only default metrics',
   async function (this: MetricsWorld, endpoint: string) {
-    const response = await request(this.metricsApp!).get(endpoint);
+    const app = requireMetricsApp(this);
+    const response = await request(app).get(endpoint);
     expect(response.text).toContain('nodejs_version_info');
     expect(response.text).not.toContain('test_');
   }

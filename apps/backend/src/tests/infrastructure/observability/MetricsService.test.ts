@@ -211,9 +211,12 @@ describe('MetricsService', () => {
       expect(metrics).toContain('operation_duration_seconds_bucket');
 
       // Extract the sum value to verify it's approximately 0.1 seconds
-      const sumMatch = metrics.match(/operation_duration_seconds_sum\{[^}]*\}\s+(\d+\.?\d*)/);
-      expect(sumMatch).toBeTruthy();
-      const sum = Number.parseFloat(sumMatch![1]);
+      const sumRegex = /operation_duration_seconds_sum\{[^}]*\}\s+(\d+\.?\d*)/;
+      const sumMatch = sumRegex.exec(metrics);
+      if (!sumMatch?.[1]) {
+        throw new Error('Expected operation_duration_seconds_sum sample line to be present');
+      }
+      const sum = Number.parseFloat(sumMatch[1]);
       expect(sum).toBeGreaterThan(0.08); // Allow some variance
       expect(sum).toBeLessThan(0.15); // Allow some variance
     });
@@ -494,13 +497,21 @@ describe('MetricsService', () => {
       const metrics = await metricsService.getMetrics();
 
       // Both label combinations should exist with their respective values
-      const usersMatch = metrics.match(/http_requests_total\{[^}]*route="\/users"[^}]*\}\s+(\d+)/);
-      const postsMatch = metrics.match(/http_requests_total\{[^}]*route="\/posts"[^}]*\}\s+(\d+)/);
+      const usersRegex = /http_requests_total\{[^}]*route="\/users"[^}]*\}\s+(\d+)/;
+      const postsRegex = /http_requests_total\{[^}]*route="\/posts"[^}]*\}\s+(\d+)/;
 
-      expect(usersMatch).toBeTruthy();
-      expect(postsMatch).toBeTruthy();
-      expect(Number.parseInt(usersMatch![1])).toBe(5);
-      expect(Number.parseInt(postsMatch![1])).toBe(3);
+      const usersMatch = usersRegex.exec(metrics);
+      const postsMatch = postsRegex.exec(metrics);
+
+      if (!usersMatch?.[1]) {
+        throw new Error('Expected http_requests_total sample for route="/users" to be present');
+      }
+      if (!postsMatch?.[1]) {
+        throw new Error('Expected http_requests_total sample for route="/posts" to be present');
+      }
+
+      expect(Number.parseInt(usersMatch[1], 10)).toBe(5);
+      expect(Number.parseInt(postsMatch[1], 10)).toBe(3);
     });
 
     it('should calculate histogram percentiles correctly', async () => {
@@ -518,9 +529,12 @@ describe('MetricsService', () => {
 
       // Check histogram sum (should be sum of all values)
       const expectedSum = values.reduce((a, b) => a + b, 0);
-      const sumMatch = metrics.match(/test_histogram_seconds_sum\{[^}]*\}\s+(\d+\.?\d*)/);
-      expect(sumMatch).toBeTruthy();
-      const actualSum = Number.parseFloat(sumMatch![1]);
+      const sumRegex = /test_histogram_seconds_sum\{[^}]*\}\s+(\d+\.?\d*)/;
+      const sumMatch = sumRegex.exec(metrics);
+      if (!sumMatch?.[1]) {
+        throw new Error('Expected test_histogram_seconds_sum sample line to be present');
+      }
+      const actualSum = Number.parseFloat(sumMatch[1]);
       expect(actualSum).toBeCloseTo(expectedSum, 2);
     });
   });
