@@ -401,9 +401,8 @@ Then(
     const regex = new RegExp(String.raw`${counterName}(?:\{[^}]*\})?\s+(\d+)`);
     const match = regex.exec(metrics);
     expect(match).toBeTruthy();
-    if (match?.[1]) {
-      expect(Number.parseInt(match[1])).toBe(expectedValue);
-    }
+    expect(match?.[1]).toBeDefined();
+    expect(Number.parseInt(match![1], 10)).toBe(expectedValue);
   }
 );
 
@@ -413,9 +412,8 @@ Then('the gauge value should be {int}', async function (this: MetricsWorld, expe
   const regex = new RegExp(String.raw`${gaugeName}(?:\{[^}]*\})?\s+(\d+)`);
   const match = regex.exec(metrics);
   expect(match).toBeTruthy();
-  if (match?.[1]) {
-    expect(Number.parseInt(match[1])).toBe(expectedValue);
-  }
+  expect(match?.[1]).toBeDefined();
+  expect(Number.parseInt(match![1], 10)).toBe(expectedValue);
 });
 
 Then(
@@ -515,11 +513,13 @@ Then(
     // Extract sum for approximate verification
     const regex = new RegExp(String.raw`${metricName}_sum\s+(\d+\.?\d*)`);
     const sumMatch = regex.exec(metrics);
-    if (sumMatch?.[1]) {
-      const actualValue = Number.parseFloat(sumMatch[1]);
-      expect(actualValue).toBeGreaterThan(expectedValue * 0.8);
-      expect(actualValue).toBeLessThan(expectedValue * 1.2);
-    }
+    expect(sumMatch).toBeTruthy();
+    expect(sumMatch?.[1]).toBeDefined();
+
+    const actualValue = Number.parseFloat(sumMatch![1]);
+    expect(Number.isFinite(actualValue)).toBe(true);
+    expect(actualValue).toBeGreaterThan(expectedValue * 0.8);
+    expect(actualValue).toBeLessThan(expectedValue * 1.2);
   }
 );
 
@@ -572,9 +572,8 @@ Then(
     const regex = new RegExp(String.raw`${metricName}(?:\{[^}]*\})?\s+(\d+)`);
     const match = regex.exec(metrics);
     expect(match).toBeTruthy();
-    if (match?.[1]) {
-      expect(Number.parseInt(match[1])).toBe(expectedValue);
-    }
+    expect(match?.[1]).toBeDefined();
+    expect(Number.parseInt(match![1], 10)).toBe(expectedValue);
   }
 );
 
@@ -606,9 +605,8 @@ Then(
     const regex = new RegExp(String.raw`${metricName}(?:\{[^}]*\})?\s+(\d+)`);
     const match = regex.exec(metrics);
     expect(match).toBeTruthy();
-    if (match?.[1]) {
-      expect(Number.parseInt(match[1])).toBe(expectedValue);
-    }
+    expect(match?.[1]).toBeDefined();
+    expect(Number.parseInt(match![1], 10)).toBe(expectedValue);
   }
 );
 
@@ -623,13 +621,14 @@ Then(
     const attemptsMatch = attemptsRegex.exec(metrics);
     const failuresMatch = failuresRegex.exec(metrics);
 
-    if (attemptsMatch?.[1] && failuresMatch?.[1]) {
-      const attempts = Number.parseInt(attemptsMatch[1]);
-      const failures = Number.parseInt(failuresMatch[1]);
-      const successRate = Math.round(((attempts - failures) / attempts) * 100);
+    expect(attemptsMatch).toBeTruthy();
+    expect(failuresMatch).toBeTruthy();
 
-      expect(successRate).toBe(expectedRate);
-    }
+    const attempts = Number.parseInt(attemptsMatch![1], 10);
+    const failures = Number.parseInt(failuresMatch![1], 10);
+    const successRate = attempts === 0 ? 0 : Math.round(((attempts - failures) / attempts) * 100);
+
+    expect(successRate).toBe(expectedRate);
   }
 );
 
