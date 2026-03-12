@@ -5,8 +5,8 @@
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "explicit"
   },
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "eslint.workingDirectories": [{ "mode": "auto" }],
   "files.eol": "\n",
   "files.trimTrailingWhitespace": true,
@@ -58,13 +58,21 @@
   "playwright.searchForWorkspaceFiles": true,
   "files.associations": {
     ".github/actions/**/action.yml": "yaml",
-    ".github/actions/**/action.yaml": "yaml"
+    ".github/actions/**/action.yaml": "yaml",
+
+    "**/.tools/istio/**/manifests/charts/**/templates/*.yml": "plaintext",
+    "**/.tools/istio/**/manifests/charts/**/templates/*.yaml": "plaintext"
   },
+  "json.schemaDownload.enable": false,
   "yaml.useSchemaFromModeline": true,
   "yaml.schemas": {
     "https://json.schemastore.org/github-action.json": [
       "**/.github/actions/**/action.yml",
       "**/.github/actions/**/action.yaml"
+    ],
+    "./.vscode/schemas/prometheus-rule.schema.json": [
+      "kubernetes/**/prometheus-rules.yml",
+      "kubernetes/**/prometheus-rules.yaml"
     ]
   },
   "cSpell.words": [
