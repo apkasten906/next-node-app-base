@@ -587,13 +587,15 @@ Then(
     const hitsMatch = hitsRegex.exec(metrics);
     const missesMatch = missesRegex.exec(metrics);
 
-    if (hitsMatch?.[1] && missesMatch?.[1]) {
-      const hits = Number.parseInt(hitsMatch[1]);
-      const misses = Number.parseInt(missesMatch[1]);
-      const ratio = Math.round((hits / (hits + misses)) * 100);
+    expect(hitsMatch).toBeTruthy();
+    expect(missesMatch).toBeTruthy();
 
-      expect(ratio).toBe(expectedRatio);
-    }
+    const hits = Number.parseInt(hitsMatch![1], 10);
+    const misses = Number.parseInt(missesMatch![1], 10);
+    const total = hits + misses;
+    const ratio = total === 0 ? 0 : Math.round((hits / total) * 100);
+
+    expect(ratio).toBe(expectedRatio);
   }
 );
 
