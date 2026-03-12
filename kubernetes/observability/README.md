@@ -168,7 +168,7 @@ The backend application exposes the following metrics at `/metrics`:
 
 - `nodejs_heap_size_used_bytes` - Heap memory used
 - `nodejs_heap_size_total_bytes` - Total heap memory
-- `nodejs_process_cpu_seconds_total` - CPU time
+- `process_cpu_seconds_total` - CPU time
 - `nodejs_eventloop_lag_seconds` - Event loop lag
 - And more...
 
