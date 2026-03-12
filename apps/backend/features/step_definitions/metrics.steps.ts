@@ -376,9 +376,41 @@ Then(
 
 Then(
   'the {string} counter should be incremented by {int}',
-  async function (this: MetricsWorld, metricName: string, _count: number) {
+  async function (this: MetricsWorld, metricName: string, expectedIncrement: number) {
     const metrics = await this.metricsService!.getMetrics();
-    expect(metrics).toContain(metricName);
+
+    const escapeRegex = (value: string): string =>
+      value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`);
+
+    const sampleLineRegex = new RegExp(
+      String.raw`^${escapeRegex(metricName)}(?:\{[^}]*\})?\s+(-?\d+(?:\.\d+)?)\s*$`
+    );
+
+    const values = metrics
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith(`${metricName} `) || line.startsWith(`${metricName}{`))
+      .map((line) => {
+        const match = sampleLineRegex.exec(line);
+        if (!match?.[1]) {
+          return undefined;
+        }
+        const value = Number.parseFloat(match[1]);
+        return Number.isFinite(value) ? value : undefined;
+      })
+      .filter((value): value is number => typeof value === 'number');
+
+    if (values.length === 0) {
+      const metricNamePresentSomewhere = metrics.includes(metricName);
+      const hint = metricNamePresentSomewhere
+        ? `Metric name '${metricName}' was found, but no valid sample lines matched.`
+        : `Metric name '${metricName}' was not found in the metrics output.`;
+
+      throw new Error(`${hint} Expected counter to be incremented by ${expectedIncrement}.`);
+    }
+
+    const total = values.reduce((sum, value) => sum + value, 0);
+    expect(total).toBe(expectedIncrement);
   }
 );
 
