@@ -13,7 +13,7 @@ Prometheus is the metrics collection and alerting system that scrapes metrics fr
 - Istio service mesh (control plane and data plane)
 - Envoy sidecar proxies
 
-This template is secure-by-default: Prometheus pod scraping is constrained to an allowlisted set of ports and node metrics are scraped via the Kubernetes API server proxy to align with restrictive NetworkPolicy egress. See `docs/adr/016-secure-by-default-prometheus-scraping.md`.
+This template is secure-by-default: Prometheus pod scraping is constrained to an allowlisted set of ports and node metrics are scraped via the Kubernetes API server proxy to align with restrictive NetworkPolicy egress. See `../../docs/adr/016-secure-by-default-prometheus-scraping.md`.
 
 ### Grafana
 
