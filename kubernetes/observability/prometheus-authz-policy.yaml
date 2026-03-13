@@ -88,3 +88,13 @@ spec:
         - source:
             principals:
               - cluster.local/ns/observability/sa/grafana
+    # Allow kubelet health probes from all sources.
+    # Kubelet traffic originates from outside the mesh (the node), so it cannot
+    # match a namespace/principal selector.  Without this rule, the pod's
+    # liveness/readiness probes fail when any ALLOW policy is active, because
+    # Istio denies all traffic not explicitly permitted.
+    - to:
+        - operation:
+            paths:
+              - /-/healthy
+              - /-/ready

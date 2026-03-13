@@ -14,12 +14,12 @@ data:
         cluster: 'next-node-app-base'
         environment: 'development'
 
-    # Alertmanager configuration
-    alerting:
-      alertmanagers:
-        - static_configs:
-            - targets:
-              - alertmanager:9093
+    # Alertmanager configuration (disabled by default; enable when Alertmanager is deployed)
+    # alerting:
+    #   alertmanagers:
+    #     - static_configs:
+    #         - targets:
+    #           - alertmanager:9093
 
     # Load rules once and periodically evaluate them
     rule_files:

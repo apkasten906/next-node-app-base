@@ -28,8 +28,12 @@ container.registerSingleton(AuditLogService);
 container.registerSingleton(EnvironmentSecretsManager);
 
 // Register observability services
-container.registerInstance('PrometheusRegistry', new promClient.Registry());
-container.registerSingleton('MetricsService', MetricsService);
+if (!container.isRegistered('PrometheusRegistry')) {
+  container.registerInstance('PrometheusRegistry', new promClient.Registry());
+}
+if (!container.isRegistered('MetricsService')) {
+  container.registerSingleton('MetricsService', MetricsService);
+}
 
 // Register user domain bindings
 container.registerSingleton(UserRepository);

@@ -1,7 +1,10 @@
 import { After, AfterAll, Before, BeforeAll, Status, setDefaultTimeout } from '@cucumber/cucumber';
 import * as promClient from 'prom-client';
-import { container } from 'tsyringe';
 
+// Import the test-specific container bootstrap so all non-observability
+// singletons are registered before any Before hook or App construction runs.
+// Observability services are registered per-scenario below.
+import { container } from '../../src/container-test';
 import { MetricsService } from '../../src/infrastructure/observability';
 import { World } from './world';
 
@@ -46,6 +49,12 @@ After(async function (this: World, { result, pickle }) {
 
   // Defensive teardown: `prom-client@15` default metrics don't run on an interval,
   // but we keep the method for compatibility with older implementations/tests.
-  const metricsService = container.resolve<MetricsService>('MetricsService');
-  metricsService.stopDefaultMetricsCollection();
+  try {
+    if (container.isRegistered('MetricsService')) {
+      const metricsService = container.resolve<MetricsService>('MetricsService');
+      metricsService.stopDefaultMetricsCollection();
+    }
+  } catch (error) {
+    console.warn('MetricsService teardown failed (ignored):', (error as Error).message);
+  }
 });

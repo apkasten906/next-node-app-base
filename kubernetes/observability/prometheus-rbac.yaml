@@ -41,6 +41,9 @@ rules:
     resources:
       - ingresses
     verbs: ['get', 'list', 'watch']
+  - nonResourceURLs:
+      - /metrics
+    verbs: ['get']
 ---
 # Prometheus ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
