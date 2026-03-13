@@ -21,7 +21,7 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              name: observability
+              kubernetes.io/metadata.name: observability
           podSelector:
             matchLabels:
               app: grafana
@@ -32,15 +32,15 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              name: observability
+              kubernetes.io/metadata.name: observability
       ports:
         - protocol: TCP
           port: 9090
-    # Allow Istio control plane components to query/scrape Prometheus
+    # Allow Istio control-plane components to query/scrape Prometheus
     - from:
         - namespaceSelector:
             matchLabels:
-              name: istio-system
+              kubernetes.io/metadata.name: istio-system
       ports:
         - protocol: TCP
           port: 9090
@@ -64,7 +64,7 @@ spec:
     - to:
         - namespaceSelector:
             matchLabels:
-              name: kube-system
+              kubernetes.io/metadata.name: kube-system
           podSelector:
             matchLabels:
               k8s-app: kube-dns

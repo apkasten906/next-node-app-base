@@ -5,7 +5,7 @@ import { DataTable, Given, Then, When } from '@cucumber/cucumber';
 import express, { Express } from 'express';
 import * as promClient from 'prom-client';
 import request from 'supertest';
-import { container } from '../../src/container';
+import { container } from '../../src/container-test';
 import { MetricsService, type IMetricsService } from '../../src/infrastructure/observability';
 import { metricsMiddleware } from '../../src/middleware/metrics.middleware';
 import metricsRouter from '../../src/routes/metrics.routes';
@@ -778,7 +778,8 @@ Then('the metrics registry should be empty', async function (this: MetricsWorld)
   const metrics = await metricsService.getMetrics();
   // `resetMetrics()` preserves metric definitions but resets values to zero.
   // Verify any `test_` metrics present have value 0 (no non-zero leftovers).
-  const metricRegex = /test_[\w:]+\s+(\d+(?:\.\d+)?)/g;
+  // The optional `{...}` group accounts for default labels (app, app_version) on each sample.
+  const metricRegex = /test_[\w:]+(?:\{[^}]*\})?\s+(\d+(?:\.\d+)?)/g;
   const matches = Array.from(metrics.matchAll(metricRegex));
   matches.forEach((m) => {
     const val = Number.parseFloat(m[1] ?? '0');
