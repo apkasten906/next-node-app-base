@@ -46,6 +46,16 @@ spec:
           port: 9090
         - protocol: TCP
           port: 15090 # Istio Envoy metrics
+    # Allow kubelet health probes via Istio sidecar status port.
+    # When istio-injection is enabled, Istio rewrites app HTTP probes so the
+    # kubelet sends traffic to the sidecar status port (15021) instead of
+    # directly to the app port.  Kubelet originates from the node network
+    # (outside any namespace), so no `from:` selector can match it — the rule
+    # must be source-unrestricted.  The Istio AuthorizationPolicy restricts
+    # which paths are reachable at L7.
+    - ports:
+        - protocol: TCP
+          port: 15021 # Istio sidecar status / health port
   egress:
     # Allow Prometheus to scrape metrics from pods on allowlisted ports.
     # Keep this list aligned with the allowlist in prometheus-config.yaml.

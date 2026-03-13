@@ -43,6 +43,9 @@ const requireMetricsResponse = (world: MetricsWorld): request.Response =>
 const requireTimerEndFunction = (world: MetricsWorld): (() => void) =>
   requireDefined(world.timerEndFunction, 'Timer was not started');
 
+const escapeRegex = (value: string): string =>
+  value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+
 Given('the metrics service is initialized', function (this: MetricsWorld) {
   // Create Express app with metrics
   this.metricsApp = express();
@@ -145,7 +148,7 @@ When('I increment the gauge by {int}', async function (this: MetricsWorld, value
   const gaugeName = this.currentGaugeName || 'test_gauge';
   // For testing, we'll just add to the current value
   const currentMetrics = await metricsService.getMetrics();
-  const regex = new RegExp(String.raw`${gaugeName}(?:\{[^}]*\})?\s+(\d+(?:\.\d+)?)`);
+  const regex = new RegExp(String.raw`${escapeRegex(gaugeName)}(?:\{[^}]*\})?\s+(\d+(?:\.\d+)?)`);
   const match = regex.exec(currentMetrics);
   const current = match?.[1] ? Number.parseInt(match[1], 10) : 0;
   metricsService.setGauge(gaugeName, current + value, {});
@@ -155,7 +158,7 @@ When('I decrement the gauge by {int}', async function (this: MetricsWorld, value
   const metricsService = requireMetricsService(this);
   const gaugeName = this.currentGaugeName || 'test_gauge';
   const currentMetrics = await metricsService.getMetrics();
-  const regex = new RegExp(String.raw`${gaugeName}(?:\{[^}]*\})?\s+(\d+(?:\.\d+)?)`);
+  const regex = new RegExp(String.raw`${escapeRegex(gaugeName)}(?:\{[^}]*\})?\s+(\d+(?:\.\d+)?)`);
   const match = regex.exec(currentMetrics);
   const current = match?.[1] ? Number.parseInt(match[1], 10) : 0;
   metricsService.setGauge(gaugeName, current - value, {});
@@ -435,9 +438,6 @@ Then(
     const metricsService = requireMetricsService(this);
     const metrics = await metricsService.getMetrics();
 
-    const escapeRegex = (value: string): string =>
-      value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`);
-
     const sampleLineRegex = new RegExp(
       String.raw`^${escapeRegex(metricName)}(?:\{[^}]*\})?\s+(-?\d+(?:\.\d+)?)\s*$`
     );
@@ -488,7 +488,7 @@ Then(
     const metricsService = requireMetricsService(this);
     const metrics = await metricsService.getMetrics();
     const counterName = this.currentCounterName || 'test_counter_total';
-    const regex = new RegExp(String.raw`${counterName}(?:\{[^}]*\})?\s+(\d+)`);
+    const regex = new RegExp(String.raw`${escapeRegex(counterName)}(?:\{[^}]*\})?\s+(\d+)`);
     const match = regex.exec(metrics);
     if (!match?.[1]) {
       throw new Error(`Counter sample not found for '${counterName}'`);
@@ -501,7 +501,7 @@ Then('the gauge value should be {int}', async function (this: MetricsWorld, expe
   const gaugeName = this.currentGaugeName || 'test_gauge';
   const metricsService = requireMetricsService(this);
   const metrics = await metricsService.getMetrics();
-  const regex = new RegExp(String.raw`${gaugeName}(?:\{[^}]*\})?\s+(\d+)`);
+  const regex = new RegExp(String.raw`${escapeRegex(gaugeName)}(?:\{[^}]*\})?\s+(\d+)`);
   const match = regex.exec(metrics);
   if (!match?.[1]) {
     throw new Error(`Gauge sample not found for '${gaugeName}'`);
@@ -517,9 +517,6 @@ Then(
     const expectedBuckets = dataTable.hashes();
 
     const histogramName = this.currentHistogramName || 'test_histogram_seconds';
-
-    const escapeRegex = (value: string): string =>
-      value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`);
 
     const bucketLineRegex = new RegExp(
       String.raw`^${escapeRegex(histogramName)}_bucket\{([^}]*)\}\s+(\d+(?:\.\d+)?)\s*$`
@@ -606,7 +603,9 @@ Then(
     expect(metrics).toContain(`${metricName}_bucket`);
 
     // Extract sum for approximate verification
-    const regex = new RegExp(String.raw`${metricName}_sum\s+(\d+\.?\d*)`);
+    const regex = new RegExp(
+      String.raw`${escapeRegex(metricName)}_sum(?:\{[^}]*\})?\s+(\d+\.?\d*)`
+    );
     const sumMatch = regex.exec(metrics);
     if (!sumMatch?.[1]) {
       throw new Error(`Histogram sum line not found for '${metricName}_sum'`);
@@ -629,9 +628,6 @@ Then(
   async function (this: MetricsWorld, metricName: string, expectedValue: number) {
     const metricsService = requireMetricsService(this);
     const metrics = await metricsService.getMetrics();
-
-    const escapeRegex = (value: string): string =>
-      value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`);
 
     const safeMetricName = escapeRegex(metricName);
     const numberPattern = String.raw`[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?`;
@@ -668,7 +664,7 @@ Then(
   async function (this: MetricsWorld, metricName: string, expectedValue: number) {
     const metricsService = requireMetricsService(this);
     const metrics = await metricsService.getMetrics();
-    const regex = new RegExp(String.raw`${metricName}(?:\{[^}]*\})?\s+(\d+)`);
+    const regex = new RegExp(String.raw`${escapeRegex(metricName)}(?:\{[^}]*\})?\s+(\d+)`);
     const match = regex.exec(metrics);
     if (!match?.[1]) {
       throw new Error(`Counter sample not found for '${metricName}'`);
@@ -708,7 +704,7 @@ Then(
   async function (this: MetricsWorld, metricName: string, expectedValue: number) {
     const metricsService = requireMetricsService(this);
     const metrics = await metricsService.getMetrics();
-    const regex = new RegExp(String.raw`${metricName}(?:\{[^}]*\})?\s+(\d+)`);
+    const regex = new RegExp(String.raw`${escapeRegex(metricName)}(?:\{[^}]*\})?\s+(\d+)`);
     const match = regex.exec(metrics);
     if (!match?.[1]) {
       throw new Error(`Gauge sample not found for '${metricName}'`);

@@ -18,14 +18,31 @@ import { UserService } from './services/user/user.service';
 
 // Register observability services
 
-// Register services as singletons
-container.registerSingleton(JwtService);
-container.registerSingleton(EncryptionService);
-container.registerSingleton(PolicyEngine);
-container.registerSingleton(InMemoryPolicyStore);
-container.registerSingleton(AuthorizationService);
-container.registerSingleton(AuditLogService);
-container.registerSingleton(EnvironmentSecretsManager);
+// Register services as singletons.
+// isRegistered guards prevent double-registration when this module is
+// transitively imported alongside container-test.ts in BDD/integration tests
+// (e.g. via metrics.middleware.ts → container.ts).
+if (!container.isRegistered(JwtService)) {
+  container.registerSingleton(JwtService);
+}
+if (!container.isRegistered(EncryptionService)) {
+  container.registerSingleton(EncryptionService);
+}
+if (!container.isRegistered(PolicyEngine)) {
+  container.registerSingleton(PolicyEngine);
+}
+if (!container.isRegistered(InMemoryPolicyStore)) {
+  container.registerSingleton(InMemoryPolicyStore);
+}
+if (!container.isRegistered(AuthorizationService)) {
+  container.registerSingleton(AuthorizationService);
+}
+if (!container.isRegistered(AuditLogService)) {
+  container.registerSingleton(AuditLogService);
+}
+if (!container.isRegistered(EnvironmentSecretsManager)) {
+  container.registerSingleton(EnvironmentSecretsManager);
+}
 
 // Register observability services
 if (!container.isRegistered('PrometheusRegistry')) {
@@ -36,8 +53,14 @@ if (!container.isRegistered('MetricsService')) {
 }
 
 // Register user domain bindings
-container.registerSingleton(UserRepository);
-container.registerSingleton(UserService);
-container.registerSingleton(UserController);
+if (!container.isRegistered(UserRepository)) {
+  container.registerSingleton(UserRepository);
+}
+if (!container.isRegistered(UserService)) {
+  container.registerSingleton(UserService);
+}
+if (!container.isRegistered(UserController)) {
+  container.registerSingleton(UserController);
+}
 
 export { container } from 'tsyringe';
