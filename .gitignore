@@ -58,6 +58,8 @@ apps/**/e2e/fixtures/personas.local.json
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+!.vscode/schemas/
+!.vscode/schemas/*.json
 .idea/
 *.swp
 *.swo

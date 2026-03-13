@@ -263,10 +263,10 @@ endTimer();
 
 ## Next Steps
 
-1. Deploy Grafana with dashboards (see `grafana/`)
-2. Configure Alertmanager for alert routing (see `alertmanager/`)
-3. Deploy Jaeger for distributed tracing (see `jaeger/`)
-4. Set up centralized logging (see `logging/`)
+1. Deploy Grafana with dashboards (planned — `grafana/` directory not yet added)
+2. Configure Alertmanager for alert routing (planned — `alertmanager/` directory not yet added)
+3. Deploy Jaeger for distributed tracing (planned — `jaeger/` directory not yet added)
+4. Set up centralized logging (planned — `logging/` directory not yet added)
 5. Integrate with PagerDuty/OpsGenie for incident management
 
 > Note: If you are using the Prometheus Operator, an Operator-specific `PrometheusRule` example lives under `operator/`.
