@@ -30,7 +30,10 @@ $crdName = "prometheusrules.monitoring.coreos.com"
 Write-Info "Checking for CRD: $crdName"
 $existing = kubectl get crd $crdName -o name 2>$null
 if ($LASTEXITCODE -eq 0 -and $existing) {
-  Write-Info "CRD already present: $existing"
+  # NOTE: existence check only — the installed CRD version is not verified
+  # against \$PrometheusOperatorTag. To upgrade an existing CRD, delete it
+  # first: kubectl delete crd $crdName
+  Write-Warn "CRD already present (version not verified): $existing"
   exit 0
 }
 

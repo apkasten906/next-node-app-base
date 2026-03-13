@@ -1,11 +1,15 @@
 /**
  * Test bootstrap for the DI container.
  *
- * Registers all non-observability singletons so BDD/integration tests have a
- * fully wired container without triggering the production `container.ts`
- * side-effects.  Observability services (PrometheusRegistry / MetricsService)
- * are intentionally omitted here; each test scenario registers its own fresh
- * instances in the Cucumber `Before` hook to prevent cross-scenario leakage.
+ * Pre-registers all non-observability singletons with `isRegistered` guards.
+ * When other modules (e.g. `metrics.middleware.ts`, `metrics.routes.ts`)
+ * transitively import `container.ts` during test startup, the identical guards
+ * in that module prevent any re-registration from taking effect, so these
+ * test-side registrations remain authoritative.
+ *
+ * Observability services (PrometheusRegistry / MetricsService) are
+ * intentionally omitted; each Cucumber scenario registers its own fresh
+ * instances in the `Before` hook to prevent cross-scenario metric leakage.
  */
 import 'reflect-metadata';
 
