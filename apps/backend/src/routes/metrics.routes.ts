@@ -1,4 +1,4 @@
-import { IRouter, Router, type Request, type Response } from 'express';
+import { Router, type IRouter, type Request, type Response } from 'express';
 
 import { container } from '../container';
 import type { IMetricsService } from '../infrastructure/observability';

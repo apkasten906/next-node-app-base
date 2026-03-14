@@ -14,7 +14,8 @@ Installs the PrometheusRule CRD if not already present.
 Note: this script only checks for CRD existence and does not verify that
 the installed version matches PROMETHEUS_OPERATOR_TAG. If the CRD is
 already present (regardless of version), the script exits 0. To upgrade
-an existing CRD, delete it first: kubectl delete crd $CRD_NAME
+an existing CRD, delete it first:
+  kubectl delete crd prometheusrules.monitoring.coreos.com
 
 Env vars:
   PROMETHEUS_OPERATOR_TAG   Prometheus Operator git tag (default: v0.89.0)

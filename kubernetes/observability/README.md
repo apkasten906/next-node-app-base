@@ -246,13 +246,16 @@ import { IMetricsService } from './infrastructure/observability';
 
 const metricsService = container.resolve<IMetricsService>('MetricsService');
 
-// Increment a counter
+// Register and increment a counter
+metricsService.registerCounter('my_counter', 'My custom counter', ['label']);
 metricsService.incrementCounter('my_counter', { label: 'value' });
 
-// Set a gauge
+// Register and set a gauge
+metricsService.registerGauge('my_gauge', 'My custom gauge');
 metricsService.setGauge('my_gauge', 42, { label: 'value' });
 
-// Observe a histogram
+// Register and observe a histogram
+metricsService.registerHistogram('my_histogram', 'My custom histogram', ['label']);
 metricsService.observeHistogram('my_histogram', 1.5, { label: 'value' });
 
 // Time an operation

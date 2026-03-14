@@ -72,8 +72,7 @@
     ],
     "./.vscode/schemas/prometheus-rule.schema.json": [
       "kubernetes/**/prometheus-rules.yml",
-      "kubernetes/**/prometheus-rules.yaml",
-      "kubernetes/**/prometheus-rules-configmap.yaml"
+      "kubernetes/**/prometheus-rules.yaml"
     ]
   },
   "cSpell.words": [

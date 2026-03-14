@@ -3,7 +3,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { container } from '../../container';
-import { IMetricsService } from '../../infrastructure/observability';
+import type { IMetricsService } from '../../infrastructure/observability';
 import { metricsMiddleware } from '../../middleware/metrics.middleware';
 import metricsRouter from '../../routes/metrics.routes';
 
@@ -32,11 +32,13 @@ describe('Metrics Integration', () => {
       res.status(500).json({ error: 'Internal Server Error' });
     });
 
-    // Resolve metrics service
+    // Resolve metrics service (initial resolve — re-resolved in beforeEach in case clearInstances is called)
     metricsService = container.resolve<IMetricsService>('MetricsService');
   });
 
   beforeEach(() => {
+    // Re-resolve to get the same instance the app will use after any container.clearInstances() call
+    metricsService = container.resolve<IMetricsService>('MetricsService');
     metricsService.resetMetrics();
   });
 
