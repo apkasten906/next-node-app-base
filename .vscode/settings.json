@@ -5,8 +5,8 @@
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "explicit"
   },
-  "js/ts.tsdk.path": "node_modules/typescript/lib",
-  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
   "eslint.workingDirectories": [{ "mode": "auto" }],
   "files.eol": "\n",
   "files.trimTrailingWhitespace": true,
