@@ -46,7 +46,7 @@ if (!container.isRegistered(EnvironmentSecretsManager)) {
 
 // Register observability services
 if (!container.isRegistered('PrometheusRegistry')) {
-  container.registerInstance('PrometheusRegistry', new promClient.Registry());
+  container.registerSingleton('PrometheusRegistry', promClient.Registry);
 }
 if (!container.isRegistered('MetricsService')) {
   container.registerSingleton('MetricsService', MetricsService);
