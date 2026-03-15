@@ -1,4 +1,11 @@
 import { After, AfterAll, Before, BeforeAll, Status, setDefaultTimeout } from '@cucumber/cucumber';
+import * as promClient from 'prom-client';
+
+// Import the test-specific container bootstrap so all non-observability
+// singletons are registered before any Before hook or App construction runs.
+// Observability services are registered per-scenario below.
+import { container } from '../../src/container-test';
+import { MetricsService } from '../../src/infrastructure/observability';
 import { World } from './world';
 
 BeforeAll(async function () {
@@ -12,8 +19,16 @@ AfterAll(async function () {
 });
 
 Before(async function (this: World) {
-  // Initialize test app for each scenario
-  await this.initializeApp();
+  // Fresh metrics registry per scenario to prevent cross-scenario leakage.
+  const registry = new promClient.Registry();
+  const metricsService = new MetricsService(registry);
+  container.registerInstance('PrometheusRegistry', registry);
+  container.registerInstance('MetricsService', metricsService);
+
+  // Initialize test app for each scenario (if method exists)
+  if (typeof this.initializeApp === 'function') {
+    await this.initializeApp();
+  }
 });
 
 After(async function (this: World, { result, pickle }) {
@@ -27,6 +42,19 @@ After(async function (this: World, { result, pickle }) {
     console.log(`✅ Scenario passed: ${pickle.name}`);
   }
 
-  // Cleanup after each scenario
-  await this.cleanup();
+  // Cleanup after each scenario (if method exists)
+  if (typeof this.cleanup === 'function') {
+    await this.cleanup();
+  }
+
+  // Defensive teardown: `prom-client@15` default metrics don't run on an interval,
+  // but we keep the method for compatibility with older implementations/tests.
+  try {
+    if (container.isRegistered('MetricsService')) {
+      const metricsService = container.resolve<MetricsService>('MetricsService');
+      metricsService.stopDefaultMetricsCollection();
+    }
+  } catch (error) {
+    console.warn('MetricsService teardown failed (ignored):', (error as Error).message);
+  }
 });

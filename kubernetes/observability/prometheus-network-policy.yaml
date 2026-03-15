@@ -1,0 +1,91 @@
+# NetworkPolicy for Prometheus
+# Defense-in-depth: restrict network access at L3/L4 in addition to Istio mTLS
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: prometheus
+  namespace: observability
+  labels:
+    app: prometheus
+    component: monitoring-security
+spec:
+  podSelector:
+    matchLabels:
+      app: prometheus
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow Grafana to query Prometheus
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app: grafana
+      ports:
+        - protocol: TCP
+          port: 9090
+    # Allow other monitoring tools in observability namespace
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+      ports:
+        - protocol: TCP
+          port: 9090
+    # Allow Istio control-plane components to query/scrape Prometheus
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+      ports:
+        - protocol: TCP
+          port: 9090
+        - protocol: TCP
+          port: 15090 # Istio Envoy metrics
+    # Allow kubelet health probes via Istio sidecar status port.
+    # When istio-injection is enabled, Istio rewrites app HTTP probes so the
+    # kubelet sends traffic to the sidecar status port (15021) instead of
+    # directly to the app port.  Kubelet originates from the node network
+    # (outside any namespace), so no `from:` selector can match it — the rule
+    # must be source-unrestricted.  The Istio AuthorizationPolicy restricts
+    # which paths are reachable at L7.
+    - ports:
+        - protocol: TCP
+          port: 15021 # Istio sidecar status / health port
+  egress:
+    # Allow Prometheus to scrape metrics from pods on allowlisted ports.
+    # Keep this list aligned with the allowlist in prometheus-config.yaml.
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 9090
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 3000
+        - protocol: TCP
+          port: 15090 # Istio Envoy metrics
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow Kubernetes API access for service discovery and node metrics proxy scraping
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443

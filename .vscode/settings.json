@@ -35,14 +35,19 @@
     "**/build": true,
     "**/.next": true,
     "**/.turbo": true,
-    "**/coverage": true
+    "**/coverage": true,
+    "**/.tools": true
+  },
+  "files.exclude": {
+    "**/.tools": true
   },
   "files.watcherExclude": {
     "**/node_modules/**": true,
     "**/dist/**": true,
     "**/build/**": true,
     "**/.next/**": true,
-    "**/.turbo/**": true
+    "**/.turbo/**": true,
+    "**/.tools/**": true
   },
   "playwright.reuseBrowser": true,
   "playwright.showTrace": false,
@@ -53,19 +58,29 @@
   "playwright.searchForWorkspaceFiles": true,
   "files.associations": {
     ".github/actions/**/action.yml": "yaml",
-    ".github/actions/**/action.yaml": "yaml"
+    ".github/actions/**/action.yaml": "yaml",
+
+    "**/.tools/istio/**/manifests/charts/**/templates/*.yml": "plaintext",
+    "**/.tools/istio/**/manifests/charts/**/templates/*.yaml": "plaintext"
   },
+  "json.schemaDownload.enable": false,
   "yaml.useSchemaFromModeline": true,
   "yaml.schemas": {
     "https://json.schemastore.org/github-action.json": [
       "**/.github/actions/**/action.yml",
       "**/.github/actions/**/action.yaml"
+    ],
+    "./.vscode/schemas/prometheus-rule.schema.json": [
+      "kubernetes/**/prometheus-rules.yml",
+      "kubernetes/**/prometheus-rules.yaml"
     ]
   },
   "cSpell.words": [
     "addgroup",
     "adduser",
     "Alertmanager",
+    "alertmanagers",
+    "apiservers",
     "apkasten",
     "ASVS",
     "CCPA",
@@ -77,6 +92,7 @@
     "devpassword",
     "devredis",
     "devuser",
+    "diffable",
     "distroless",
     "Dockerfiles",
     "dotenv",
@@ -92,7 +108,10 @@
     "ingressgateway",
     "initdb",
     "isready",
+    "istiod",
     "Kiali",
+    "kubelet",
+    "labelmap",
     "libc",
     "Meili",
     "msword",
@@ -105,6 +124,7 @@
     "openxmlformats",
     "presigner",
     "Promtail",
+    "promtool",
     "quicktime",
     "rabbitmq",
     "requirepass",

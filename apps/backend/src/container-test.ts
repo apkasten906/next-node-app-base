@@ -1,11 +1,21 @@
+/**
+ * Test bootstrap for the DI container.
+ *
+ * Pre-registers all non-observability singletons with `isRegistered` guards.
+ * When other modules (e.g. `metrics.middleware.ts`, `metrics.routes.ts`)
+ * transitively import `container.ts` during test startup, the identical guards
+ * in that module prevent any re-registration from taking effect, so these
+ * test-side registrations remain authoritative.
+ *
+ * Observability services (PrometheusRegistry / MetricsService) are
+ * intentionally omitted; each Cucumber scenario registers its own fresh
+ * instances in the `Before` hook to prevent cross-scenario metric leakage.
+ */
 import 'reflect-metadata';
 
-import * as promClient from 'prom-client';
 import { container } from 'tsyringe';
 
-// Register authentication services
 import { UserController } from './controllers/user.controller';
-import { MetricsService } from './infrastructure/observability';
 import { UserRepository } from './repositories/user.repository';
 import { AuditLogService } from './services/audit/audit-log.service';
 import { AuthorizationService } from './services/auth/authorization.service';
@@ -16,12 +26,8 @@ import { InMemoryPolicyStore } from './services/auth/policy-store.service';
 import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
 import { UserService } from './services/user/user.service';
 
-// Register observability services
-
-// Register services as singletons.
-// isRegistered guards prevent double-registration when this module is
-// transitively imported alongside container-test.ts in BDD/integration tests
-// (e.g. via metrics.middleware.ts → container.ts).
+// Register non-observability singletons once for the test suite.
+// Using isRegistered guards so this module is safe to import multiple times.
 if (!container.isRegistered(JwtService)) {
   container.registerSingleton(JwtService);
 }
@@ -43,16 +49,6 @@ if (!container.isRegistered(AuditLogService)) {
 if (!container.isRegistered(EnvironmentSecretsManager)) {
   container.registerSingleton(EnvironmentSecretsManager);
 }
-
-// Register observability services
-if (!container.isRegistered('PrometheusRegistry')) {
-  container.registerSingleton('PrometheusRegistry', promClient.Registry);
-}
-if (!container.isRegistered('MetricsService')) {
-  container.registerSingleton('MetricsService', MetricsService);
-}
-
-// Register user domain bindings
 if (!container.isRegistered(UserRepository)) {
   container.registerSingleton(UserRepository);
 }

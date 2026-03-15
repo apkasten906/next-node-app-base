@@ -2,9 +2,6 @@
 
 This document has two parts:
 
-1. **Current Focus (Execution Status)**: what’s done, what’s next, and what’s risky.
-2. **Target Blueprint**: the full template plan (architecture + capabilities).
-
 ---
 
 ## Goals / Non-goals
@@ -30,7 +27,7 @@ This document has two parts:
 
 ### Reporting note
 
-- TODO: Backend Cucumber JSON report output is currently disabled (HTML is self-contained but `apps/backend/reports/cucumber-report.json` can appear empty). We should fix/clarify this later to avoid confusion.
+- **Known Limitation**: Backend Cucumber JSON report output is currently configured to generate HTML reports only. The `apps/backend/reports/cucumber-report.json` file may appear empty or not be generated. The HTML report at `apps/backend/reports/cucumber-report.html` provides comprehensive test results and is the authoritative source for BDD test outcomes. This is intentional to reduce report storage overhead while maintaining full traceability through HTML reports and CI logs.
 
 ---
 
@@ -90,14 +87,8 @@ This document has two parts:
 - ✅ **Queue system (WSJF 4.62)** - BullMQ queues + dashboard (commit `c201cb5`); docs: `docs/QUEUE_SYSTEM.md`
 - ✅ **WebSocket support (WSJF 4.15)** - Socket.io auth + scaling (commit `cb2f5c4`); docs: `docs/WEBSOCKET.md`
 - **Test Status (2025-12-14)**: 170 passing / 108 skipped (skips expected when `TEST_EXTERNAL_SERVICES=false`)
-- **Current Status**: Core features complete with comprehensive testing, i18n, error handling, Docker, queues, and WebSockets
-- **Next**: Continue with next highest WSJF priority items (Enhanced CI/CD 4.38)
-
-### Priorities (A / B / C from original plan)
-
-1. ✅ **B (COMPLETED)**: Convert `@security` BDD scenarios to integration tests and make tests resilient to external services (MockRedis, toggles). All 15 critical security scenarios now covered.
-2. ✅ **C (COMPLETED)**: Finalize artifact registry and publishing flow (GitHub Packages default), add `scripts/publish-packages.js`, `.npmrc.template`, and GitHub Actions publish workflow. Make publish flow registry-agnostic via `REGISTRY_URL` so we can route to an internal registry through the service mesh. All components verified and tested.
-3. ✅ **A (COMPLETED)**: Investigate Prisma CLI/migrations issue, propose workaround, and write ADR for migration strategy. Upgraded to Prisma 7.1.0, documented CLI config parsing bug, implemented hybrid migration strategy (manual SQL + Prisma 6 fallback). See ADR-010.
+- **Current Status (March 2026)**: Core features complete with comprehensive testing, i18n, error handling, Docker, queues, WebSockets, and CI/CD hardening complete
+- ✅ **Prometheus rules management** - add `prometheus-rules` ConfigMap, mount at `/etc/prometheus/rules`, include rule files in repo and CI review
 
 ### Actionable steps (short-term)
 
@@ -131,8 +122,18 @@ This document has two parts:
 
 ### Next check-in
 
-- Next: Move on to the next WSJF priority area (Enhanced CI/CD hardening), using the deployable-template backlog as the source of truth if scope shifts.
-- If focus shifts to “deployable template” hardening, track WSJF items in `docs/Planning/wsjf-deployable-template.md` and keep this plan as a short pointer.
+- **Current Focus (March 2026)**: **Phase 10: Observability Stack** (IN PROGRESS via PR #38). Priority order:
+  1. ✅ Prometheus metrics collection (service mesh + application metrics) - PR #38 implementing with ConfigMap, deployment, security policies
+  2. ⬜ Grafana dashboards (performance, infrastructure, business KPIs) - Next priority after Prometheus merge
+  3. ⬜ Distributed tracing with Jaeger (automatic via Istio + custom spans)
+  4. ⬜ Centralized logging (choose ELK Stack or Loki + Grafana)
+  5. ⬜ APM integration (Datadog or New Relic)
+  6. ⬜ Alerting and incident management (Prometheus Alertmanager + PagerDuty/OpsGenie)
+  7. ⬜ Kiali for service mesh observability
+- **Decision Point**: Choose between ELK Stack (full-featured, resource-intensive) or Loki (cost-effective, Grafana-native) for centralized logging based on infrastructure constraints and team preferences.
+- **Documentation**: Create ADR for observability stack decisions, update SETUP.md with observability setup instructions.
+- **Current PR**: PR #38 (feat/observability) implementing Prometheus with 11 unresolved PR comments recently fixed (March 7, 2026).
+- **Future**: After Phase 10 observability foundation is complete, proceed with Phase 11 (Testing Infrastructure) or shift to deployable template hardening using `/docs/Planning/wsjf-deployable-template.md` as the backlog.
 
 ---
 
@@ -1739,7 +1740,7 @@ spec:
   - Create reusable mock scenarios
   - Add MSW to Playwright tests for isolated E2E testing
 
-### Phase 13: Kubernetes & DevOps
+### Phase 12: Kubernetes & DevOps
 
 - Create Kubernetes base manifests
   - Namespace configurations
@@ -1764,7 +1765,7 @@ spec:
 - Configure security notifications and alerts
 - Implement database backup and recovery strategies
 
-### Phase 14: Documentation & Polish
+### Phase 13: Documentation & Polish
 
 - Create comprehensive README files (root, apps, packages)
 - Write Architecture Decision Records (ADRs)
@@ -1933,43 +1934,6 @@ spec:
 - [ ] MSW mock handlers don't expose real credentials or tokens
 - [ ] MSW disabled in production builds
 - [ ] Contract tests validate authorization headers and RBAC
-
-### Database & Data Layer Security
-
-- [ ] Read replica access restricted appropriately
-- [ ] Connection strings for replicas secured in secrets manager
-- [ ] Replica lag monitoring and alerting configured
-- [ ] Fallback to primary database on replica failure tested
-- [ ] Connection pooling limits prevent resource exhaustion
-- [ ] Database audit logging enabled for primary
-- [ ] Sensitive queries only run on primary (never cached)
-- [ ] Cache poisoning prevention mechanisms in place
-- [ ] Cache keys don't expose sensitive information
-- [ ] Multi-level cache invalidation tested
-
-### Webhook Security
-
-- [ ] Webhook endpoints require HTTPS only
-- [ ] HMAC signature verification enforced
-- [ ] Webhook secrets stored securely in secrets manager
-- [ ] Webhook delivery rate limiting configured
-- [ ] IP whitelisting supported for webhook endpoints
-- [ ] Webhook payload size limits enforced
-- [ ] Webhook delivery retries have exponential backoff
-- [ ] Dead letter queue monitored for failed deliveries
-- [ ] Webhook event data sanitized before delivery
-- [ ] Webhook logs don't contain sensitive payload data
-
-### Deployment Security
-
-- [ ] Blue-green switch requires approval in production
-- [ ] Canary deployments have automatic rollback on high error rates
-- [ ] Database migrations tested in blue-green scenario
-- [ ] Secrets rotated between blue and green deployments
-- [ ] Health checks validate security configurations
-- [ ] Deployment logs audit all environment changes
-- [ ] Rollback procedures tested regularly
-- [ ] A/B test segments don't leak user data
 
 ### Compliance & Documentation
 
