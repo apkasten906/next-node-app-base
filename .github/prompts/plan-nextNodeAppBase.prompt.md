@@ -87,8 +87,12 @@ This document has two parts:
 - ✅ **Queue system (WSJF 4.62)** - BullMQ queues + dashboard (commit `c201cb5`); docs: `docs/QUEUE_SYSTEM.md`
 - ✅ **WebSocket support (WSJF 4.15)** - Socket.io auth + scaling (commit `cb2f5c4`); docs: `docs/WEBSOCKET.md`
 - **Test Status (2025-12-14)**: 170 passing / 108 skipped (skips expected when `TEST_EXTERNAL_SERVICES=false`)
+- **Test Status (March 2026)**: 340 passing / 44 skipped / 0 failing (backend vitest). All metrics middleware tests fixed.
 - **Current Status (March 2026)**: Core features complete with comprehensive testing, i18n, error handling, Docker, queues, WebSockets, and CI/CD hardening complete
 - ✅ **Prometheus rules management** - add `prometheus-rules` ConfigMap, mount at `/etc/prometheus/rules`, include rule files in repo and CI review
+- ✅ **Metrics middleware route fallback fix (March 2026)** - Fixed `metrics.middleware.ts` to use `req.path` as fallback when `req.route` is undefined (was returning `'unmatched'` literal); 340 tests passing, 0 failures
+- ✅ **PR #38 merged (March 15, 2026)** - Initial Prometheus observability stack merged to master. Continued work lives on `feat/phase-10-observability` (renamed from the misnamed `feat/phase-11-observability`).
+- ⚠️ **Phase 8.5 (Feature Management System) skipped** — not yet implemented. No feature-flag code exists in the codebase. Phases 9–10 do not depend on it; pick up on a dedicated branch after Phase 10 or alongside Phase 11.
 
 ### Actionable steps (short-term)
 
@@ -98,7 +102,10 @@ This document has two parts:
 - ✅ DONE (merged): CI workflow DRY hardening: extracted shared Node+pnpm setup into a composite action and reused it across core workflows. (branch: `chore/ci-dry-workflows`, PR #29)
 - ✅ DONE (Feb 2026): Hardened composite action API (removed `install-args`) and validated workflows.
 - ✅ DONE (Feb 2026): Reduced Dependabot to Actions-only and updated plan/docs.
-- ⬜ NEXT: Continue Enhanced CI/CD hardening (Dependabot validation + workflow review policy). Merge `chore/e2e-personas-moderator` when ready.
+- ✅ DONE (March 2026): Fixed `metrics.middleware.ts` route label fallback (`req.path` instead of literal `'unmatched'`). Backend: 340 passing / 44 skipped / 0 failing.
+- ✅ DONE (March 2026): Renamed branch `feat/phase-11-observability` → `feat/phase-10-observability`; old remote deleted; plan updated.
+- ⬜ NEXT (Phase 10 cont.): Grafana — add `kubernetes/observability/grafana/` manifests + provisioned dashboards and write ADR-014. See **Next check-in** below for full priority order.
+- ⬜ BACKLOG (Phase 8.5): Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
 - ✅ DONE: Create ADR documenting the artifact registry decision and how to swap registries through the service mesh. (owner: dev) — see `docs/adr/009-artifact-registry-github-packages.md`.
@@ -114,6 +121,7 @@ This document has two parts:
 
 ### In flight (branches on hold)
 
+- `feat/phase-10-observability`: Active branch for Phase 10 remainder — Grafana, Jaeger, Loki, Alertmanager, Kiali. PR #38 (Prometheus) already merged. New PR needed when next milestone is ready.
 - `chore/e2e-personas-moderator`: Adds `moderator` persona + `MODERATOR` role to backend seed + frontend fixtures; keeps dev auth fallback aligned.
 
 ### Notes on service-mesh friendliness
@@ -122,17 +130,17 @@ This document has two parts:
 
 ### Next check-in
 
-- **Current Focus (March 2026)**: **Phase 10: Observability Stack** (IN PROGRESS via PR #38). Priority order:
-  1. ✅ Prometheus metrics collection (service mesh + application metrics) - PR #38 implementing with ConfigMap, deployment, security policies
-  2. ⬜ Grafana dashboards (performance, infrastructure, business KPIs) - Next priority after Prometheus merge
-  3. ⬜ Distributed tracing with Jaeger (automatic via Istio + custom spans)
-  4. ⬜ Centralized logging (choose ELK Stack or Loki + Grafana)
+- **Current Focus (March 2026)**: **Phase 10: Observability Stack** (branch: `feat/phase-10-observability`). Priority order:
+  1. ✅ Prometheus metrics collection — `MetricsService` (prom-client), `metrics.middleware.ts`, Kubernetes manifests (deployment, config, RBAC, NetworkPolicy, AlertRules ConfigMap), ADRs 015 + 016, BDD scenarios (@ready). 340 backend tests passing.
+  2. 🔄 **CURRENT NEXT**: Grafana dashboards (performance, infrastructure, business KPIs) — add `kubernetes/observability/grafana/` manifests and provisioned dashboards
+  3. ⬜ Distributed tracing with Jaeger (automatic via Istio + custom spans) — add `kubernetes/observability/jaeger/` manifests
+  4. ⬜ Centralized logging — **Loki + Grafana recommended** (cost-effective, Grafana-native; avoids separate Kibana/Elasticsearch overhead)
   5. ⬜ APM integration (Datadog or New Relic)
-  6. ⬜ Alerting and incident management (Prometheus Alertmanager + PagerDuty/OpsGenie)
+  6. ⬜ Alerting and incident management — Prometheus Alertmanager manifests + notification routing (Slack/PagerDuty)
   7. ⬜ Kiali for service mesh observability
-- **Decision Point**: Choose between ELK Stack (full-featured, resource-intensive) or Loki (cost-effective, Grafana-native) for centralized logging based on infrastructure constraints and team preferences.
-- **Documentation**: Create ADR for observability stack decisions, update SETUP.md with observability setup instructions.
-- **Current PR**: PR #38 (feat/observability) implementing Prometheus with 11 unresolved PR comments recently fixed (March 7, 2026).
+- **Decision Point (RESOLVED)**: Use **Loki + Grafana** for centralized logging (cost-effective, Grafana-native, avoids ELK resource overhead for this template use-case).
+- **Documentation**: ADRs 013/015/016 written. ADR 014 slot is available for Grafana/Loki decision.
+- **BDD Coverage**: `apps/backend/features/10-observability.feature` has 27+ scenarios (`@wip`); `apps/backend/features/observability/metrics.feature` has 12 scenarios (`@ready`/`@impl_prometheus_metrics`). Step definitions exist in `apps/backend/features/step_definitions/observability.steps.ts` + `metrics.steps.ts`.
 - **Future**: After Phase 10 observability foundation is complete, proceed with Phase 11 (Testing Infrastructure) or shift to deployable template hardening using `/docs/Planning/wsjf-deployable-template.md` as the backlog.
 
 ---
