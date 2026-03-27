@@ -104,7 +104,7 @@ This document has two parts:
 - ✅ DONE (Feb 2026): Reduced Dependabot to Actions-only and updated plan/docs.
 - ✅ DONE (March 2026): Fixed `metrics.middleware.ts` route label fallback (`req.path` instead of literal `'unmatched'`). Backend: 340 passing / 44 skipped / 0 failing.
 - ✅ DONE (March 2026): Renamed branch `feat/phase-11-observability` → `feat/phase-10-observability`; old remote deleted; plan updated.
-- ⬜ NEXT (Phase 10 cont.): Grafana — add `kubernetes/observability/grafana/` manifests + provisioned dashboards and write ADR-014. See **Next check-in** below for full priority order.
+- ✅ DONE (March 2026): Grafana — `kubernetes/observability/grafana/` manifests (config, dashboards, deployment, secret, NetworkPolicy), 3 pre-provisioned dashboards (app-performance, infrastructure, business-kpis), ADR-017. See **Next check-in** below for full priority order.
 - ⬜ BACKLOG (Phase 8.5): Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.
 - ✅ DONE: Finish converting remaining `@security` scenarios to integration tests and wire any missing Cucumber step-definitions to the integration harness. All 15 scenarios now covered. (owner: dev)
 - ✅ DONE: Add a registry-agnostic publish script and GitHub Actions workflow that defaults to GitHub Packages but respects `REGISTRY_URL` and `NPM_AUTH_TOKEN` for an internal registry. (owner: dev)
@@ -132,14 +132,14 @@ This document has two parts:
 
 - **Current Focus (March 2026)**: **Phase 10: Observability Stack** (branch: `feat/phase-10-observability`). Priority order:
   1. ✅ Prometheus metrics collection — `MetricsService` (prom-client), `metrics.middleware.ts`, Kubernetes manifests (deployment, config, RBAC, NetworkPolicy, AlertRules ConfigMap), ADRs 015 + 016, BDD scenarios (@ready). 340 backend tests passing.
-  2. 🔄 **CURRENT NEXT**: Grafana dashboards (performance, infrastructure, business KPIs) — add `kubernetes/observability/grafana/` manifests and provisioned dashboards
-  3. ⬜ Distributed tracing with Jaeger (automatic via Istio + custom spans) — add `kubernetes/observability/jaeger/` manifests
+  2. ✅ Grafana dashboards (performance, infrastructure, business KPIs) — `kubernetes/observability/grafana/` manifests, 3 pre-provisioned dashboards, ADR-017.
+  3. 🔄 **CURRENT NEXT**: Distributed tracing with Jaeger (automatic via Istio + custom spans) — add `kubernetes/observability/jaeger/` manifests
   4. ⬜ Centralized logging — **Loki + Grafana recommended** (cost-effective, Grafana-native; avoids separate Kibana/Elasticsearch overhead)
   5. ⬜ APM integration (Datadog or New Relic)
   6. ⬜ Alerting and incident management — Prometheus Alertmanager manifests + notification routing (Slack/PagerDuty)
   7. ⬜ Kiali for service mesh observability
 - **Decision Point (RESOLVED)**: Use **Loki + Grafana** for centralized logging (cost-effective, Grafana-native, avoids ELK resource overhead for this template use-case).
-- **Documentation**: ADRs 013/015/016 written. ADR 014 slot is available for Grafana/Loki decision.
+- **Documentation**: ADRs 013/015/016/017 written. ADR-017 documents Grafana+Loki over ELK for this template use-case.
 - **BDD Coverage**: `apps/backend/features/10-observability.feature` has 27+ scenarios (`@wip`); `apps/backend/features/observability/metrics.feature` has 12 scenarios (`@ready`/`@impl_prometheus_metrics`). Step definitions exist in `apps/backend/features/step_definitions/observability.steps.ts` + `metrics.steps.ts`.
 - **Future**: After Phase 10 observability foundation is complete, proceed with Phase 11 (Testing Infrastructure) or shift to deployable template hardening using `/docs/Planning/wsjf-deployable-template.md` as the backlog.
 

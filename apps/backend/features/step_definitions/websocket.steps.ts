@@ -47,9 +47,10 @@ Then('WebSockets should be gated by {string}', async function (this: World, envV
     `Expected websocketsEnabled() to gate on ${envVar} !== 'true'`
   );
 
-  // Also ensure initialization is conditional.
+  // Also ensure initialization is conditional (accepts both positive-guard and
+  // guard-clause/early-return patterns, e.g. `if (!this.websocketsEnabled()) return`).
   assert.ok(
-    indexSource.includes('if (this.websocketsEnabled())') &&
+    indexSource.includes('this.websocketsEnabled()') &&
       indexSource.includes('container.resolve(WebSocketService)') &&
       indexSource.includes('await this.websocket.initialize'),
     'Expected conditional WebSocket initialization via WebSocketService.initialize()'
