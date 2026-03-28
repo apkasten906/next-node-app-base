@@ -24,6 +24,8 @@ Grafana provides visualization dashboards for:
 - Service mesh metrics
 - Business KPIs
 
+Grafana is provisioned automatically from ConfigMaps: datasources and three pre-built dashboards (Application Performance, Infrastructure & Node.js Runtime, Business KPIs) are loaded on startup without manual import. See `grafana/` and `../../docs/adr/017-grafana-loki-observability-stack.md`.
+
 ### Jaeger
 
 Jaeger provides distributed tracing for:
@@ -123,6 +125,52 @@ kubectl port-forward -n observability svc/prometheus 9090:9090
 
 # Open http://localhost:9090 in browser
 ```
+
+### Deploy Grafana
+
+> **Before deploying**: replace the placeholder admin password in `grafana/grafana-secret.yaml` (or use the `kubectl create secret` command in the comments of that file).
+
+```bash
+# Create admin password Secret (replace changeme with a strong password)
+kubectl create secret generic grafana-secret \
+  --from-literal=admin-password=changeme \
+  -n observability \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Deploy provisioning ConfigMap (datasources + dashboard provider)
+kubectl apply -f grafana/grafana-config.yaml
+
+# Deploy dashboard ConfigMap (app performance, infrastructure, business KPIs)
+kubectl apply -f grafana/grafana-dashboards.yaml
+
+# Deploy NetworkPolicy
+kubectl apply -f grafana/grafana-network-policy.yaml
+
+# Deploy Grafana (Deployment + Service)
+kubectl apply -f grafana/grafana-deployment.yaml
+
+# Verify
+kubectl get pods -n observability -l app=grafana
+kubectl logs -n observability -l app=grafana
+```
+
+### Access Grafana UI
+
+```bash
+# Port forward Grafana (default credentials: admin / <password from secret>)
+kubectl port-forward -n observability svc/grafana 3000:3000
+
+# Open http://localhost:3000 in browser
+# Log in with admin / <password set in grafana-secret secret>
+```
+
+Three dashboards are pre-loaded automatically:
+
+| Dashboard                        | UID               | What it shows                                                               |
+| -------------------------------- | ----------------- | --------------------------------------------------------------------------- |
+| Application Performance          | `app-performance` | Request rates, error %, P50/P95/P99 latency, errors by route                |
+| Infrastructure & Node.js Runtime | `infrastructure`  | Heap, CPU, event loop lag, GC, file descriptors                             |
+| Business KPIs                    | `business-kpis`   | Registrations, auth failures, cache hit rate, WebSocket connections, queues |
 
 ## Metrics Exposed by Backend
 
@@ -266,11 +314,10 @@ endTimer();
 
 ## Next Steps
 
-1. Deploy Grafana with dashboards (planned — `grafana/` directory not yet added)
-2. Configure Alertmanager for alert routing (planned — `alertmanager/` directory not yet added)
-3. Deploy Jaeger for distributed tracing (planned — `jaeger/` directory not yet added)
-4. Set up centralized logging (planned — `logging/` directory not yet added)
-5. Integrate with PagerDuty/OpsGenie for incident management
+1. Configure Alertmanager for alert routing (planned — `alertmanager/` directory not yet added)
+2. Deploy Jaeger for distributed tracing (planned — `jaeger/` directory not yet added)
+3. Set up Loki + Promtail for centralized logging (planned — `loki/` directory not yet added)
+4. Integrate with PagerDuty/OpsGenie for incident management
 
 > Note: If you are using the Prometheus Operator, an Operator-specific `PrometheusRule` example lives under `operator/`.
 
