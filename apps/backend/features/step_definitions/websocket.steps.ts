@@ -47,13 +47,14 @@ Then('WebSockets should be gated by {string}', async function (this: World, envV
     `Expected websocketsEnabled() to gate on ${envVar} !== 'true'`
   );
 
-  // Also ensure initialization is conditional (accepts both positive-guard and
-  // guard-clause/early-return patterns, e.g. `if (!this.websocketsEnabled()) return`).
+  // Verify ordering: websocketsEnabled() guard must appear BEFORE the resolve/initialize
+  // calls, regardless of whether it uses a positive-guard or early-return pattern.
+  const enabledIdx = indexSource.indexOf('this.websocketsEnabled()');
+  const resolveIdx = indexSource.indexOf('container.resolve(WebSocketService)');
+  const initIdx = indexSource.indexOf('await this.websocket.initialize');
   assert.ok(
-    indexSource.includes('this.websocketsEnabled()') &&
-      indexSource.includes('container.resolve(WebSocketService)') &&
-      indexSource.includes('await this.websocket.initialize'),
-    'Expected conditional WebSocket initialization via WebSocketService.initialize()'
+    enabledIdx !== -1 && resolveIdx !== -1 && initIdx !== -1 && enabledIdx < resolveIdx,
+    'Expected websocketsEnabled() guard to precede container.resolve(WebSocketService) and initialize()'
   );
 });
 

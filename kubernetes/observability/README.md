@@ -132,7 +132,7 @@ kubectl port-forward -n observability svc/prometheus 9090:9090
 
 ```bash
 # Create admin password Secret (replace changeme with a strong password)
-kubectl create secret generic grafana-admin \
+kubectl create secret generic grafana-secret \
   --from-literal=admin-password=changeme \
   -n observability \
   --dry-run=client -o yaml | kubectl apply -f -
@@ -161,7 +161,7 @@ kubectl logs -n observability -l app=grafana
 kubectl port-forward -n observability svc/grafana 3000:3000
 
 # Open http://localhost:3000 in browser
-# Log in with admin / <password set in grafana-admin secret>
+# Log in with admin / <password set in grafana-secret secret>
 ```
 
 Three dashboards are pre-loaded automatically:
