@@ -13,7 +13,7 @@ export interface SignInFormValues {
 export interface UseSignInResult {
   error: string | null;
   isSubmitting: boolean;
-  submit: (values: SignInFormValues) => Promise<SignInResult>;
+  submit: (values: SignInFormValues) => Promise<SignInResult | null>;
   submitForm: (event: FormEvent<HTMLFormElement>, values: SignInFormValues) => Promise<void>;
 }
 
@@ -22,7 +22,7 @@ export function useSignIn(): UseSignInResult {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function submit(values: SignInFormValues): Promise<SignInResult> {
+  async function submit(values: SignInFormValues): Promise<SignInResult | null> {
     setError(null);
     setIsSubmitting(true);
 
@@ -31,7 +31,7 @@ export function useSignIn(): UseSignInResult {
     } catch (caughtError) {
       const message = caughtError instanceof Error ? caughtError.message : 'Login failed';
       setError(message);
-      throw caughtError;
+      return null;
     } finally {
       setIsSubmitting(false);
     }
@@ -42,9 +42,11 @@ export function useSignIn(): UseSignInResult {
     values: SignInFormValues
   ): Promise<void> {
     event.preventDefault();
-    await submit(values);
-    router.push('/dashboard');
-    router.refresh();
+    const result = await submit(values);
+    if (result?.authenticated) {
+      router.push('/dashboard');
+      router.refresh();
+    }
   }
 
   return {

@@ -1,4 +1,4 @@
-import { type Snapshot } from '@/app/dashboard/bdd/types';
+import { type Snapshot } from '@/src/server/bdd/types';
 import { serverApiFetch } from '@/src/server/http/server-api-client';
 
 export type BddStatusSnapshotResult =

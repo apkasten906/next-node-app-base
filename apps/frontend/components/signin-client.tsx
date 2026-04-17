@@ -10,11 +10,11 @@ export function SignInClient(): JSX.Element {
   const [password, setPassword] = useState('');
   const { error, isSubmitting, submitForm } = useSignIn();
 
-  async function handleSubmit(e: FormEvent): Promise<void> {
-    await submitForm(e as FormEvent<HTMLFormElement>, { email, password });
+  async function handleSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
+    await submitForm(e, { email, password });
   }
 
-  function onSubmit(e: FormEvent): void {
+  function onSubmit(e: FormEvent<HTMLFormElement>): void {
     void handleSubmit(e);
   }
 
