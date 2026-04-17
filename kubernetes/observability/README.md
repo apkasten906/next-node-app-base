@@ -128,12 +128,13 @@ kubectl port-forward -n observability svc/prometheus 9090:9090
 
 ### Deploy Grafana
 
-> **Before deploying**: replace the placeholder admin password in `grafana/grafana-secret.yaml` (or use the `kubectl create secret` command in the comments of that file).
+> **Before deploying**: `grafana-secret.yaml` is gitignored — the real secret must be created out-of-band. See `grafana/grafana-secret.example.yaml` for full instructions (kubectl, manifest copy, or ExternalSecrets).
 
 ```bash
-# Create admin password Secret (replace changeme with a strong password)
+# Create admin password Secret — replace <your-strong-password> with a randomly generated value
+# e.g.: openssl rand -base64 24
 kubectl create secret generic grafana-secret \
-  --from-literal=admin-password=changeme \
+  --from-literal=admin-password='<your-strong-password>' \
   -n observability \
   --dry-run=client -o yaml | kubectl apply -f -
 

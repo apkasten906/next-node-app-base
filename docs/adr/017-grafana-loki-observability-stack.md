@@ -19,7 +19,7 @@ Requirements for this template:
 Two major options exist:
 
 **Option A — Grafana + Loki + Promtail:**
-Grafana is the defacto Prometheus UI, with Loki purpose-built for log aggregation (pull-based, label-indexed, not full-text indexed).
+Grafana is the de facto Prometheus UI, with Loki purpose-built for log aggregation (pull-based, label-indexed, not full-text indexed).
 
 **Option B — Grafana + ELK (Elasticsearch + Logstash + Kibana):**
 Mature, full-text-indexed stack with highly flexible querying. Requires running Elasticsearch (a heavy JVM process) and maintaining Kibana alongside Grafana.

@@ -53,7 +53,7 @@ spec:
               value: 'false'
             - name: GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES
               value: 'false'
-            # Disable unused features for reduced attack surface
+            # Feature surface: snapshots disabled (unused), Explore kept enabled for ad-hoc PromQL
             - name: GF_SNAPSHOTS_EXTERNAL_ENABLED
               value: 'false'
             - name: GF_EXPLORE_ENABLED
