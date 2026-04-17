@@ -33,7 +33,7 @@ The deployment is implemented as:
 - `kubernetes/observability/grafana/grafana-config.yaml` — provisioning ConfigMap (datasources + dashboard provider)
 - `kubernetes/observability/grafana/grafana-dashboards.yaml` — pre-built ConfigMap dashboards (app performance, infrastructure, business KPIs)
 - `kubernetes/observability/grafana/grafana-deployment.yaml` — Deployment + ClusterIP Service
-- `kubernetes/observability/grafana/grafana-secret.yaml` — admin credential Secret (placeholder; must be replaced before production use)
+- `kubernetes/observability/grafana/grafana-secret.example.yaml` — example admin credential Secret manifest; copy/customise and create the real `grafana-secret.yaml` out of band, with the real secret kept untracked
 - `kubernetes/observability/grafana/grafana-network-policy.yaml` — L3/L4 NetworkPolicy restricting egress to Prometheus only
 
 Loki + Promtail manifests are scoped to the next iteration of this phase (`kubernetes/observability/loki/`).
