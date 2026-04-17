@@ -1,0 +1,53 @@
+# NetworkPolicy for Grafana
+# Defense-in-depth: restrict network access at L3/L4 in addition to Istio mTLS
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: grafana
+  namespace: observability
+  labels:
+    app: grafana
+    component: monitoring-security
+spec:
+  podSelector:
+    matchLabels:
+      app: grafana
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow browser/kubectl port-forward access from any namespace (port 3000)
+    # In production, restrict to an ingress controller namespace instead
+    - ports:
+        - protocol: TCP
+          port: 3000
+    # Allow kubelet/Istio health probes on the sidecar status port (15021)
+    # Required when istio-injection: enabled is set on the observability namespace
+    - ports:
+        - protocol: TCP
+          port: 15021
+  egress:
+    # Allow DNS resolution (restricted to kube-dns in kube-system)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow Grafana to query Prometheus datasource
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - protocol: TCP
+          port: 9090
