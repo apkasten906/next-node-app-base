@@ -196,7 +196,7 @@ export class ApiClient {
    * Handle HTTP errors
    */
   private async handleHTTPError(response: Response): Promise<never> {
-    let errorData: { message?: string; code?: string; details?: unknown } = {};
+    let errorData: { error?: string; message?: string; code?: string; details?: unknown } = {};
 
     try {
       errorData = (await response.json()) as typeof errorData;
@@ -204,7 +204,7 @@ export class ApiClient {
       // Response body is not JSON
     }
 
-    const message = errorData.message ?? response.statusText ?? 'Request failed';
+    const message = errorData.message ?? errorData.error ?? response.statusText ?? 'Request failed';
 
     switch (response.status) {
       case 400:

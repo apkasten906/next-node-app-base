@@ -260,4 +260,18 @@ module.exports = [
       ...prettierConfig.rules,
     },
   },
+
+  {
+    files: ['apps/frontend/components/**/*.{ts,tsx}', 'apps/frontend/app/**/page.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.name='fetch']",
+          message:
+            'UI files must not call fetch directly. Route backend and auth access through hooks, application services, or server gateways.',
+        },
+      ],
+    },
+  },
 ];

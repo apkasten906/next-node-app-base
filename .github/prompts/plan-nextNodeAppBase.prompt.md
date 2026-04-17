@@ -1,100 +1,1054 @@
-# Plan: Full-Stack Monorepo Base Template
+# Plan: Reusable Platform Extraction and UI/API Boundary Cleanup
 
-This document has two parts:
+## Objective
 
----
+Turn this repository into a reusable platform source for future apps such as `the-azure-citadel` without mixing product-local code with reusable platform code.
 
-## Goals / Non-goals
+## Guardrails
 
-- **Goals**: Production-ready developer workflows + CI, deterministic tests (unit/integration/E2E), secure-by-default patterns (OWASP-aligned), and a configurable artifact publishing flow.
-- **Non-goals**: Avoid expanding into app-specific product features unless they directly support the repo’s “template” purpose.
+- No broad file moves yet.
+- Preserve behavior where possible.
+- Prefer small, reversible refactors.
+- Keep TypeScript explicit.
+- UI components must not directly call backend or auth endpoints.
 
-## Success Criteria (Definition of Done)
+## A. Current Structure
 
-- A clean checkout can run `pnpm -w install`, `pnpm -w lint`, and core tests successfully.
-- E2E tests are deterministic (seeded) and can run without manual setup.
-- Publish flow works in dry-run and real mode, and is registry-agnostic via env.
+- `apps/frontend`: Next.js app with pages in `app/`, UI in `components/`, transport in `lib/`, and hooks under `hooks/` and `src/hooks/`.
+- `apps/backend`: Express + TSyringe backend with routes, middleware, services, repositories, Prisma schema, and observability under `src/`.
+- `packages/types`: the only strongly reusable package today.
+- `packages/config`, `packages/utils`, `packages/constants`: placeholders, not yet good extraction targets.
+- `.github`, `scripts`, root config, Docker, and Kubernetes: reusable repo/platform assets.
 
-## BDD Governance (Requirements + Status)
+## B. Classification
 
-- Every major capability in this repo should have a corresponding Cucumber scenario as the source of truth for the requirement.
-- Status is governed by tags:
-  - `@wip`: requirement captured but not implemented yet (disabled by default)
-  - `@ready`: implemented and runnable in CI
-  - `@manual`: requirement tracked but validated manually
-  - `@skip`: temporarily disabled
-- Default BDD runs execute only `@ready` scenarios; use `pnpm bdd:status` for an at-a-glance status summary.
+### Portable code
 
-### Reporting note
+- `packages/types/src/**`
+- backend auth core: authorization, policy engine, policy store, JWT, encryption
+- backend cross-cutting services: audit, observability, correlation-id, metrics, HATEOAS helpers
+- backend provider-style services: storage, notification, queue, webhook, secrets
+- frontend platform primitives: `lib/api-client.ts`, correlation-id utilities, error logging, websocket hook
 
-- **Known Limitation**: Backend Cucumber JSON report output is currently configured to generate HTML reports only. The `apps/backend/reports/cucumber-report.json` file may appear empty or not be generated. The HTML report at `apps/backend/reports/cucumber-report.html` provides comprehensive test results and is the authoritative source for BDD test outcomes. This is intentional to reduce report storage overhead while maintaining full traceability through HTML reports and CI logs.
+### Portable infra/template assets
 
----
+- `.github/workflows/**`
+- `.github/actions/**`
+- root toolchain config
+- `docker-compose.yml`
+- `scripts/**`
+- `kubernetes/**`
+- ADRs and setup/governance docs
 
-## Current Focus (Execution Status)
+### App-specific code
 
-### Overview
+- frontend pages, layout, dashboard flow, sign-in flow, language switcher, copy, translations
+- backend user controllers, user routes, user repository, Prisma schema
+- BDD admin UI and repo-specific governance endpoints
 
-- Goal: Make this monorepo production-ready with reliable developer workflows and CI, hardened pre-push checks, deterministic integration tests, and a simple, configurable artifact publishing flow.
+### Boundary cleanup needed
 
-### Recent changes (delta)
+- `apps/frontend/components/signin-client.tsx`
+- `apps/frontend/app/dashboard/page.tsx`
+- `apps/frontend/app/dashboard/bdd/page.tsx`
 
-- Hardened `pre-push` to run a fast backend test gate and added `scripts/run-backend-tests-ci.js` to force mocks for external services in local dev.
-- Converted many high-value `@security` BDD scenarios into integration tests and wired Cucumber step-definitions to use in-memory services (AuditLogService, AuthorizationService, CacheService). Added cache-backed rate limiter tests and mock Redis support.
-- Chosen artifact registry: GitHub Packages selected (see Advanced Features for placement). A registry-agnostic publish flow will allow CI and local dev to swap to an internal registry exposed via the service mesh by setting `REGISTRY_URL` and `NPM_AUTH_TOKEN`.
-- **✅ COMPLETED (Dec 2024)**: Migrated to ESLint v9 flat config, fixed pre-commit hooks (lint-staged, TypeScript, commitlint working end-to-end).
-- **✅ COMPLETED (Dec 2024)**: Implemented owner-based authorization (`:own` semantics), integrated audit logging into AuthorizationService, added test helpers (`clear()`, `resetForTests()`).
-- **✅ COMPLETED (Dec 2024)**: Made integration tests resilient to external services - tests skip gracefully when `TEST_EXTERNAL_SERVICES=false` or dependencies unavailable. Test suite runs in ~11s without external connections.
+## C. Direct UI Endpoint Calls
 
-### Completed Work (WSJF Prioritized)
+Confirmed UI-facing endpoint calls before cleanup:
 
-### High Priority (WSJF > 4.3)
+- `apps/frontend/components/signin-client.tsx` → `POST /api/auth/login`
+- `apps/frontend/app/dashboard/page.tsx` → `GET /api/auth/me`
+- `apps/frontend/app/dashboard/bdd/page.tsx` → `GET /api/auth/me`
+- `apps/frontend/app/dashboard/bdd/page.tsx` → `GET /api/admin/bdd/status`
 
-- ✅ **Option 3** (WSJF 5.67) - Audit test helpers: Added `clear()` method to AuditLogService, implemented `:own` permission semantics in AuthorizationService with audit logging, created integration test (commit `8b8d710`)
-- ✅ **Option 1** (WSJF 5.00) - ESLint/lint-staged fix: Migrated to ESLint v9 flat config format, fixed Husky pre-commit and commit-msg hooks (commit `86f14b6`)
-- ✅ **Options 5-7** (WSJF 4.33) - Test resilience: Added skip logic to external-service-dependent tests, extended ESLint config for test files, removed unused variables (commit `a28779f`)
+Acceptable transport boundary:
 
-### Medium Priority (WSJF ~4.0)
+- `apps/frontend/lib/api-client.ts`
+- `apps/frontend/hooks/use-api.ts`
+- browser-side cross-cutting logging in `apps/frontend/lib/error-logger.ts`
 
-- ✅ **Option 8** (WSJF 4.50) - Publish dry-run: Created registry-agnostic publish script, .npmrc.template, configured @apkasten906/types package, documented publishing workflow, validated with dry-run (commit `cc9fbad`)
-- ✅ **Option 2** (WSJF 4.00) - GitHub Actions publish workflow: Implemented automated publishing with manual dispatch, tag triggers, and release integration; supports dry-run and internal registries (commit `20aa32c`)
-- ✅ **Option 6** (WSJF 4.00) - Verdaccio in-cluster manifest: Created complete Kubernetes manifests with Istio integration, ConfigMap, PVC, security hardening, comprehensive deployment documentation (commit `db8f4fd`)
-- ✅ **Option 5** (WSJF 3.67) - Wire Cucumber steps to integration harness: All Cucumber step definitions wired to integration tests with in-memory services (AuditLogService, AuthorizationService, CacheService), added cache-backed rate limiter tests, mock Redis support
+## D. Target Architecture
 
-### Low Priority (WSJF ~2.8)
+Frontend layering:
 
-- ✅ **Option 4** (WSJF 2.78) - Full ABAC/policy engine expansion: Implemented comprehensive ABAC policy engine with PolicyEngine, PolicyStore, deny-overrides strategy, AND/OR/NOT logical operators, 9 comparison operators, 4 attribute sources, example policies (time-based, department-based, ownership, location), integrated with AuthorizationService maintaining backward-compatible RBAC (commit `888e75a`)
+`UI component`
+→ `presentation hook`
+→ `application service`
+→ `API client or server gateway`
+→ `endpoint call`
 
-### Next Priorities
+Target frontend shape:
 
-- ✅ **Deterministic E2E seeding (WSJF 7.33)** - `POST /api/e2e/seed` is token-protected and wired into CI. Playwright prefers reusing existing dev servers when reachable, with `REUSE_EXISTING_SERVER` override. Docs updated to reflect triggers and env vars (see `apps/frontend/docs/E2E_TESTING.md`).
-- ✅ **CI DRY & Hardening (Feb 2026)** - Extracted shared Node+pnpm setup into a hardened composite action `.github/actions/setup-node-pnpm` (simplified API: removed free-form `install-args`, uses explicit `frozen-lockfile` input), rewired workflows to use it, and added `.github/actions/` to `CODEOWNERS`.
-- ✅ **Dependabot reduced (Feb 2026)** - `.github/dependabot.yml` reduced to GitHub Actions only per solo-maintainer preference; npm/package updates will be handled manually for now.
-- ✅ **Docs: Frontend build verification (Feb 2026)** - Verified `apps/frontend` production build locally and added a short note and Windows caveat to `SETUP.md`.
-- ✅ **Correlation IDs for request tracing** - End-to-end correlation-id propagation (`X-Correlation-ID`) across frontend (middleware + browser/SSR) and backend (Express + Winston injection), with tests + docs + ADR 013 (see `docs/CORRELATION_ID.md`, `docs/adr/013-correlation-ids-for-request-tracing.md`).
-- 📌 **Deployable template WSJF backlog (2026-01-25)** - If/when we shift focus to “deployable template” hardening, use `/docs/Planning/wsjf-deployable-template.md` as the WSJF-scored sub-backlog to avoid expanding this plan with lots of sub-bullets.
-- ✅ **Code Quality** - ESLint improvements completed (0 errors, 0 warnings) - commits `8e94d79`, `59f4c95`, `3ccab31`, `06d74f6`
-- ✅ **Testing Infrastructure - Storage** - Storage Service tests completed (28 tests) - commit `646dfbb`
-- ✅ **Testing Infrastructure - Notifications** - NotificationService tests completed (24 tests) - commit `dc88870`
-- ✅ **Testing Infrastructure - Webhooks** - WebhookService tests completed (25 tests) - commit `8a03485`
-- ✅ **Testing Infrastructure - Secrets** - SecretsManagerService tests completed (35 tests) - commit `b8d2566`
-- ✅ **BDD Scenario Coverage** - All 15 `@security` scenarios converted to integration tests (commit `f90746d`); mapping: `docs/bdd-coverage-analysis.md`
-- ✅ **Artifact Registry Publishing** - Registry-agnostic publish flow verified (commit `d422d55`); docs: `docs/PUBLISHING.md`, ADR-009
-- ✅ **Prisma 7 CLI Migration Workaround** - Hybrid migration approach documented (commit `d394653`); docs: ADR-010
-- ✅ **Frontend i18n (WSJF 6.92)** - Internationalization in 4 languages (commit `8495821`); docs: `apps/frontend/docs/INTERNATIONALIZATION.md`
-- ✅ **Frontend error handling (WSJF 5.85)** - Error boundaries + resilient API client (commit `e09febf`); docs: `apps/frontend/docs/ERROR_HANDLING.md`
-- ✅ **Docker infrastructure (WSJF 5.38 + 5.00)** - Production-ready Docker + Compose (commit `c7f7c2e`); docs: `docs/DOCKER.md`
-- ✅ **Queue system (WSJF 4.62)** - BullMQ queues + dashboard (commit `c201cb5`); docs: `docs/QUEUE_SYSTEM.md`
-- ✅ **WebSocket support (WSJF 4.15)** - Socket.io auth + scaling (commit `cb2f5c4`); docs: `docs/WEBSOCKET.md`
-- **Test Status (2025-12-14)**: 170 passing / 108 skipped (skips expected when `TEST_EXTERNAL_SERVICES=false`)
-- **Test Status (March 2026)**: 340 passing / 44 skipped / 0 failing (backend vitest). All metrics middleware tests fixed.
-- **Current Status (March 2026)**: Core features complete with comprehensive testing, i18n, error handling, Docker, queues, WebSockets, and CI/CD hardening complete
-- ✅ **Prometheus rules management** - add `prometheus-rules` ConfigMap, mount at `/etc/prometheus/rules`, include rule files in repo and CI review
-- ✅ **Metrics middleware route fallback fix (March 2026)** - Fixed `metrics.middleware.ts` to use `req.path` as fallback when `req.route` is undefined (was returning `'unmatched'` literal); 340 tests passing, 0 failures
-- ✅ **PR #38 merged (March 15, 2026)** - Initial Prometheus observability stack merged to master. Continued work lives on `feat/phase-10-observability` (renamed from the misnamed `feat/phase-11-observability`).
-- ⚠️ **Phase 8.5 (Feature Management System) skipped** — not yet implemented. No feature-flag code exists in the codebase. Phases 9–10 do not depend on it; pick up on a dedicated branch after Phase 10 or alongside Phase 11.
+```text
+apps/frontend/
+  app/
+  components/
+  src/
+    application/
+    hooks/
+    server/
+  lib/
+    api/
+    telemetry/
+    websocket/
+```
 
-### Actionable steps (short-term)
+Target backend direction:
+
+```text
+apps/backend/src/
+  api/
+  application/
+  domain/
+  infrastructure/
+```
+
+## E. Package Boundaries
+
+Phase 1 package targets:
+
+- `@repo/contracts` from `@repo/types`
+- `@repo/platform-observability`
+- `@repo/platform-auth-core`
+
+Phase 2 package targets:
+
+- `@repo/platform-storage`
+- `@repo/platform-notifications`
+- `@repo/platform-websocket`
+
+Do not extract yet:
+
+- `packages/config`
+- `packages/utils`
+- `packages/constants`
+
+## F. Template/Sync Boundaries
+
+Treat these as syncable template assets rather than published packages:
+
+- workflows and composite actions
+- root toolchain files
+- Docker and Kubernetes assets
+- reusable scripts
+- prompts, PR templates, CODEOWNERS, governance docs
+
+## G. App-Specific Items To Keep Local
+
+- route structure and page composition
+- branding, copy, locale text, and navigation
+- product schema and product entities
+- product-owned API routes and admin pages
+- app-specific auth/provider choices
+- product-facing personas and fixtures
+
+## H. Target Auth/API Layering
+
+Client auth flow:
+
+`SignInForm`
+→ `useSignIn()`
+→ `authApplicationService.signIn()`
+→ `authApi.login()`
+→ `apiClient.post('/api/auth/login')`
+
+Server auth flow:
+
+`dashboard page`
+→ `requireCurrentUser()`
+→ `server gateway`
+→ `GET /api/auth/me`
+
+Responsibilities:
+
+- UI owns rendering and events only.
+- Hooks own loading, error, and view-model state.
+- Application services own use-case semantics.
+- API/gateway modules own URLs, headers, cookies, retries, and error mapping.
+
+## I. Migration Plan
+
+1. Freeze the boundary rule and stop new raw endpoint calls in UI files.
+2. Introduce app-local service seams inside `apps/frontend`.
+3. Refactor sign-in to hook → service → auth API.
+4. Refactor SSR auth checks to server services.
+5. Add lint enforcement for raw `fetch` in UI files.
+6. Stabilize contracts before extracting packages.
+7. Extract reusable backend slices only after seams hold.
+8. Split template assets from app assets with a sync manifest later.
+9. Consider folder moves only after behavior is stable.
+
+## J. First Concrete Changes
+
+Best risk/reward order:
+
+1. Add `apps/frontend/lib/api/auth-api.ts`
+2. Add `apps/frontend/src/application/auth/sign-in.ts`
+3. Add `apps/frontend/src/hooks/auth/use-sign-in.ts`
+4. Refactor `signin-client.tsx`
+5. Add `apps/frontend/src/server/auth/require-current-user.ts`
+6. Refactor dashboard pages to server services
+7. Add lint guard for raw `fetch` in UI files
+
+## K. ADR Notes
+
+- Separate platform code from product code: only extract neutral, repeated capabilities.
+- UI must not own endpoint knowledge: endpoints belong to services and gateways.
+- Template assets are synced, not published: workflows and infra are file assets, not runtime libraries.
+- Extract after seam stabilization: local seams first, package moves later.
+
+## L. Risks
+
+- premature extraction creates brittle shared packages
+- auth flow has cookie and environment coupling
+- server and client services may diverge if not kept aligned
+- backend services may hide schema coupling
+- syncable template files can drift across downstream repos
+- existing E2E flows may depend on current route/auth behavior
+
+# Plan: Reusable Platform Extraction and UI/API Boundary Cleanup
+
+## Objective
+
+Reframe this repository from a single reusable app template into a reusable platform source that can seed future applications such as `the-azure-citadel` without carrying accidental app-specific coupling.
+
+This plan is analysis-first. It does not authorize destructive moves. It should guide safe, incremental refactoring.
+
+## Guardrails
+
+- Do not start with broad file moves or package splits.
+- Preserve current behavior wherever possible.
+- Prefer small, reversible changes with focused validation.
+- Keep TypeScript explicit.
+- Use self-documenting names over clever abstractions.
+- Document architectural reasoning as decisions are made.
+- Enforce the boundary rule: UI components must not directly call backend or auth endpoints.
+
+## A. Current Structure
+
+### Workspace shape
+
+- `apps/frontend`: Next.js app-router frontend with pages in `app/`, presentational components in `components/`, transport code in `lib/`, and a small hook layer in `hooks/` and `src/hooks/`.
+- `apps/backend`: Express + TSyringe backend with routes, middleware, services, repositories, Prisma schema, and observability code under `src/`.
+- `packages/types`: the only materially implemented shared package today; contains contracts and interfaces reused across frontend and backend.
+- `packages/config`, `packages/utils`, `packages/constants`: present but largely placeholders and not yet meaningful shared-platform packages.
+- `.github`, `scripts`, `docker-compose.yml`, `kubernetes/`, root lint/build/test config: repo-level delivery and infrastructure assets.
+- `docs/` and ADRs: substantial architectural and operational documentation.
+
+### Frontend shape today
+
+- `app/` contains route files and server-rendered pages.
+- `components/` mixes presentation with some application behavior.
+- `lib/api-client.ts` already provides a useful transport abstraction.
+- `hooks/use-api.ts` uses the API client correctly for resource operations.
+- Some pages and one client component bypass the intended abstraction layers and call endpoints directly.
+
+### Backend shape today
+
+- `src/routes` exposes HTTP endpoints.
+- `src/services` holds most domain and infrastructure behavior.
+- `src/middleware` and `src/security` handle cross-cutting concerns.
+- `src/infrastructure/observability` is already separated in a portable way.
+- `src/container.ts` wires shared services centrally.
+
+## B. Classification
+
+### Portable code
+
+- `packages/types/src/**`
+  Reason: shared contracts, interfaces, websocket types, notification/storage/auth abstractions are already cross-app by design.
+- `apps/backend/src/services/auth/authorization.service.ts`
+- `apps/backend/src/services/auth/policy-engine.service.ts`
+- `apps/backend/src/services/auth/policy-store.service.ts`
+- `apps/backend/src/services/auth/jwt.service.ts`
+- `apps/backend/src/services/auth/encryption.service.ts`
+  Reason: these are reusable platform security services with minimal app-branding.
+- `apps/backend/src/services/audit/audit-log.service.ts`
+- `apps/backend/src/infrastructure/observability/**`
+- `apps/backend/src/middleware/correlation-id.middleware.ts`
+- `apps/backend/src/middleware/metrics.middleware.ts`
+- `apps/backend/src/utils/hateoas.ts`
+  Reason: platform cross-cutting concerns.
+- `apps/backend/src/services/storage/**`
+- `apps/backend/src/services/notification/**`
+- `apps/backend/src/services/queue/**`
+- `apps/backend/src/services/webhook/**`
+- `apps/backend/src/services/secrets/**`
+  Reason: provider abstractions and service adapters are strong package candidates.
+- `apps/frontend/lib/api-client.ts`
+- `apps/frontend/lib/correlation-id.ts`
+- `apps/frontend/lib/correlation-id-policy.ts`
+- `apps/frontend/lib/error-logger.ts`
+- `apps/frontend/src/hooks/useWebSocket.ts`
+  Reason: these are reusable frontend platform primitives.
+
+### Portable infra/template assets
+
+- `.github/workflows/**`
+- `.github/actions/**`
+- `.github/CODEOWNERS`
+- `.github/prompts/**`
+- root `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `tsconfig.base.json`, `eslint.config.js`
+- `docker-compose.yml`
+- `scripts/**`
+- `kubernetes/**`
+- `docs/adr/**`
+- repo-wide setup and governance docs such as `SETUP.md`, `SECURITY.md`, `CONTRIBUTING.md`
+  Reason: these define delivery, governance, and runtime scaffolding that future apps can inherit or sync.
+
+### App-specific code
+
+- `apps/frontend/app/page.tsx`
+- `apps/frontend/app/layout.tsx`
+- `apps/frontend/app/dashboard/**`
+- `apps/frontend/app/auth/**`
+- `apps/frontend/components/home-client.tsx`
+- `apps/frontend/components/dashboard-client.tsx`
+- `apps/frontend/components/language-switcher.tsx`
+- translation content and app copy under the frontend app
+  Reason: routes, UX, branding, copy, and app flow should remain app-local.
+- `apps/backend/src/controllers/user.controller.ts`
+- `apps/backend/src/repositories/user.repository.ts`
+- `apps/backend/src/routes/users.routes.ts`
+- `apps/backend/src/routes/user.routes.ts`
+- `apps/backend/src/routes/users-v2.routes.ts`
+- `apps/backend/prisma/schema.prisma`
+  Reason: resource model, route surface, and schema are application-specific until proven otherwise.
+- `apps/backend/src/routes/bdd-admin.routes.ts`
+- `apps/frontend/app/dashboard/bdd/**`
+  Reason: governance UI and admin endpoints are repo-specific tooling, not product-platform code.
+
+### Boundary cleanup needed
+
+- `apps/frontend/components/signin-client.tsx`
+  Issue: client UI performs direct auth POST.
+- `apps/frontend/app/dashboard/page.tsx`
+  Issue: server page performs direct auth session fetch.
+- `apps/frontend/app/dashboard/bdd/page.tsx`
+  Issue: server page performs direct auth fetch and direct admin API fetch.
+- `apps/frontend/components/*`
+  Rule going forward: presentational components may receive callbacks and view models, but may not own endpoint URLs, cookies, or auth transport.
+
+## C. Direct UI Endpoint Calls
+
+### Confirmed direct calls from UI-facing code
+
+- `apps/frontend/components/signin-client.tsx`
+  Direct call: `POST ${baseUrl}/api/auth/login`
+  Problem: the component owns auth endpoint knowledge, correlation header setup, request body shape, and redirect behavior.
+- `apps/frontend/app/dashboard/page.tsx`
+  Direct call: `GET ${baseUrl}/api/auth/me`
+  Problem: the route component owns auth/session transport and cookie forwarding instead of delegating to a server-side application service.
+- `apps/frontend/app/dashboard/bdd/page.tsx`
+  Direct call: `GET ${baseUrl}/api/auth/me`
+  Direct call: `GET ${baseUrl}/api/admin/bdd/status`
+  Problem: the page mixes rendering, authorization gating, cookie propagation, and backend transport.
+
+### Calls that are acceptable or near-acceptable
+
+- `apps/frontend/hooks/use-api.ts`
+  Uses `apiClient` rather than raw endpoint calls. This is aligned with the desired direction, though the hook layer can be renamed toward application intent over generic transport naming.
+- `apps/frontend/lib/api-client.ts`
+  Direct fetch is expected here. This is the transport boundary, not a UI boundary violation.
+- `apps/frontend/lib/error-logger.ts`
+  Sends browser-side logging through a local route. This is cross-cutting infrastructure, not presentation logic.
+
+## D. Target Architecture
+
+Use a layered structure that separates presentation, application intent, transport, and platform code.
+
+### Target frontend layering
+
+`UI component`
+→ `presentation hook or view-model interface`
+→ `application service`
+→ `API client / server gateway`
+→ `endpoint calls`
+
+### Practical frontend shape
+
+```text
+apps/frontend/
+  app/
+    ... route entries only
+  components/
+    ... pure or mostly pure UI
+  src/
+    application/
+      auth/
+      dashboard/
+      users/
+    hooks/
+      auth/
+      dashboard/
+      users/
+    server/
+      auth/
+      bdd/
+    view-models/
+  lib/
+    api/
+      api-client.ts
+      auth-api.ts
+      users-api.ts
+      bdd-api.ts
+    telemetry/
+    websocket/
+```
+
+### Target backend shape
+
+```text
+apps/backend/src/
+  api/
+    routes/
+    controllers/
+    middleware/
+  application/
+    auth/
+    users/
+    admin/
+  domain/
+    auth/
+    users/
+    shared/
+  infrastructure/
+    observability/
+    persistence/
+    notifications/
+    storage/
+    queue/
+    secrets/
+```
+
+This does not require an immediate folder move. It is the target direction for future extraction and naming.
+
+## E. Package Boundaries
+
+Introduce package boundaries only after a slice is stable behind an internal app-local API.
+
+### Phase 1 package candidates
+
+- `@repo/contracts`
+  Start from the current `@repo/types` package.
+  Scope: DTOs, request/response types, auth claims, websocket contracts, shared interfaces.
+- `@repo/platform-observability`
+  Scope: correlation id utilities, metrics interfaces, logging helpers, shared observability contracts.
+- `@repo/platform-auth-core`
+  Scope: authorization policy interfaces, policy evaluation primitives, token/auth types, audit event types.
+
+### Phase 2 package candidates
+
+- `@repo/platform-storage`
+  Scope: provider interfaces, shared storage types, common validation helpers.
+- `@repo/platform-notifications`
+  Scope: provider contracts and neutral application-facing service interfaces.
+- `@repo/platform-websocket`
+  Scope: shared websocket contracts, event names, room/presence types.
+
+### Packages to avoid extracting yet
+
+- `packages/config`
+- `packages/utils`
+- `packages/constants`
+
+Reason: they are not yet cohesive and would become junk-drawer packages if extracted prematurely.
+
+## F. Template/Sync Boundaries
+
+These assets should be treated as template or sync-managed repo assets rather than code packages.
+
+### Strong template candidates
+
+- GitHub workflows and composite actions
+- root toolchain config
+- Docker and Docker Compose scaffolding
+- Kubernetes base manifests and observability stack
+- reusable scripts for ADR checks, BDD status, publishing, workflow linting
+- repo prompts, pull request templates, code ownership rules
+- baseline docs for setup, testing, publishing, security, and architecture governance
+
+### Sync strategy
+
+- Keep these in-repo for now.
+- Later, group them under a documented template manifest such as `template-map.json` or `sync-manifest.json`.
+- Sync by file set, not by package publish.
+- Allow consumer apps to override a small set of app-owned files without forking the whole template surface.
+
+## G. App-Specific Items To Keep Local
+
+- route structure and page composition
+- branding, metadata, copy, locale text, and navigation
+- Prisma schema and domain entities that reflect a specific product
+- app-owned API routes and product admin pages
+- user workflows such as dashboard behavior and sign-in redirect destinations
+- any auth-provider choice or fallback mode that depends on a specific deployment model
+- E2E personas and fixtures once they become product-facing rather than template-facing
+
+## H. Target Auth/API Layering
+
+### Rule
+
+UI components must not directly call backend or auth endpoints.
+
+### Target pattern for client-side auth actions
+
+`SignInForm component`
+→ `useSignIn()`
+→ `authApplicationService.signIn(credentials)`
+→ `authApi.login(credentials)`
+→ `apiClient.post('/api/auth/login', ...)`
+
+### Target pattern for server-rendered auth/session checks
+
+`dashboard page`
+→ `getDashboardPageData()`
+→ `serverAuthApplicationService.requireCurrentUser()`
+→ `serverAuthGateway.getCurrentUser(cookieHeader, correlationId)`
+→ backend endpoint call
+
+### Responsibilities by layer
+
+- UI component
+  Owns form state, rendering, and event wiring only.
+- Hook or presentation-facing interface
+  Owns loading, error, optimistic UI, and view-model transformation.
+- Application service
+  Owns use-case semantics such as sign-in, sign-out, require-current-user, load-bdd-snapshot.
+- API client or gateway
+  Owns URLs, headers, cookie forwarding, correlation ids, retries, and low-level error mapping.
+
+## I. Migration Plan
+
+### 1. Freeze boundaries before moving code
+
+- Add a short architecture rule section to this prompt and later ADRs.
+- Treat raw `fetch` in `components/` and route pages as a smell unless it is inside a dedicated transport module.
+
+### 2. Introduce app-local service seams first
+
+- Add `apps/frontend/src/application/auth/` and `apps/frontend/src/server/auth/`.
+- Add app-local transport adapters under `apps/frontend/lib/api/`.
+- Do not extract packages yet.
+
+### 3. Refactor the highest-risk UI/auth violations first
+
+- Replace direct login fetch in `signin-client.tsx` with `useSignIn()` + `authApplicationService`.
+- Replace direct auth fetch in `dashboard/page.tsx` with `requireCurrentUser()`.
+- Replace direct auth/admin fetches in `dashboard/bdd/page.tsx` with `requireCurrentUser()` and `getBddStatusSnapshot()`.
+
+### 4. Normalize naming and responsibility
+
+- Keep `api-client.ts` as the low-level transport.
+- Add intent-specific gateway modules such as `auth-api.ts`, `users-api.ts`, `bdd-api.ts`.
+- Keep route files thin.
+
+### 5. Add a lightweight architectural enforcement mechanism
+
+- Add ESLint restrictions or a simple grep-based CI rule preventing raw endpoint fetches inside `apps/frontend/components/**` and selected page files.
+- Allow exceptions only in `lib/api/**`, route handlers, and test code.
+
+### 6. Stabilize contracts before extraction
+
+- Move only neutral interfaces and DTOs into `@repo/types` or its successor package.
+- Keep product-specific DTOs local until a second app proves reuse.
+
+### 7. Extract reusable backend services by slice
+
+- Start with observability and auth-core.
+- Then extract storage, notification, and websocket contracts.
+- Avoid extracting user-domain behavior.
+
+### 8. Separate template assets from app assets
+
+- Define a template manifest for workflows, scripts, docker, kubernetes, and root config.
+- Keep product pages, schema, and branding outside that sync surface.
+
+### 9. Only then consider file moves
+
+- Once seams are stable and validated, move folders toward the target structure with mechanical, low-risk refactors.
+
+## J. First Concrete Changes
+
+Best risk/reward sequence:
+
+1. Introduce `apps/frontend/lib/api/auth-api.ts` as the single auth transport module.
+   Why first: minimal surface area, removes endpoint ownership from UI, reuses existing `api-client.ts` pattern.
+2. Introduce `apps/frontend/src/application/auth/sign-in.ts` and `apps/frontend/src/hooks/auth/use-sign-in.ts`.
+   Why first: creates the intended layering without changing backend behavior.
+3. Refactor `apps/frontend/components/signin-client.tsx` to call the hook instead of `fetch`.
+   Why first: highest-confidence direct boundary fix.
+4. Introduce `apps/frontend/src/server/auth/require-current-user.ts`.
+   Why first: centralizes cookie forwarding and correlation-id propagation for SSR.
+5. Refactor `apps/frontend/app/dashboard/page.tsx` and `apps/frontend/app/dashboard/bdd/page.tsx` to use server application services.
+   Why first: removes duplicate server-page transport logic and makes later extraction easier.
+6. Add a narrow lint rule or CI check forbidding raw auth/backend endpoint fetches in UI components.
+   Why first: prevents regression immediately after the first cleanup.
+
+## K. ADR Notes
+
+### ADR: Separate platform code from product code
+
+Context: the repo mixes reusable infrastructure and abstractions with app-local pages, schema, and workflows.
+Decision: extract only neutral, repeated capabilities into packages; keep product flow and schema local.
+Consequence: reuse improves without turning shared packages into catch-all dumping grounds.
+
+### ADR: UI must not own endpoint knowledge
+
+Context: UI-facing files currently know auth URLs, cookie semantics, and backend route details.
+Decision: endpoint knowledge belongs to application services and transport adapters, not components.
+Consequence: components become portable, testable, and easier to swap across apps.
+
+### ADR: Template assets are synced, not published
+
+Context: workflows, scripts, docker, and kubernetes assets are reusable but not runtime libraries.
+Decision: manage them as template or syncable files rather than npm packages.
+Consequence: versioning and override behavior stay simpler for downstream app repos.
+
+### ADR: Extract after seam stabilization
+
+Context: broad early moves create churn and hide coupling.
+Decision: introduce app-local seams first, validate behavior, then extract packages.
+Consequence: lower migration risk and clearer package boundaries.
+
+## L. Risks
+
+- False-positive reuse: extracting code before a second app proves the boundary can create brittle shared packages.
+- Auth coupling risk: current auth flow depends on cookies, environment variables, and dev fallback behavior that may not generalize cleanly.
+- SSR/client mismatch: server page services and client hooks need separate implementations with shared semantics.
+- Hidden schema coupling: backend services that look generic may still assume the current Prisma schema or user model.
+- Template drift: without a manifest and ownership rules, syncable infra files will diverge across future apps.
+- Test fragility: E2E and BDD assets may rely on current route names and auth behavior during migration.
+- Over-abstraction: package extraction too early can slow delivery and reduce clarity.
+
+## Immediate Working Assumptions
+
+- `packages/types` is the best current seed for a real contracts package.
+- `packages/config`, `packages/utils`, and `packages/constants` should remain local placeholders until they gain clear ownership and content.
+- The first refactoring wave should stay entirely inside `apps/frontend` and should not require backend behavior changes.
+- No file moves should happen until the UI/auth boundary cleanup is in place and validated.
+
+# Plan: Reusable Platform Extraction and UI/API Boundary Cleanup
+
+## Objective
+
+Reframe this repository from a single reusable app template into a reusable platform source that can seed future applications such as `the-azure-citadel` without carrying accidental app-specific coupling.
+
+This plan is analysis-first. It does not authorize destructive moves. It should guide safe, incremental refactoring.
+
+## Guardrails
+
+- Do not start with broad file moves or package splits.
+- Preserve current behavior wherever possible.
+- Prefer small, reversible changes with focused validation.
+- Keep TypeScript explicit.
+- Use self-documenting names over clever abstractions.
+- Document architectural reasoning as decisions are made.
+- Enforce the boundary rule: UI components must not directly call backend or auth endpoints.
+
+## A. Current Structure
+
+### Workspace shape
+
+- `apps/frontend`: Next.js app-router frontend with pages in `app/`, presentational components in `components/`, transport code in `lib/`, and a small hook layer in `hooks/` and `src/hooks/`.
+- `apps/backend`: Express + TSyringe backend with routes, middleware, services, repositories, Prisma schema, and observability code under `src/`.
+- `packages/types`: the only materially implemented shared package today; contains contracts and interfaces reused across frontend and backend.
+- `packages/config`, `packages/utils`, `packages/constants`: present but largely placeholders and not yet meaningful shared-platform packages.
+- `.github`, `scripts`, `docker-compose.yml`, `kubernetes/`, root lint/build/test config: repo-level delivery and infrastructure assets.
+- `docs/` and ADRs: substantial architectural and operational documentation.
+
+### Frontend shape today
+
+- `app/` contains route files and server-rendered pages.
+- `components/` mixes presentation with some application behavior.
+- `lib/api-client.ts` already provides a useful transport abstraction.
+- `hooks/use-api.ts` uses the API client correctly for resource operations.
+- Some pages and one client component bypass the intended abstraction layers and call endpoints directly.
+
+### Backend shape today
+
+- `src/routes` exposes HTTP endpoints.
+- `src/services` holds most domain and infrastructure behavior.
+- `src/middleware` and `src/security` handle cross-cutting concerns.
+- `src/infrastructure/observability` is already separated in a portable way.
+- `src/container.ts` wires shared services centrally.
+
+## B. Classification
+
+### Portable code
+
+- `packages/types/src/**`
+  Reason: shared contracts, interfaces, websocket types, notification/storage/auth abstractions are already cross-app by design.
+- `apps/backend/src/services/auth/authorization.service.ts`
+- `apps/backend/src/services/auth/policy-engine.service.ts`
+- `apps/backend/src/services/auth/policy-store.service.ts`
+- `apps/backend/src/services/auth/jwt.service.ts`
+- `apps/backend/src/services/auth/encryption.service.ts`
+  Reason: these are reusable platform security services with minimal app-branding.
+- `apps/backend/src/services/audit/audit-log.service.ts`
+- `apps/backend/src/infrastructure/observability/**`
+- `apps/backend/src/middleware/correlation-id.middleware.ts`
+- `apps/backend/src/middleware/metrics.middleware.ts`
+- `apps/backend/src/utils/hateoas.ts`
+  Reason: platform cross-cutting concerns.
+- `apps/backend/src/services/storage/**`
+- `apps/backend/src/services/notification/**`
+- `apps/backend/src/services/queue/**`
+- `apps/backend/src/services/webhook/**`
+- `apps/backend/src/services/secrets/**`
+  Reason: provider abstractions and service adapters are strong package candidates.
+- `apps/frontend/lib/api-client.ts`
+- `apps/frontend/lib/correlation-id.ts`
+- `apps/frontend/lib/correlation-id-policy.ts`
+- `apps/frontend/lib/error-logger.ts`
+- `apps/frontend/src/hooks/useWebSocket.ts`
+  Reason: these are reusable frontend platform primitives.
+
+### Portable infra/template assets
+
+- `.github/workflows/**`
+- `.github/actions/**`
+- `.github/CODEOWNERS`
+- `.github/prompts/**`
+- root `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `tsconfig.base.json`, `eslint.config.js`
+- `docker-compose.yml`
+- `scripts/**`
+- `kubernetes/**`
+- `docs/adr/**`
+- repo-wide setup and governance docs such as `SETUP.md`, `SECURITY.md`, `CONTRIBUTING.md`
+  Reason: these define delivery, governance, and runtime scaffolding that future apps can inherit or sync.
+
+### App-specific code
+
+- `apps/frontend/app/page.tsx`
+- `apps/frontend/app/layout.tsx`
+- `apps/frontend/app/dashboard/**`
+- `apps/frontend/app/auth/**`
+- `apps/frontend/components/home-client.tsx`
+- `apps/frontend/components/dashboard-client.tsx`
+- `apps/frontend/components/language-switcher.tsx`
+- translation content and app copy under the frontend app
+  Reason: routes, UX, branding, copy, and app flow should remain app-local.
+- `apps/backend/src/controllers/user.controller.ts`
+- `apps/backend/src/repositories/user.repository.ts`
+- `apps/backend/src/routes/users.routes.ts`
+- `apps/backend/src/routes/user.routes.ts`
+- `apps/backend/src/routes/users-v2.routes.ts`
+- `apps/backend/prisma/schema.prisma`
+  Reason: resource model, route surface, and schema are application-specific until proven otherwise.
+- `apps/backend/src/routes/bdd-admin.routes.ts`
+- `apps/frontend/app/dashboard/bdd/**`
+  Reason: governance UI and admin endpoints are repo-specific tooling, not product-platform code.
+
+### Boundary cleanup needed
+
+- `apps/frontend/components/signin-client.tsx`
+  Issue: client UI performs direct auth POST.
+- `apps/frontend/app/dashboard/page.tsx`
+  Issue: server page performs direct auth session fetch.
+- `apps/frontend/app/dashboard/bdd/page.tsx`
+  Issue: server page performs direct auth fetch and direct admin API fetch.
+- `apps/frontend/components/*`
+  Rule going forward: presentational components may receive callbacks and view models, but may not own endpoint URLs, cookies, or auth transport.
+
+## C. Direct UI Endpoint Calls
+
+### Confirmed direct calls from UI-facing code
+
+- `apps/frontend/components/signin-client.tsx`
+  Direct call: `POST ${baseUrl}/api/auth/login`
+  Problem: the component owns auth endpoint knowledge, correlation header setup, request body shape, and redirect behavior.
+- `apps/frontend/app/dashboard/page.tsx`
+  Direct call: `GET ${baseUrl}/api/auth/me`
+  Problem: the route component owns auth/session transport and cookie forwarding instead of delegating to a server-side application service.
+- `apps/frontend/app/dashboard/bdd/page.tsx`
+  Direct call: `GET ${baseUrl}/api/auth/me`
+  Direct call: `GET ${baseUrl}/api/admin/bdd/status`
+  Problem: the page mixes rendering, authorization gating, cookie propagation, and backend transport.
+
+### Calls that are acceptable or near-acceptable
+
+- `apps/frontend/hooks/use-api.ts`
+  Uses `apiClient` rather than raw endpoint calls. This is aligned with the desired direction, though the hook layer can be renamed toward application intent over generic transport naming.
+- `apps/frontend/lib/api-client.ts`
+  Direct fetch is expected here. This is the transport boundary, not a UI boundary violation.
+- `apps/frontend/lib/error-logger.ts`
+  Sends browser-side logging through a local route. This is cross-cutting infrastructure, not presentation logic.
+
+## D. Target Architecture
+
+Use a layered structure that separates presentation, application intent, transport, and platform code.
+
+### Target frontend layering
+
+`UI component`
+→ `presentation hook or view-model interface`
+→ `application service`
+→ `API client / server gateway`
+→ `endpoint calls`
+
+### Practical frontend shape
+
+```text
+apps/frontend/
+  app/
+    ... route entries only
+  components/
+    ... pure or mostly pure UI
+  src/
+    application/
+      auth/
+      dashboard/
+      users/
+    hooks/
+      auth/
+      dashboard/
+      users/
+    server/
+      auth/
+      bdd/
+    view-models/
+  lib/
+    api/
+      api-client.ts
+      auth-api.ts
+      users-api.ts
+      bdd-api.ts
+    telemetry/
+    websocket/
+```
+
+### Target backend shape
+
+```text
+apps/backend/src/
+  api/
+    routes/
+    controllers/
+    middleware/
+  application/
+    auth/
+    users/
+    admin/
+  domain/
+    auth/
+    users/
+    shared/
+  infrastructure/
+    observability/
+    persistence/
+    notifications/
+    storage/
+    queue/
+    secrets/
+```
+
+This does not require an immediate folder move. It is the target direction for future extraction and naming.
+
+## E. Package Boundaries
+
+Introduce package boundaries only after a slice is stable behind an internal app-local API.
+
+### Phase 1 package candidates
+
+- `@repo/contracts`
+  Start from the current `@repo/types` package.
+  Scope: DTOs, request/response types, auth claims, websocket contracts, shared interfaces.
+- `@repo/platform-observability`
+  Scope: correlation id utilities, metrics interfaces, logging helpers, shared observability contracts.
+- `@repo/platform-auth-core`
+  Scope: authorization policy interfaces, policy evaluation primitives, token/auth types, audit event types.
+
+### Phase 2 package candidates
+
+- `@repo/platform-storage`
+  Scope: provider interfaces, shared storage types, common validation helpers.
+- `@repo/platform-notifications`
+  Scope: provider contracts and neutral application-facing service interfaces.
+- `@repo/platform-websocket`
+  Scope: shared websocket contracts, event names, room/presence types.
+
+### Packages to avoid extracting yet
+
+- `packages/config`
+- `packages/utils`
+- `packages/constants`
+
+Reason: they are not yet cohesive and would become junk-drawer packages if extracted prematurely.
+
+## F. Template/Sync Boundaries
+
+These assets should be treated as template or sync-managed repo assets rather than code packages.
+
+### Strong template candidates
+
+- GitHub workflows and composite actions
+- root toolchain config
+- Docker and Docker Compose scaffolding
+- Kubernetes base manifests and observability stack
+- reusable scripts for ADR checks, BDD status, publishing, workflow linting
+- repo prompts, pull request templates, code ownership rules
+- baseline docs for setup, testing, publishing, security, and architecture governance
+
+### Sync strategy
+
+- Keep these in-repo for now.
+- Later, group them under a documented template manifest such as `template-map.json` or `sync-manifest.json`.
+- Sync by file set, not by package publish.
+- Allow consumer apps to override a small set of app-owned files without forking the whole template surface.
+
+## G. App-Specific Items To Keep Local
+
+- route structure and page composition
+- branding, metadata, copy, locale text, and navigation
+- Prisma schema and domain entities that reflect a specific product
+- app-owned API routes and product admin pages
+- user workflows such as dashboard behavior and sign-in redirect destinations
+- any auth-provider choice or fallback mode that depends on a specific deployment model
+- E2E personas and fixtures once they become product-facing rather than template-facing
+
+## H. Target Auth/API Layering
+
+### Rule
+
+UI components must not directly call backend or auth endpoints.
+
+### Target pattern for client-side auth actions
+
+`SignInForm component`
+→ `useSignIn()`
+→ `authApplicationService.signIn(credentials)`
+→ `authApi.login(credentials)`
+→ `apiClient.post('/api/auth/login', ...)`
+
+### Target pattern for server-rendered auth/session checks
+
+`dashboard page`
+→ `getDashboardPageData()`
+→ `serverAuthApplicationService.requireCurrentUser()`
+→ `serverAuthGateway.getCurrentUser(cookieHeader, correlationId)`
+→ backend endpoint call
+
+### Responsibilities by layer
+
+- UI component
+  Owns form state, rendering, and event wiring only.
+- Hook or presentation-facing interface
+  Owns loading, error, optimistic UI, and view-model transformation.
+- Application service
+  Owns use-case semantics such as sign-in, sign-out, require-current-user, load-bdd-snapshot.
+- API client or gateway
+  Owns URLs, headers, cookie forwarding, correlation ids, retries, and low-level error mapping.
+
+## I. Migration Plan
+
+### 1. Freeze boundaries before moving code
+
+- Add a short architecture rule section to this prompt and later ADRs.
+- Treat raw `fetch` in `components/` and route pages as a smell unless it is inside a dedicated transport module.
+
+### 2. Introduce app-local service seams first
+
+- Add `apps/frontend/src/application/auth/` and `apps/frontend/src/server/auth/`.
+- Add app-local transport adapters under `apps/frontend/lib/api/`.
+- Do not extract packages yet.
+
+### 3. Refactor the highest-risk UI/auth violations first
+
+- Replace direct login fetch in `signin-client.tsx` with `useSignIn()` + `authApplicationService`.
+- Replace direct auth fetch in `dashboard/page.tsx` with `requireCurrentUser()`.
+- Replace direct auth/admin fetches in `dashboard/bdd/page.tsx` with `requireCurrentUser()` and `getBddStatusSnapshot()`.
+
+### 4. Normalize naming and responsibility
+
+- Keep `api-client.ts` as the low-level transport.
+- Add intent-specific gateway modules such as `auth-api.ts`, `users-api.ts`, `bdd-api.ts`.
+- Keep route files thin.
+
+### 5. Add a lightweight architectural enforcement mechanism
+
+- Add ESLint restrictions or a simple grep-based CI rule preventing raw endpoint fetches inside `apps/frontend/components/**` and selected page files.
+- Allow exceptions only in `lib/api/**`, route handlers, and test code.
+
+### 6. Stabilize contracts before extraction
+
+- Move only neutral interfaces and DTOs into `@repo/types` or its successor package.
+- Keep product-specific DTOs local until a second app proves reuse.
+
+### 7. Extract reusable backend services by slice
+
+- Start with observability and auth-core.
+- Then extract storage, notification, and websocket contracts.
+- Avoid extracting user-domain behavior.
+
+### 8. Separate template assets from app assets
+
+- Define a template manifest for workflows, scripts, docker, kubernetes, and root config.
+- Keep product pages, schema, and branding outside that sync surface.
+
+### 9. Only then consider file moves
+
+- Once seams are stable and validated, move folders toward the target structure with mechanical, low-risk refactors.
+
+## J. First Concrete Changes
+
+Best risk/reward sequence:
+
+1. Introduce `apps/frontend/lib/api/auth-api.ts` as the single auth transport module.
+   Why first: minimal surface area, removes endpoint ownership from UI, reuses existing `api-client.ts` pattern.
+2. Introduce `apps/frontend/src/application/auth/sign-in.ts` and `apps/frontend/src/hooks/auth/use-sign-in.ts`.
+   Why first: creates the intended layering without changing backend behavior.
+3. Refactor `apps/frontend/components/signin-client.tsx` to call the hook instead of `fetch`.
+   Why first: highest-confidence direct boundary fix.
+4. Introduce `apps/frontend/src/server/auth/require-current-user.ts`.
+   Why first: centralizes cookie forwarding and correlation-id propagation for SSR.
+5. Refactor `apps/frontend/app/dashboard/page.tsx` and `apps/frontend/app/dashboard/bdd/page.tsx` to use server application services.
+   Why first: removes duplicate server-page transport logic and makes later extraction easier.
+6. Add a narrow lint rule or CI check forbidding raw auth/backend endpoint fetches in UI components.
+   Why first: prevents regression immediately after the first cleanup.
+
+## K. ADR Notes
+
+### ADR: Separate platform code from product code
+
+Context: the repo mixes reusable infrastructure and abstractions with app-local pages, schema, and workflows.
+Decision: extract only neutral, repeated capabilities into packages; keep product flow and schema local.
+Consequence: reuse improves without turning shared packages into catch-all dumping grounds.
+
+### ADR: UI must not own endpoint knowledge
+
+Context: UI-facing files currently know auth URLs, cookie semantics, and backend route details.
+Decision: endpoint knowledge belongs to application services and transport adapters, not components.
+Consequence: components become portable, testable, and easier to swap across apps.
+
+### ADR: Template assets are synced, not published
+
+Context: workflows, scripts, docker, and kubernetes assets are reusable but not runtime libraries.
+Decision: manage them as template or syncable files rather than npm packages.
+Consequence: versioning and override behavior stay simpler for downstream app repos.
+
+### ADR: Extract after seam stabilization
+
+Context: broad early moves create churn and hide coupling.
+Decision: introduce app-local seams first, validate behavior, then extract packages.
+Consequence: lower migration risk and clearer package boundaries.
+
+## L. Risks
+
+- False-positive reuse: extracting code before a second app proves the boundary can create brittle shared packages.
+- Auth coupling risk: current auth flow depends on cookies, environment variables, and dev fallback behavior that may not generalize cleanly.
+- SSR/client mismatch: server page services and client hooks need separate implementations with shared semantics.
+- Hidden schema coupling: backend services that look generic may still assume the current Prisma schema or user model.
+- Template drift: without a manifest and ownership rules, syncable infra files will diverge across future apps.
+- Test fragility: E2E and BDD assets may rely on current route names and auth behavior during migration.
+- Over-abstraction: package extraction too early can slow delivery and reduce clarity.
+
+## Immediate Working Assumptions
+
+- `packages/types` is the best current seed for a real contracts package.
+- `packages/config`, `packages/utils`, and `packages/constants` should remain local placeholders until they gain clear ownership and content.
+- The first refactoring wave should stay entirely inside `apps/frontend` and should not require backend behavior changes.
+- No file moves should happen until the UI/auth boundary cleanup is in place and validated.
 
 - ✅ DONE (WSJF 7.33): Deterministic E2E seeding is wired into CI and documented.
 - ✅ DONE: Add lightweight persona management for forks (persona registry + optional JSON override via `E2E_PERSONAS_FILE`).
@@ -195,129 +1149,64 @@ Add notification service with DI (email, SMS, push notifications), implement sea
 
 Create multi-stage Dockerfiles with security scanning, set up docker-compose.yml for local development, configure Kubernetes manifests for all services, set up GitHub Actions workflows for CI/CD (lint, test, build, E2E, security scans), implement APM integration (Datadog, New Relic), configure log aggregation (ELK Stack, Loki), add load testing with k6, implement database backup and recovery strategies, and create comprehensive monitoring and alerting
 
-## Technology Decisions (Confirmed)
-
-✅ **Package Manager**: pnpm
-✅ **Service Mesh**: Istio for mTLS, traffic management, observability
-✅ **Orchestration**: Kubernetes (production), Docker Compose (local dev)
-✅ **Security Governance**: OWASP standards with DI pattern for security libraries
-✅ **Authentication**: OAuth 2.0 + OpenID Connect (OIDC) via Passport.js abstraction
 ✅ **Infrastructure**: Redis, Bull/BullMQ (message queuing), Socket.io (WebSockets)
+
 ✅ **API Versioning**: Header-based with HATEOAS principles (Istio routing)
-✅ **Internationalization**: Yes, using next-i18next
-✅ **File Storage**: Local with DI pattern for cloud provider abstraction
-✅ **Additional Services**: Notification, Search, Event Bus, Payment, Analytics (all with DI)
-✅ **Secrets Management**: HashiCorp Vault or cloud provider native
-✅ **Observability**: Istio + Jaeger (tracing), Prometheus + Grafana (metrics), ELK/Loki (logs)
 
 ## Recommended Authentication Provider
 
-For OAuth 2.0 + OpenID Connect implementation, I recommend:
-
-**Option A: Auth0 (Recommended for Speed)**
-
 - Managed service, fastest to implement
-- Excellent Next.js/Node.js SDKs
-- Built-in RBAC and MFA
-- Social login providers ready
-- **Pros**: Quick setup, battle-tested, great DX
-- **Cons**: Paid service (free tier available), vendor lock-in risk
 
 **Option B: Keycloak (Recommended for Control)**
 
 - Self-hosted, open-source
-- Full OIDC/OAuth2 compliance
-- Highly customizable
-- No external dependencies
-- **Pros**: Complete control, free, extensible
-- **Cons**: Requires hosting/maintenance, steeper learning curve
 
-**Option C: Passport.js with Custom OIDC**
-
-- Build custom with passport-oauth2 strategy
-- DI pattern for swappable providers
-- Complete flexibility
 - **Pros**: No vendor lock-in, full customization
-- **Cons**: More implementation work, need to maintain
 
-**Recommendation**: Start with **Passport.js abstraction layer** that can use any OIDC provider, then implement **Auth0** for quick start with ability to swap to Keycloak or custom later.
+| **Orchestration** | Kubernetes | Production container orchestration ✅ |
 
-## Technology Stack Summary
+| **DI Library** | TSyringe | Clean API, TypeScript-first, lightweight |
 
-| Category                   | Technology                         | Rationale                                    |
-| -------------------------- | ---------------------------------- | -------------------------------------------- |
-| **Monorepo**               | Turborepo                          | Best Next.js integration, simple, fast       |
-| **Package Manager**        | pnpm                               | Fast, efficient, workspace support ✅        |
-| **Service Mesh**           | Istio                              | mTLS, traffic management, observability ✅   |
-| **Orchestration**          | Kubernetes                         | Production container orchestration ✅        |
-| **DI Library**             | TSyringe                           | Clean API, TypeScript-first, lightweight     |
-| **Node.js Framework**      | Express                            | Mature, flexible, great middleware ecosystem |
-| **Authentication**         | OAuth 2.0 + OIDC (Passport.js)     | Industry standard, OWASP recommended ✅      |
-| **Authorization**          | RBAC + ABAC                        | Flexible, scalable permissions               |
-| **Validation**             | Zod                                | Type-safe, composable, great DX              |
-| **ORM**                    | Prisma                             | Type-safe, migrations, great DX              |
-| **Caching**                | Redis                              | Session storage, caching, job queues ✅      |
-| **Message Queue**          | Bull/BullMQ                        | Async task processing, scheduled jobs ✅     |
-| **Event Bus**              | Redis Pub/Sub / RabbitMQ / Kafka   | Decoupled event-driven architecture ✅       |
-| **WebSockets**             | Socket.io                          | Real-time bidirectional communication ✅     |
-| **Notifications**          | DI Pattern (SendGrid/Twilio/FCM)   | Email, SMS, push notifications ✅            |
-| **Search**                 | DI Pattern (Elasticsearch/Algolia) | Full-text search capabilities ✅             |
-| **Payments**               | DI Pattern (Stripe/PayPal)         | Payment processing abstraction ✅            |
-| **Analytics**              | DI Pattern (Mixpanel/Segment)      | User analytics and tracking ✅               |
-| **Database Read Replicas** | Prisma + PostgreSQL                | Horizontal read scaling ✅                   |
-| **Webhook Management**     | Custom with DI Pattern             | Third-party integrations ✅                  |
-| **Multi-Level Caching**    | In-Memory + Redis + CDN            | Layered performance optimization ✅          |
-| **Deployment Strategies**  | Istio Traffic Management           | Blue-Green, Canary, A/B testing ✅           |
-| **Testing**                | Vitest + Cucumber + Playwright     | Modern, fast, comprehensive                  |
-| **Contract Testing**       | Pact                               | Consumer-driven contract testing ✅          |
-| **API Mocking**            | Mock Service Worker (MSW)          | API mocking for testing and development ✅   |
-| **Load Testing**           | k6                                 | Performance and stress testing ✅            |
-| **Security Testing**       | OWASP ZAP                          | Automated security scanning ✅               |
-| **Linting**                | ESLint + OWASP rules               | Industry standard with security focus        |
-| **Git Hooks**              | Husky + lint-staged                | Enforce quality pre-commit                   |
-| **Env Validation**         | Zod + dotenv                       | Type-safe environment variables              |
-| **Secrets**                | Vault / AWS Secrets Manager        | Secure secrets management ✅                 |
-| **API Design**             | HATEOAS + OpenAPI 3.0              | Hypermedia-driven, self-documenting ✅       |
-| **API Versioning**         | Header-based + Istio Routing       | Clean URLs, HATEOAS compatible ✅            |
-| **Distributed Tracing**    | Istio + Jaeger                     | Request tracing across services ✅           |
-| **Metrics**                | Prometheus + Grafana               | Time-series metrics and dashboards ✅        |
-| **Logging**                | ELK Stack / Loki + Grafana         | Centralized log aggregation ✅               |
-| **APM**                    | Datadog / New Relic                | Application performance monitoring ✅        |
-| **Container**              | Docker + Docker Compose            | Consistent dev/prod environments             |
-| **CI/CD**                  | GitHub Actions                     | Native GitHub integration                    |
-| **Error Tracking**         | Sentry                             | Best-in-class error monitoring               |
-| **File Upload**            | Multer + DI Storage Pattern        | Secure file handling, provider-agnostic ✅   |
-| **i18n**                   | next-i18next                       | Internationalization support ✅              |
-| **Feature Flags**          | Custom with DI                     | Gradual rollouts, A/B testing                |
-| **Dev Containers**         | VSCode devcontainer.json           | Consistent development environment ✅        |
-| **Security Governance**    | OWASP Standards                    | Industry best practices ✅                   |
+| **Search** | DI Pattern (Elasticsearch/Algolia) | Full-text search capabilities ✅ |
+
+| **Payments** | DI Pattern (Stripe/PayPal) | Payment processing abstraction ✅ |
+
+| **Load Testing** | k6 | Performance and stress testing ✅ |
+| **API Versioning** | Header-based + Istio Routing | Clean URLs, HATEOAS compatible ✅ |
+| **Logging** | ELK Stack / Loki + Grafana | Centralized log aggregation ✅ |
+
+| **APM** | Datadog / New Relic | Application performance monitoring ✅ |
+
+| **CI/CD** | GitHub Actions | Native GitHub integration |
+| **File Upload** | Multer + DI Storage Pattern | Secure file handling, provider-agnostic ✅ |
+| **Feature Flags** | Custom with DI | Gradual rollouts, A/B testing |
+| **Security Governance** | OWASP Standards | Industry best practices ✅ |
 
 ## OWASP Security Governance
 
 ### Security Standards & Compliance
 
-**OWASP Top 10 Coverage**:
-
 1. **Broken Access Control** - RBAC/ABAC implementation, authorization middleware
-2. **Cryptographic Failures** - Encryption at rest/transit, secure key management
-3. **Injection** - Parameterized queries (Prisma), input validation (Zod)
-4. **Insecure Design** - Threat modeling, security architecture review
-5. **Security Misconfiguration** - Security headers, environment validation
-6. **Vulnerable Components** - Dependency scanning, automated updates
-7. **Authentication Failures** - OAuth 2.0/OIDC, MFA support, secure sessions
-8. **Software & Data Integrity** - Code signing, SRI, audit logging
-9. **Logging & Monitoring Failures** - Comprehensive logging, SIEM integration ready
-10. **SSRF** - URL validation, allow-list approach
+2. **Injection** - Parameterized queries (Prisma), input validation (Zod)
+3. **Insecure Design** - Threat modeling, security architecture review
+4. **Security Misconfiguration** - Security headers, environment validation
 
-**Security Practices**:
+5. **Vulnerable Components** - Dependency scanning, automated updates
+
+6. **Software & Data Integrity** - Code signing, SRI, audit logging
+7. **SSRF** - URL validation, allow-list approach
+   **Security Practices**:
 
 - Regular dependency audits (npm audit, Snyk, OWASP Dependency-Check)
+
 - Static Application Security Testing (SAST) in CI
+
 - Dynamic Application Security Testing (DAST) with OWASP ZAP
 - Secret scanning (GitHub Advanced Security, GitGuardian)
 - Container security scanning (Trivy, Snyk)
 - Security code reviews for sensitive components
 - Penetration testing guidelines
+
 - Incident response procedures
 
 **DI Pattern for Security Libraries**:
@@ -347,7 +1236,9 @@ interface IStorageProvider {
 interface INotificationService {
   sendEmail(to: string, subject: string, body: string): Promise<void>;
   sendSMS(to: string, message: string): Promise<void>;
+
   sendPushNotification(userId: string, message: string): Promise<void>;
+
 }
 
 interface ISearchService {
@@ -370,105 +1261,99 @@ interface IPaymentService {
 interface IAnalyticsService {
   track(event: string, properties?: Record<string, any>): Promise<void>;
   identify(userId: string, traits?: Record<string, any>): Promise<void>;
+
   page(name: string, properties?: Record<string, any>): Promise<void>;
+
 }
+
+
 
 interface ISecretsManager {
-  getSecret(key: string): Promise<string>;
+
   setSecret(key: string, value: string): Promise<void>;
   deleteSecret(key: string): Promise<void>;
-}
 
-interface IWebhookService {
   register(url: string, events: string[], secret: string): Promise<WebhookRegistration>;
+
   unregister(webhookId: string): Promise<void>;
-  deliver(webhookId: string, event: WebhookEvent): Promise<DeliveryResult>;
+
   verifySignature(payload: string, signature: string, secret: string): boolean;
-  retry(deliveryId: string): Promise<DeliveryResult>;
   getDeliveryStatus(deliveryId: string): Promise<DeliveryStatus>;
-}
+
 
 interface ICacheService {
-  get<T>(key: string, level?: CacheLevel): Promise<T | null>;
-  set<T>(key: string, value: T, ttl?: number, level?: CacheLevel): Promise<void>;
-  delete(key: string, level?: CacheLevel): Promise<void>;
+
+
   invalidate(pattern: string): Promise<void>;
+
 }
+
+
 
 interface IFeatureFlagService {
-  isEnabled(flagKey: string, context?: FlagContext): Promise<boolean>;
-  getVariant(flagKey: string, context?: FlagContext): Promise<string | null>;
-  getAllFlags(context?: FlagContext): Promise<Record<string, boolean>>;
-  createFlag(flag: FeatureFlag): Promise<void>;
-  updateFlag(flagKey: string, updates: Partial<FeatureFlag>): Promise<void>;
-  deleteFlag(flagKey: string): Promise<void>;
-  evaluateRollout(flagKey: string, context?: FlagContext): Promise<boolean>;
+
+
 }
 
-// Implementations injected via TSyringe
-@injectable()
-class OAuth2AuthProvider implements IAuthenticationProvider {
+
   /* ... */
-}
+
 
 @injectable()
-class LocalStorageProvider implements IStorageProvider {
-  /* ... */
-}
 
-@injectable()
 class S3StorageProvider implements IStorageProvider {
+
   /* ... */
+
 }
+
 
 @injectable()
 class SendGridNotificationService implements INotificationService {
   /* ... */
 }
 
+
+
 @injectable()
 class ElasticsearchService implements ISearchService {
   /* ... */
 }
 
-@injectable()
-class RedisEventBus implements IEventBus {
-  /* ... */
-}
 
 @injectable()
+
+  /* ... */
+
 class StripePaymentService implements IPaymentService {
-  /* ... */
 }
 
-@injectable()
-class MixpanelAnalyticsService implements IAnalyticsService {
-  /* ... */
-}
+
 
 @injectable()
-class VaultSecretsManager implements ISecretsManager {
-  /* ... */
+
+
 }
 
-@injectable()
+
+  /* ... */
+
+
 class WebhookService implements IWebhookService {
-  /* ... */
-}
+
 
 @injectable()
-class MultiLevelCacheService implements ICacheService {
-  // L1: In-memory (node-cache)
+
+
   // L2: Redis
-  // L3: CDN (for static assets)
-}
 
-@injectable()
-class FeatureFlagService implements IFeatureFlagService {
-  // Database + Redis cache for flag storage
+
+
+
+
   // Evaluation engine with targeting rules
-  // Support for environment, user, and percentage-based flags
-}
+
+
 ```
 
 ## Recommended Directory Structure
@@ -485,36 +1370,38 @@ next-node-app-base/
 │   │   ├── ci.yml
 │   │   ├── security-scan.yml
 │   │   ├── e2e-tests.yml
+
 │   │   ├── load-test.yml
+
 │   │   └── deploy.yml
+
 │   ├── PULL_REQUEST_TEMPLATE.md
 │   ├── ISSUE_TEMPLATE/
 │   └── SECURITY.md
+
 ├── kubernetes/                  # Kubernetes + Istio configs
+
 │   ├── base/
 │   │   ├── namespace.yaml
 │   │   ├── frontend-deployment.yaml
+
 │   │   ├── backend-deployment.yaml
+
 │   │   ├── postgres-statefulset.yaml
 │   │   └── redis-deployment.yaml
 │   ├── istio/                   # Istio-specific configs
+
 │   │   ├── gateway.yaml         # Ingress gateway
+
 │   │   ├── virtual-services/
 │   │   │   ├── frontend-vs.yaml
 │   │   │   ├── backend-vs.yaml  # Header-based versioning
+
 │   │   │   └── api-gateway-vs.yaml
-│   │   ├── destination-rules/
-│   │   │   ├── frontend-dr.yaml # Circuit breakers, retries
-│   │   │   └── backend-dr.yaml
-│   │   ├── peer-authentication.yaml  # mTLS policy
-│   │   ├── authorization-policies/
-│   │   │   ├── default-deny.yaml
-│   │   │   └── service-to-service.yaml
+
+
 │   │   ├── telemetry.yaml       # Tracing, metrics config
-│   │   ├── rate-limits/
-│   │   │   └── global-rate-limit.yaml
-│   │   └── deployments/         # Deployment strategies
-│   │       ├── blue-green/
+
 │   │       │   ├── blue-deployment.yaml
 │   │       │   ├── green-deployment.yaml
 │   │       │   └── switch-virtualservice.yaml
