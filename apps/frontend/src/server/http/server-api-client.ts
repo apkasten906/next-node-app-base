@@ -1,7 +1,8 @@
 import { cookies, headers } from 'next/headers';
 
-const API_BASE_URL =
-  process.env['API_URL_INTERNAL'] || process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001';
+import { resolveApiBaseUrl } from '../../../lib/env';
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 function buildApiUrl(path: string): string {
   return new URL(path, API_BASE_URL).toString();

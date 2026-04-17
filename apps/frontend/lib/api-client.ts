@@ -1,8 +1,8 @@
 import { captureCorrelationIdFromResponse, injectCorrelationId } from './correlation-id';
+import { resolveApiBaseUrl } from './env';
 import { logError } from './error-logger';
 
-const API_BASE_URL =
-  process.env['API_URL_INTERNAL'] || process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001';
+const API_BASE_URL = resolveApiBaseUrl();
 
 export class ApiError extends Error {
   constructor(

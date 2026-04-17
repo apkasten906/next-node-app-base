@@ -1,4 +1,4 @@
-﻿# Plan: Reusable Platform Extraction and UI/API Boundary Cleanup
+# Plan: Reusable Platform Extraction and UI/API Boundary Cleanup
 
 ## Objective
 
@@ -152,10 +152,10 @@ Use a layered structure that separates presentation, application intent, transpo
 ### Target frontend layering
 
 `UI component`
-â†’ `presentation hook or view-model interface`
-â†’ `application service`
-â†’ `API client / server gateway`
-â†’ `endpoint calls`
+→ `presentation hook or view-model interface`
+→ `application service`
+→ `API client / server gateway`
+→ `endpoint calls`
 
 ### Practical frontend shape
 
@@ -286,18 +286,18 @@ UI components must not directly call backend or auth endpoints.
 ### Target pattern for client-side auth actions
 
 `SignInForm component`
-â†’ `useSignIn()`
-â†’ `authApplicationService.signIn(credentials)`
-â†’ `authApi.login(credentials)`
-â†’ `apiClient.post('/api/auth/login', ...)`
+→ `useSignIn()`
+→ `authApplicationService.signIn(credentials)`
+→ `authApi.login(credentials)`
+→ `apiClient.post('/api/auth/login', ...)`
 
 ### Target pattern for server-rendered auth/session checks
 
 `dashboard page`
-â†’ `getDashboardPageData()`
-â†’ `serverAuthApplicationService.requireCurrentUser()`
-â†’ `serverAuthGateway.getCurrentUser(cookieHeader, correlationId)`
-â†’ backend endpoint call
+→ `getDashboardPageData()`
+→ `serverAuthApplicationService.requireCurrentUser()`
+→ `serverAuthGateway.getCurrentUser(cookieHeader, correlationId)`
+→ backend endpoint call
 
 ### Responsibilities by layer
 

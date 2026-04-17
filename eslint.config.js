@@ -267,7 +267,8 @@ module.exports = [
       'no-restricted-syntax': [
         'error',
         {
-          selector: "CallExpression[callee.name='fetch']",
+          selector:
+            ":matches(CallExpression[callee.type='Identifier'][callee.name='fetch'], CallExpression[callee.type='MemberExpression'][callee.computed=false][callee.property.type='Identifier'][callee.property.name='fetch'])",
           message:
             'UI files must not call fetch directly. Route backend and auth access through hooks, application services, or server gateways.',
         },
