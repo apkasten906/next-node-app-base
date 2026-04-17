@@ -1,35 +1,10 @@
-import { cookies, headers } from 'next/headers';
-import { redirect } from 'next/navigation';
 import type { JSX } from 'react';
 
 import { DashboardClient } from '@/components/dashboard-client';
+import { requireCurrentUser } from '@/src/server/auth/require-current-user';
 
 export default async function DashboardPage(): Promise<JSX.Element> {
-  const baseUrl =
-    process.env['API_URL_INTERNAL'] ||
-    process.env['NEXT_PUBLIC_API_URL'] ||
-    'http://localhost:3001';
-
-  const headerStore = await headers();
-  const incomingCorrelationId = headerStore.get('x-correlation-id');
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join('; ');
-
-  const meRes = await fetch(`${baseUrl}/api/auth/me`, {
-    headers: {
-      cookie: cookieHeader,
-      ...(incomingCorrelationId ? { 'X-Correlation-ID': incomingCorrelationId } : {}),
-    },
-    // Prevent caching auth checks during SSR
-    cache: 'no-store',
-  });
-
-  if (meRes.status === 401) {
-    redirect('/auth/signin');
-  }
+  const currentUser = await requireCurrentUser();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -49,7 +24,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <DashboardClient userName={null} userImage={null} />
+        <DashboardClient userName={currentUser.name} userImage={currentUser.image} />
       </main>
     </div>
   );

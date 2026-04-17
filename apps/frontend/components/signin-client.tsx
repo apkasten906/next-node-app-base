@@ -3,42 +3,18 @@
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 
-import { injectCorrelationId } from '@/lib/correlation-id';
+import { useSignIn } from '@/src/hooks/auth/use-sign-in';
 
 export function SignInClient(): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { error, isSubmitting, submitForm } = useSignIn();
 
-  async function handleSubmit(e: FormEvent): Promise<void> {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const baseUrl = process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001';
-      const headers = new Headers({ 'Content-Type': 'application/json' });
-      injectCorrelationId(headers);
-      const res = await fetch(`${baseUrl}/api/auth/login`, {
-        method: 'POST',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data?.error ?? 'Login failed');
-      }
-      // Redirect after login
-      globalThis.location.href = '/dashboard';
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
+  async function handleSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
+    await submitForm(e, { email, password });
   }
 
-  function onSubmit(e: FormEvent): void {
+  function onSubmit(e: FormEvent<HTMLFormElement>): void {
     void handleSubmit(e);
   }
 
@@ -69,10 +45,10 @@ export function SignInClient(): JSX.Element {
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
-            disabled={loading}
+            disabled={isSubmitting}
             className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {isSubmitting ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
         <p className="text-xs text-center text-gray-500">By continuing you agree to the terms.</p>
