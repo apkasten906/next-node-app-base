@@ -1,6 +1,6 @@
 import { cookies, headers } from 'next/headers';
 
-import { resolveApiBaseUrl } from '../../../lib/env';
+import { resolveApiBaseUrl } from '@/lib/env';
 
 const API_BASE_URL = resolveApiBaseUrl();
 

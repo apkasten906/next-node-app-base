@@ -17,6 +17,10 @@ export async function getBddStatusSnapshot(): Promise<BddStatusSnapshotResult> {
     return { kind: 'error' };
   }
 
-  const snapshot = (await response.json()) as Snapshot;
-  return { kind: 'success', snapshot };
+  try {
+    const snapshot = (await response.json()) as Snapshot;
+    return { kind: 'success', snapshot };
+  } catch {
+    return { kind: 'error' };
+  }
 }
