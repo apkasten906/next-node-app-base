@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { type Snapshot } from '@/src/server/bdd/types';
 import { serverApiFetch } from '@/src/server/http/server-api-client';
 

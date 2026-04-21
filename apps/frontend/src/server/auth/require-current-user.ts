@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { redirect } from 'next/navigation';
 
 import { type AuthenticatedUser } from '@/lib/api/auth-api';
