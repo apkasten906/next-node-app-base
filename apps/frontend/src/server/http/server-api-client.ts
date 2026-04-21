@@ -11,8 +11,17 @@ import { resolveApiBaseUrl } from '@/lib/env';
 
 const API_BASE_URL = resolveApiBaseUrl();
 
+function assertRelativeApiPath(path: string): string {
+  if (!path.startsWith('/') || path.startsWith('//')) {
+    throw new TypeError(
+      'serverApiFetch path must be a root-relative API path starting with a single "/"'
+    );
+  }
+  return path;
+}
+
 function buildApiUrl(path: string): string {
-  return new URL(path, API_BASE_URL).toString();
+  return new URL(assertRelativeApiPath(path), API_BASE_URL).toString();
 }
 
 export async function serverApiFetch(path: string, init: RequestInit = {}): Promise<Response> {

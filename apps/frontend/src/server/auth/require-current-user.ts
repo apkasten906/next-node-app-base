@@ -17,7 +17,9 @@ export async function requireCurrentUser(): Promise<AuthenticatedUser> {
   }
 
   if (!response.ok) {
-    throw new Error('Failed to load the current user');
+    throw new Error(
+      `Failed to load the current user (status: ${response.status}${response.statusText ? ` ${response.statusText}` : ''})`
+    );
   }
 
   const data = (await response.json()) as CurrentUserResponse;
