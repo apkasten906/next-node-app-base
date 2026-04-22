@@ -264,9 +264,10 @@ module.exports = [
   {
     files: [
       'apps/frontend/components/**/*.{ts,tsx}',
-      'apps/frontend/app/**/*.{ts,tsx}',
+      'apps/frontend/app/**/!(route).{ts,tsx}',
       'apps/frontend/src/hooks/**/*.{ts,tsx}',
     ],
+    ignores: ['apps/frontend/app/api/**'],
     rules: {
       'no-restricted-syntax': [
         'error',
