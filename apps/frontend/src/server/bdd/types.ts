@@ -1,3 +1,5 @@
+import 'server-only';
+
 // Shared BDD contract types live in lib/contracts/bdd-types.ts so they can be
 // referenced by both server-only modules and client-facing re-export shims.
 // This file is kept as a backward-compatible re-export to avoid touching every

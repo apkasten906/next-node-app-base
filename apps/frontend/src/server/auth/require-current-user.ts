@@ -22,6 +22,11 @@ export async function requireCurrentUser(): Promise<AuthenticatedUser> {
     );
   }
 
-  const data = (await response.json()) as CurrentUserResponse;
+  let data: CurrentUserResponse;
+  try {
+    data = (await response.json()) as CurrentUserResponse;
+  } catch {
+    throw new Error(`Failed to parse current user response (status: ${response.status})`);
+  }
   return data.user;
 }

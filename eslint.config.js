@@ -262,7 +262,11 @@ module.exports = [
   },
 
   {
-    files: ['apps/frontend/components/**/*.{ts,tsx}', 'apps/frontend/app/**/page.tsx'],
+    files: [
+      'apps/frontend/components/**/*.{ts,tsx}',
+      'apps/frontend/app/**/*.{ts,tsx}',
+      'apps/frontend/src/hooks/**/*.{ts,tsx}',
+    ],
     rules: {
       'no-restricted-syntax': [
         'error',
