@@ -3,12 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import type { LoginCredentials } from '@/lib/api/auth-api';
 import { authApplicationService, type SignInResult } from '@/src/application/auth/sign-in';
 
-export interface SignInFormValues {
-  email: string;
-  password: string;
-}
+export type SignInFormValues = LoginCredentials;
 
 export interface UseSignInResult {
   error: string | null;

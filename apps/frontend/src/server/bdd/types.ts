@@ -1,49 +1,11 @@
-export type StatusKey = 'ready' | 'wip' | 'manual' | 'skip' | 'other';
-
-export type StatusCounts = {
-  total: number;
-  ready: number;
-  wip: number;
-  manual: number;
-  skip: number;
-  other: number;
-};
-
-export type BddScenarioOverview = {
-  appName: string;
-  filePath: string;
-  featureName: string;
-  scenarioName: string;
-  status: StatusKey;
-  tags: string[];
-  implTags: string[];
-};
-
-export type BddFeatureOverview = {
-  appName: string;
-  filePath: string;
-  featureName: string;
-  tags: string[];
-  counts: StatusCounts;
-  scenarios: BddScenarioOverview[];
-};
-
-export type Snapshot = {
-  generatedAt: string;
-  apps: Array<{ appName: string; counts: StatusCounts }>;
-  features: BddFeatureOverview[];
-  overall: StatusCounts;
-  issues: {
-    missingStatus: Array<{ filePath: string; scenarioName: string; tags: string[] }>;
-    conflictingStatus: Array<{
-      filePath: string;
-      scenarioName: string;
-      tags: string[];
-      primaryStatusTags: string[];
-    }>;
-  };
-  implAudit: {
-    implTagsTotal: number;
-    missingReadyImplCount: number;
-  };
-};
+// Shared BDD contract types live in lib/contracts/bdd-types.ts so they can be
+// referenced by both server-only modules and client-facing re-export shims.
+// This file is kept as a backward-compatible re-export to avoid touching every
+// server-side import site within src/server/.
+export type {
+  BddFeatureOverview,
+  BddScenarioOverview,
+  Snapshot,
+  StatusCounts,
+  StatusKey,
+} from '@/lib/contracts/bdd-types';

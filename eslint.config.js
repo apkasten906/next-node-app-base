@@ -268,7 +268,7 @@ module.exports = [
         'error',
         {
           selector:
-            ":matches(CallExpression[callee.type='Identifier'][callee.name='fetch'], CallExpression[callee.type='MemberExpression'][callee.object.type='Identifier'][callee.object.name='globalThis'][callee.property.name='fetch'])",
+            ":matches(CallExpression[callee.type='Identifier'][callee.name='fetch'], CallExpression[callee.type='MemberExpression'][callee.object.type='Identifier'][callee.object.name=/^(globalThis|window|self)$/][callee.property.name='fetch'])",
           message:
             'UI files must not call fetch directly. Route backend and auth access through hooks, application services, or server gateways.',
         },
