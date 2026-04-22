@@ -110,33 +110,36 @@ This plan is analysis-first. It does not authorize destructive moves. It should 
 - `apps/frontend/app/dashboard/bdd/**`
   Reason: governance UI and admin endpoints are repo-specific tooling, not product-platform code.
 
-### Boundary cleanup needed
+### Boundary cleanup — ✅ DONE (merged: `feat/frontend-auth-boundaries`, PR #50, April 2026)
 
-- `apps/frontend/components/signin-client.tsx`
-  Issue: client UI performs direct auth POST.
-- `apps/frontend/app/dashboard/page.tsx`
-  Issue: server page performs direct auth session fetch.
-- `apps/frontend/app/dashboard/bdd/page.tsx`
-  Issue: server page performs direct auth fetch and direct admin API fetch.
-- `apps/frontend/components/*`
-  Rule going forward: presentational components may receive callbacks and view models, but may not own endpoint URLs, cookies, or auth transport.
+- ✅ `apps/frontend/components/signin-client.tsx` — now delegates to `useSignIn()` hook; no direct fetch.
+- ✅ `apps/frontend/app/dashboard/page.tsx` — now delegates to `requireCurrentUser()` server gateway.
+- ✅ `apps/frontend/app/dashboard/bdd/page.tsx` — now delegates to `requireCurrentUser()` and `getBddStatusSnapshot()`.
+- Rule enforced: presentational components may receive callbacks and view models, but may not own endpoint URLs, cookies, or auth transport.
 
-## C. Direct UI Endpoint Calls
+## C. Direct UI Endpoint Calls — ✅ RESOLVED (PR #50)
 
-### Confirmed direct calls from UI-facing code
+### Resolved violations (were direct calls from UI-facing code)
 
-- `apps/frontend/components/signin-client.tsx`
-  Direct call: `POST ${baseUrl}/api/auth/login`
-  Problem: the component owns auth endpoint knowledge, correlation header setup, request body shape, and redirect behavior.
-- `apps/frontend/app/dashboard/page.tsx`
-  Direct call: `GET ${baseUrl}/api/auth/me`
-  Problem: the route component owns auth/session transport and cookie forwarding instead of delegating to a server-side application service.
-- `apps/frontend/app/dashboard/bdd/page.tsx`
-  Direct call: `GET ${baseUrl}/api/auth/me`
-  Direct call: `GET ${baseUrl}/api/admin/bdd/status`
-  Problem: the page mixes rendering, authorization gating, cookie propagation, and backend transport.
+- ✅ `apps/frontend/components/signin-client.tsx`
+  Was: direct `POST ${baseUrl}/api/auth/login`. Now: delegates to `useSignIn()` → `authApplicationService.signIn()` → `authApi.login()`.
+- ✅ `apps/frontend/app/dashboard/page.tsx`
+  Was: direct `GET ${baseUrl}/api/auth/me`. Now: delegates to `requireCurrentUser()` server gateway.
+- ✅ `apps/frontend/app/dashboard/bdd/page.tsx`
+  Was: direct `GET /api/auth/me` + `GET /api/admin/bdd/status`. Now: delegates to `requireCurrentUser()` and `getBddStatusSnapshot()`.
 
-### Calls that are acceptable or near-acceptable
+### New artifacts introduced
+
+- `apps/frontend/lib/env.ts` — centralized `resolveApiBaseUrl()`, eliminates scattered env fallback logic.
+- `apps/frontend/lib/api/auth-api.ts` — single auth transport module.
+- `apps/frontend/lib/contracts/bdd-types.ts` — canonical BDD type definitions; `app/dashboard/bdd/types.ts` re-exports from here.
+- `apps/frontend/src/application/auth/sign-in.ts` — `AuthApplicationService` use-case.
+- `apps/frontend/src/hooks/auth/use-sign-in.ts` — `useSignIn()` presentation hook.
+- `apps/frontend/src/server/auth/require-current-user.ts` — `server-only` SSR auth gateway.
+- `apps/frontend/src/server/bdd/get-bdd-status-snapshot.ts` — `server-only` BDD status gateway.
+- `.github/copilot-instructions.md` — SOLID principles + architecture boundary rules for Copilot.
+
+### Calls that are acceptable (unchanged)
 
 - `apps/frontend/hooks/use-api.ts`
   Uses `apiClient` rather than raw endpoint calls. This is aligned with the desired direction, though the hook layer can be renamed toward application intent over generic transport naming.
@@ -312,30 +315,31 @@ UI components must not directly call backend or auth endpoints.
 
 ## I. Migration Plan
 
-### 1. Freeze boundaries before moving code
+### 1. Freeze boundaries before moving code — ✅ DONE (PR #50)
 
-- Add a short architecture rule section to this prompt and later ADRs.
-- Treat raw `fetch` in `components/` and route pages as a smell unless it is inside a dedicated transport module.
+- Architecture rule section added to this prompt (sections H/K) and `copilot-instructions.md`.
+- Raw `fetch` in `components/` and route pages is now treated as a smell and actively enforced by code review.
 
-### 2. Introduce app-local service seams first
+### 2. Introduce app-local service seams first — ✅ DONE (PR #50)
 
-- Add `apps/frontend/src/application/auth/` and `apps/frontend/src/server/auth/`.
-- Add app-local transport adapters under `apps/frontend/lib/api/`.
-- Do not extract packages yet.
+- `apps/frontend/src/application/auth/` created (`sign-in.ts`).
+- `apps/frontend/src/server/auth/` and `src/server/bdd/` created.
+- App-local transport adapters added under `apps/frontend/lib/api/` (`auth-api.ts`).
+- No packages extracted.
 
-### 3. Refactor the highest-risk UI/auth violations first
+### 3. Refactor the highest-risk UI/auth violations first — ✅ DONE (PR #50)
 
-- Replace direct login fetch in `signin-client.tsx` with `useSignIn()` + `authApplicationService`.
-- Replace direct auth fetch in `dashboard/page.tsx` with `requireCurrentUser()`.
-- Replace direct auth/admin fetches in `dashboard/bdd/page.tsx` with `requireCurrentUser()` and `getBddStatusSnapshot()`.
+- `signin-client.tsx` now uses `useSignIn()` + `authApplicationService`.
+- `dashboard/page.tsx` now uses `requireCurrentUser()`.
+- `dashboard/bdd/page.tsx` now uses `requireCurrentUser()` and `getBddStatusSnapshot()`.
 
-### 4. Normalize naming and responsibility
+### 4. Normalize naming and responsibility — ✅ DONE (PR #50)
 
-- Keep `api-client.ts` as the low-level transport.
-- Add intent-specific gateway modules such as `auth-api.ts`, `users-api.ts`, `bdd-api.ts`.
-- Keep route files thin.
+- `api-client.ts` remains the low-level transport.
+- `auth-api.ts` added; `lib/env.ts` centralizes `resolveApiBaseUrl()`.
+- Route files are now thin (no transport or auth logic inline).
 
-### 5. Add a lightweight architectural enforcement mechanism
+### 5. Add a lightweight architectural enforcement mechanism — ⬜ NEXT
 
 - Add ESLint restrictions or a simple grep-based CI rule preventing raw endpoint fetches inside `apps/frontend/components/**` and selected page files.
 - Allow exceptions only in `lib/api/**`, route handlers, and test code.
@@ -360,22 +364,16 @@ UI components must not directly call backend or auth endpoints.
 
 - Once seams are stable and validated, move folders toward the target structure with mechanical, low-risk refactors.
 
-## J. First Concrete Changes
+## J. First Concrete Changes — ✅ DONE (PR #50, April 2026)
 
-Best risk/reward sequence:
+All six steps were completed as part of `feat/frontend-auth-boundaries`:
 
-1. Introduce `apps/frontend/lib/api/auth-api.ts` as the single auth transport module.
-   Why first: minimal surface area, removes endpoint ownership from UI, reuses existing `api-client.ts` pattern.
-2. Introduce `apps/frontend/src/application/auth/sign-in.ts` and `apps/frontend/src/hooks/auth/use-sign-in.ts`.
-   Why first: creates the intended layering without changing backend behavior.
-3. Refactor `apps/frontend/components/signin-client.tsx` to call the hook instead of `fetch`.
-   Why first: highest-confidence direct boundary fix.
-4. Introduce `apps/frontend/src/server/auth/require-current-user.ts`.
-   Why first: centralizes cookie forwarding and correlation-id propagation for SSR.
-5. Refactor `apps/frontend/app/dashboard/page.tsx` and `apps/frontend/app/dashboard/bdd/page.tsx` to use server application services.
-   Why first: removes duplicate server-page transport logic and makes later extraction easier.
-6. Add a narrow lint rule or CI check forbidding raw auth/backend endpoint fetches in UI components.
-   Why first: prevents regression immediately after the first cleanup.
+1. ✅ Introduced `apps/frontend/lib/api/auth-api.ts` as the single auth transport module.
+2. ✅ Introduced `apps/frontend/src/application/auth/sign-in.ts` and `src/hooks/auth/use-sign-in.ts`.
+3. ✅ Refactored `signin-client.tsx` to call `useSignIn()` instead of direct `fetch`.
+4. ✅ Introduced `apps/frontend/src/server/auth/require-current-user.ts` (server-only).
+5. ✅ Refactored `dashboard/page.tsx` and `dashboard/bdd/page.tsx` to use server gateways.
+6. ⬜ **PENDING**: Add a narrow lint rule or CI check forbidding raw auth/backend endpoint fetches in UI components. (Next priority — prevents regression.)
 
 ## K. ADR Notes
 
@@ -417,5 +415,23 @@ Consequence: lower migration risk and clearer package boundaries.
 
 - `packages/types` is the best current seed for a real contracts package.
 - `packages/config`, `packages/utils`, and `packages/constants` should remain local placeholders until they gain clear ownership and content.
-- The first refactoring wave should stay entirely inside `apps/frontend` and should not require backend behavior changes.
-- No file moves should happen until the UI/auth boundary cleanup is in place and validated.
+- The first refactoring wave (frontend auth/UI boundaries) is complete. Backend service extraction comes after Phase 10 observability.
+- ✅ UI/auth boundary cleanup is in place and validated. File moves remain gated behind seam stabilization.
+
+## M. Current Status and Next Focus
+
+### Completed — April 2026
+
+- ✅ `feat/frontend-auth-boundaries` merged to master as PR #50.
+  - All direct auth/backend fetches removed from UI components and server pages.
+  - Layered architecture (`useSignIn` → `AuthApplicationService` → `authApi` → `apiClient`) established.
+  - `requireCurrentUser()` and `getBddStatusSnapshot()` server gateways in place.
+  - `copilot-instructions.md` added with SOLID + boundary rules.
+
+### Next priority (in order)
+
+1. **Lint/CI boundary enforcement** (Migration Plan step 5) — add an ESLint rule or CI check preventing raw `fetch` calls to backend endpoints from inside `components/**` and `app/**/page.tsx`. Prevents regression without a code review.
+2. **Phase 10 observability remainder** (branch: `feat/phase-10-observability`) — Jaeger distributed tracing, Loki centralized logging, Alertmanager, Kiali.
+3. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona + `MODERATOR` role; still on hold.
+4. **Contract package extraction** (Migration Plan step 6) — once the second consumer app (`the-azure-citadel`) is bootstrapped, promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package.
+5. **Phase 8.5 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.
