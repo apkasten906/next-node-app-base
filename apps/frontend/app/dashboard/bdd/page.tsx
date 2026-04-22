@@ -1,9 +1,10 @@
-import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { JSX } from 'react';
 
 import { BddFeatureScenarioOverview } from './BddFeatureScenarioOverview';
-import type { Snapshot } from './types';
+
+import { requireCurrentUser } from '@/src/server/auth/require-current-user';
+import { getBddStatusSnapshot } from '@/src/server/bdd/get-bdd-status-snapshot';
 
 function StatCard({
   title,
@@ -24,41 +25,15 @@ export default async function BddDashboardPage({
 }: Readonly<{
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }>): Promise<JSX.Element> {
-  const baseUrl =
-    process.env['API_URL_INTERNAL'] ||
-    process.env['NEXT_PUBLIC_API_URL'] ||
-    'http://localhost:3001';
+  await requireCurrentUser();
 
-  const headerStore = await headers();
-  const incomingCorrelationId = headerStore.get('x-correlation-id');
+  const snapshotResult = await getBddStatusSnapshot();
 
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join('; ');
-
-  const meRes = await fetch(`${baseUrl}/api/auth/me`, {
-    headers: {
-      cookie: cookieHeader,
-      ...(incomingCorrelationId ? { 'X-Correlation-ID': incomingCorrelationId } : {}),
-    },
-    cache: 'no-store',
-  });
-
-  if (meRes.status === 401) {
+  if (snapshotResult.kind === 'unauthenticated') {
     redirect('/auth/signin');
   }
 
-  const res = await fetch(`${baseUrl}/api/admin/bdd/status`, {
-    headers: {
-      cookie: cookieHeader,
-      ...(incomingCorrelationId ? { 'X-Correlation-ID': incomingCorrelationId } : {}),
-    },
-    cache: 'no-store',
-  });
-
-  if (res.status === 403) {
+  if (snapshotResult.kind === 'forbidden') {
     return (
       <div className="min-h-screen bg-gray-50">
         <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -69,7 +44,7 @@ export default async function BddDashboardPage({
     );
   }
 
-  if (!res.ok) {
+  if (snapshotResult.kind === 'error') {
     return (
       <div className="min-h-screen bg-gray-50">
         <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -80,7 +55,7 @@ export default async function BddDashboardPage({
     );
   }
 
-  const snapshot = (await res.json()) as Snapshot;
+  const snapshot = snapshotResult.snapshot;
   const appRows = snapshot.apps.slice().sort((a, b) => a.appName.localeCompare(b.appName));
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
