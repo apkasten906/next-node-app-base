@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import type { JSX } from 'react';
 
 import { BddFeatureScenarioOverview } from './BddFeatureScenarioOverview';
@@ -27,6 +28,10 @@ export default async function BddDashboardPage({
   await requireCurrentUser();
 
   const snapshotResult = await getBddStatusSnapshot();
+
+  if (snapshotResult.kind === 'unauthenticated') {
+    redirect('/auth/signin');
+  }
 
   if (snapshotResult.kind === 'forbidden') {
     return (
