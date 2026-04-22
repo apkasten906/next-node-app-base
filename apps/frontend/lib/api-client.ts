@@ -1,8 +1,8 @@
 import { captureCorrelationIdFromResponse, injectCorrelationId } from './correlation-id';
+import { resolveApiBaseUrl } from './env';
 import { logError } from './error-logger';
 
-const API_BASE_URL =
-  process.env['API_URL_INTERNAL'] || process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001';
+const API_BASE_URL = resolveApiBaseUrl();
 
 export class ApiError extends Error {
   constructor(
@@ -196,7 +196,7 @@ export class ApiClient {
    * Handle HTTP errors
    */
   private async handleHTTPError(response: Response): Promise<never> {
-    let errorData: { message?: string; code?: string; details?: unknown } = {};
+    let errorData: { error?: string; message?: string; code?: string; details?: unknown } = {};
 
     try {
       errorData = (await response.json()) as typeof errorData;
@@ -204,7 +204,7 @@ export class ApiClient {
       // Response body is not JSON
     }
 
-    const message = errorData.message ?? response.statusText ?? 'Request failed';
+    const message = errorData.message ?? errorData.error ?? response.statusText ?? 'Request failed';
 
     switch (response.status) {
       case 400:

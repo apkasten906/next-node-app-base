@@ -88,6 +88,8 @@ prisma/*.db-journal
 
 # Kubernetes
 *.kubeconfig
+# Real Kubernetes Secret manifests — use *.example.yaml in git instead
+kubernetes/observability/grafana/grafana-secret.yaml
 
 # Temporary files
 tmp/

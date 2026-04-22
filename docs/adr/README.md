@@ -45,6 +45,7 @@ Each ADR follows this structure:
 | [014](./014-e2e-personas-json-over-admin-ui.md)       | E2E Personas — JSON Overrides over Admin UI                                    | Accepted                         | 2026-02-06 |
 | [015](./015-prometheus-rules-management.md)           | Prometheus Rules Management (ConfigMap-mounted rule files)                     | Accepted                         | 2026-03-11 |
 | [016](./016-secure-by-default-prometheus-scraping.md) | Secure-by-default Prometheus scraping (align scrape config with NetworkPolicy) | Accepted                         | 2026-03-11 |
+| [017](./017-grafana-loki-observability-stack.md)      | Grafana + Loki as the observability visualisation and log aggregation layer    | Accepted                         | 2026-03-20 |
 
 <!-- adr-index:end -->
 
