@@ -568,7 +568,7 @@ export class WebSocketService {
    */
   broadcastToRoom(room: string, event: string, data: unknown): void {
     if (!this.io) return;
-    this.io.to(room).emit(event as keyof ServerToClientEvents, data as never);
+    this.io.to(room).emit(event as keyof ServerToClientEvents & string, data as never);
   }
 
   /**
@@ -579,7 +579,7 @@ export class WebSocketService {
 
     for (const [socketId, connectionInfo] of this.connections.entries()) {
       if (connectionInfo.userId === userId) {
-        this.io.to(socketId).emit(event as keyof ServerToClientEvents, data as never);
+        this.io.to(socketId).emit(event as keyof ServerToClientEvents & string, data as never);
       }
     }
   }
