@@ -1,5 +1,5 @@
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database — infrastructure (default profile, always started)
   postgres:
     image: postgres:16-alpine
     container_name: next-node-postgres
@@ -11,14 +11,18 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-devuser}']
+      test: [
+          'CMD-SHELL',
+          'psql -U ${POSTGRES_USER:-devuser} -d ${POSTGRES_DB:-nextnode_dev}
+          -c "SELECT 1" > /dev/null 2>&1',
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - app-network
 
-  # Redis Cache
+  # Redis Cache — infrastructure (default profile, always started)
   redis:
     image: redis:7-alpine
     container_name: next-node-redis
@@ -26,10 +30,10 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test:
-        [
+      test: [
           'CMD-SHELL',
-          'redis-cli -a "${REDIS_PASSWORD:-devredis}" --no-auth-warning ping | grep -q PONG',
+          'redis-cli -a "${REDIS_PASSWORD:-devredis}" --no-auth-warning ping
+          | grep -q PONG',
         ]
       interval: 10s
       timeout: 5s
@@ -38,7 +42,9 @@ services:
       - app-network
 
   # Backend API
+  # Only started with: docker-compose --profile app up -d
   backend:
+    profiles: ['app']
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
@@ -66,12 +72,15 @@ services:
       - '3001:3001'
     volumes:
       - ./apps/backend/reports:/app/apps/backend/reports:ro
-    command: sh -c "pnpm exec prisma migrate deploy --config /app/prisma.config.ts && node dist/index.js"
+    command: sh -c "pnpm exec prisma migrate deploy --config /app/prisma.config.ts
+      && node dist/index.js"
     networks:
       - app-network
 
   # Frontend
+  # Only started with: docker-compose --profile app up -d
   frontend:
+    profiles: ['app']
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile

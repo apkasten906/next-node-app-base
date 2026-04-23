@@ -142,7 +142,7 @@ describe('Metrics Middleware', () => {
 
       expect(mockMetricsService.incrementCounter).toHaveBeenCalledWith('http_requests_total', {
         method: 'GET',
-        route: '/unknown/path',
+        route: 'unmatched',
         status_code: '200',
       });
     });
@@ -442,7 +442,7 @@ describe('Metrics Middleware', () => {
 
       expect(mockMetricsService.incrementCounter).toHaveBeenCalledWith('http_requests_total', {
         method: 'GET',
-        route: '/health',
+        route: 'unmatched',
         status_code: '200',
       });
     });

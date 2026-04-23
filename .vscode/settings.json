@@ -50,10 +50,11 @@
     "**/.tools/**": true
   },
   "playwright.reuseBrowser": true,
+  "playwright.showBrowser": true,
   "playwright.showTrace": false,
   "testing.automaticallyOpenPeekView": "never",
   "playwright.env": {
-    "CI": "false"
+    "REUSE_EXISTING_SERVER": "true"
   },
   "playwright.searchForWorkspaceFiles": true,
   "files.associations": {

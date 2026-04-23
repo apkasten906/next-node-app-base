@@ -83,7 +83,8 @@ export default defineConfig({
         NEXTAUTH_URL: frontendUrl,
         NEXTAUTH_SECRET: '6a3f5d8e9c2b1a7f4e8d6c5b3a2f1e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f',
         DATABASE_URL:
-          process.env['DATABASE_URL'] || 'postgresql://postgres:postgres@localhost:5432/nextnode',
+          process.env['DATABASE_URL'] ||
+          'postgresql://devuser:devpassword@localhost:5432/nextnode_dev',
         NEXT_PUBLIC_API_URL: process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001',
       },
     },
