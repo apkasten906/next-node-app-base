@@ -58,7 +58,8 @@ jobs:
         with:
           context: .
           file: ./apps/frontend/Dockerfile
-          push: ${{ github.event_name != 'pull_request' || inputs.push_images }}
+          push: ${{ github.event_name == 'workflow_dispatch' && inputs.push_images ||
+            github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -108,7 +109,8 @@ jobs:
         with:
           context: .
           file: ./apps/backend/Dockerfile
-          push: ${{ github.event_name != 'pull_request' || inputs.push_images }}
+          push: ${{ github.event_name == 'workflow_dispatch' && inputs.push_images ||
+            github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -135,7 +137,8 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518 # 0.34.1
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}@${{ needs.build-frontend.outputs.digest }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}@${{
+            needs.build-frontend.outputs.digest }}
           format: "sarif"
           output: "trivy-results-frontend.sarif"
           severity: "CRITICAL,HIGH"
@@ -166,7 +169,8 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518 # 0.34.1
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}@${{ needs.build-backend.outputs.digest }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}@${{
+            needs.build-backend.outputs.digest }}
           format: "sarif"
           output: "trivy-results-backend.sarif"
           severity: "CRITICAL,HIGH"
