@@ -46,6 +46,7 @@ Each ADR follows this structure:
 | [015](./015-prometheus-rules-management.md)           | Prometheus Rules Management (ConfigMap-mounted rule files)                     | Accepted                         | 2026-03-11 |
 | [016](./016-secure-by-default-prometheus-scraping.md) | Secure-by-default Prometheus scraping (align scrape config with NetworkPolicy) | Accepted                         | 2026-03-11 |
 | [017](./017-grafana-loki-observability-stack.md)      | Grafana + Loki as the observability visualisation and log aggregation layer    | Accepted                         | 2026-03-20 |
+| [018](./018-infra-only-docker-local-dev.md)           | Infra-only Docker for Local Development and E2E Testing                        | Accepted                         | 2026-04-23 |
 
 <!-- adr-index:end -->
 
