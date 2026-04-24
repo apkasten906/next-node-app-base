@@ -339,10 +339,12 @@ UI components must not directly call backend or auth endpoints.
 - `auth-api.ts` added; `lib/env.ts` centralizes `resolveApiBaseUrl()`.
 - Route files are now thin (no transport or auth logic inline).
 
-### 5. Add a lightweight architectural enforcement mechanism — ⬜ NEXT
+### 5. Add a lightweight architectural enforcement mechanism — ✅ DONE (PR `feat/lint-ci-boundary-enforcement`, April 2026)
 
-- Add ESLint restrictions or a simple grep-based CI rule preventing raw endpoint fetches inside `apps/frontend/components/**` and selected page files.
-- Allow exceptions only in `lib/api/**`, route handlers, and test code.
+- `no-restricted-syntax` rule in `eslint.config.js` blocks raw `fetch()` in `components/**`, `app/**/!(route).{ts,tsx}`, and `src/hooks/**`.
+- Exceptions: `lib/api/**`, `src/server/**`, `app/api/**` route handlers, and test files.
+- `lint.yml` CI workflow enforces the rule on every push and PR.
+- `CONTRIBUTING.md` documents the required call path for contributors.
 
 ### 6. Stabilize contracts before extraction
 
@@ -373,7 +375,7 @@ All six steps were completed as part of `feat/frontend-auth-boundaries`:
 3. ✅ Refactored `signin-client.tsx` to call `useSignIn()` instead of direct `fetch`.
 4. ✅ Introduced `apps/frontend/src/server/auth/require-current-user.ts` (server-only).
 5. ✅ Refactored `dashboard/page.tsx` and `dashboard/bdd/page.tsx` to use server gateways.
-6. ⬜ **PENDING**: Add a narrow lint rule or CI check forbidding raw auth/backend endpoint fetches in UI components. (Next priority — prevents regression.)
+6. ✅ **DONE**: `no-restricted-syntax` ESLint rule + `lint.yml` CI workflow added. Fires with targeted message; zero false positives confirmed.
 
 ## K. ADR Notes
 
@@ -430,7 +432,7 @@ Consequence: lower migration risk and clearer package boundaries.
 
 ### Next priority (in order)
 
-1. **Lint/CI boundary enforcement** (Migration Plan step 5) — add an ESLint rule or CI check preventing raw `fetch` calls to backend endpoints from inside `components/**` and `app/**/page.tsx`. Prevents regression without a code review.
+1. ✅ **Lint/CI boundary enforcement** (Migration Plan step 5) — `no-restricted-syntax` rule + `lint.yml` CI workflow. Merged April 2026.
 2. **Phase 10 observability remainder** (branch: `feat/phase-10-observability`) — Jaeger distributed tracing, Loki centralized logging, Alertmanager, Kiali.
 3. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona + `MODERATOR` role; still on hold.
 4. **Contract package extraction** (Migration Plan step 6) — once the second consumer app (`the-azure-citadel`) is bootstrapped, promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package.
