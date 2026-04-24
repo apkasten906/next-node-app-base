@@ -26,6 +26,19 @@ data:
           httpMethod: "POST"
           incrementalQuerying: true
 
+      - name: Jaeger
+        type: jaeger
+        uid: jaeger
+        access: proxy
+        url: http://jaeger:16686
+        editable: false
+        jsonData:
+          # Link Jaeger traces from Grafana Explore using the traceId field
+          tracesToLogsV2:
+            datasourceUid: prometheus
+          nodeGraph:
+            enabled: true
+
   dashboards.yaml: |
     apiVersion: 1
     providers:

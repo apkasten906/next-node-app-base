@@ -1,0 +1,76 @@
+# NetworkPolicy for Jaeger
+# Principle of least privilege:
+#   - Only the backend application namespace may send traces to the collector.
+#   - Only Grafana (in the observability namespace) may query the Jaeger API.
+#   - Prometheus may scrape the admin port.
+#   - No egress required beyond health probes (in-memory storage only).
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: jaeger
+  namespace: observability
+  labels:
+    app: jaeger
+    component: tracing-security
+spec:
+  podSelector:
+    matchLabels:
+      app: jaeger
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow the backend application namespace to send OTLP traces
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: backend
+      ports:
+        - protocol: TCP
+          port: 4317 # OTLP gRPC
+        - protocol: TCP
+          port: 4318 # OTLP HTTP
+    # Allow Grafana to query the Jaeger HTTP API
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app: grafana
+      ports:
+        - protocol: TCP
+          port: 16686
+    # Allow Prometheus to scrape Jaeger's admin / metrics endpoint
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - protocol: TCP
+          port: 14269
+    # Allow kubelet health probes via Istio sidecar status port
+    - ports:
+        - protocol: TCP
+          port: 15021
+  egress:
+    # Allow DNS resolution
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow Istio control-plane communication
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+      ports:
+        - protocol: TCP
+          port: 15012
+        - protocol: TCP
+          port: 15014

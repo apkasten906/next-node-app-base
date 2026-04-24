@@ -34,6 +34,10 @@ Jaeger provides distributed tracing for:
 - Performance bottleneck identification
 - Error tracking and debugging
 
+Jaeger receives traces from the backend over **OTLP HTTP** (port 4318) using the OpenTelemetry Node.js SDK. See `../../docs/adr/019-opentelemetry-jaeger-distributed-tracing.md` for the full decision record.
+
+The `all-in-one` image is used here (in-memory storage, suitable for development/staging). For production, replace with the Jaeger Operator or a split deployment backed by Elasticsearch or Badger — only an env var change is required in the application.
+
 ### Centralized Logging
 
 Choose between:
@@ -166,6 +170,42 @@ kubectl port-forward -n observability svc/grafana 3000:3000
 ```
 
 Three dashboards are pre-loaded automatically:
+
+### Deploy Jaeger
+
+```bash
+# Deploy Jaeger (Deployment + Services)
+kubectl apply -f jaeger/jaeger-deployment.yaml
+
+# Deploy NetworkPolicy
+kubectl apply -f jaeger/jaeger-network-policy.yaml
+
+# Verify
+kubectl get pods -n observability -l app=jaeger
+kubectl logs -n observability -l app=jaeger
+```
+
+### Access Jaeger UI
+
+```bash
+# Port forward Jaeger Query UI
+kubectl port-forward -n observability svc/jaeger 16686:16686
+
+# Open http://localhost:16686 in browser
+# Select "backend" from the Service drop-down and click "Find Traces"
+```
+
+#### Backend configuration for local development
+
+Traces are sent to Jaeger over OTLP HTTP. Set these env vars in `apps/backend/.env`:
+
+```env
+TRACING_ENABLED=true
+OTEL_SERVICE_NAME=backend
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+```
+
+To disable tracing in unit tests, set `TRACING_ENABLED=false` (the default when unset in tests is disabled — see `TracingService` constructor).
 
 | Dashboard                        | UID               | What it shows                                                               |
 | -------------------------------- | ----------------- | --------------------------------------------------------------------------- |
