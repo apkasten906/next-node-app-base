@@ -34,17 +34,17 @@ Adopt **OpenTelemetry SDK for Node.js** as the instrumentation layer and **Jaege
 **Backend SDK** (`apps/backend/src/infrastructure/observability/`):
 
 - `ITracingService.ts` — narrow interface: `isEnabled()` and `shutdown()`.
-- `TracingService.ts` — `@injectable()` singleton that initialises `NodeSDK` with `OTLPTraceExporter` (HTTP) and `getNodeAutoInstrumentations()`. Disabled when `TRACING_ENABLED=false`.
+- `TracingService.ts` — `@injectable()` singleton that initialises `NodeSDK` with `OTLPTraceExporter` (HTTP) and `getNodeAutoInstrumentations()`. Defaults to disabled in CI/test contexts unless explicitly enabled.
 - Registered in `container.ts` as `'TracingService'`; `shutdown()` called during app graceful shutdown to flush buffered spans.
 
 **Key environment variables:**
 
-| Variable                      | Default                 | Purpose                             |
-| ----------------------------- | ----------------------- | ----------------------------------- |
-| `TRACING_ENABLED`             | `true`                  | Set to `false` in unit tests and CI |
-| `OTEL_SERVICE_NAME`           | `backend`               | Service label in Jaeger UI          |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4318` | Jaeger collector OTLP HTTP base URL |
-| `OTEL_RESOURCE_ATTRIBUTES`    | —                       | Additional resource key=value pairs |
+| Variable                      | Default                 | Purpose                                      |
+| ----------------------------- | ----------------------- | -------------------------------------------- |
+| `TRACING_ENABLED`             | unset                   | Optional explicit override: `true` / `false` |
+| `OTEL_SERVICE_NAME`           | `backend`               | Service label in Jaeger UI                   |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4318` | Jaeger collector OTLP HTTP base URL          |
+| `OTEL_RESOURCE_ATTRIBUTES`    | —                       | Additional resource key=value pairs          |
 
 **Kubernetes manifests** (`kubernetes/observability/jaeger/`):
 
@@ -53,7 +53,7 @@ Adopt **OpenTelemetry SDK for Node.js** as the instrumentation layer and **Jaege
 
 **Grafana datasource** (`kubernetes/observability/grafana/grafana-config.yaml`):
 
-- Added `jaeger` datasource entry pointing to `http://jaeger:16686`. Grafana can now link traces from the Explore view using `traceId` fields in log lines, and node-graph view is enabled.
+- Added `jaeger` datasource entry pointing to `http://jaeger:16686` with node-graph enabled. `tracesToLogsV2` wiring is intentionally deferred until Loki datasource provisioning is complete.
 
 ## Rationale
 
@@ -97,22 +97,22 @@ The `SPAN_STORAGE_TYPE=memory` default limits the Jaeger pod to the last 10 000 
 
 `getNodeAutoInstrumentations()` instruments Express routes, Node.js `http`/`https` modules, `fetch`, Prisma client, `ioredis`, and `bullmq` without requiring per-handler `tracer.startSpan()` calls. This provides immediate value (all request flows traced) at zero per-feature cost. Manual spans can be added later for business-level traces without disrupting the auto-instrumented baseline.
 
-### `TRACING_ENABLED=false` guard
+### Tracing default policy
 
-Tracing is disabled by default when `TRACING_ENABLED=false` to:
+Tracing is disabled by default in non-runtime contexts (CI / `NODE_ENV=test`) unless explicitly enabled via `TRACING_ENABLED=true`, to:
 
 - Keep unit tests deterministic (no OTLP background traffic).
 - Avoid DNS resolution failures in CI environments where Jaeger is not running.
 - Preserve `pnpm test:unit` speed (no SDK startup overhead).
 
-The guard is implemented in `TracingService` constructor before any OTel SDK call.
+The policy is implemented in `TracingService` constructor before any OTel SDK call.
 
 ## Consequences
 
 ### Positive
 
 - Every inbound HTTP request and outbound database / Redis / HTTP call is automatically traced and visible in the Jaeger UI.
-- Grafana can correlate traces with metrics (via `traceId` field linking) and logs (via Loki + Promtail label correlation).
+- Grafana can correlate traces with metrics immediately; trace-to-logs wiring is deferred to the Loki rollout.
 - Adding custom business-level spans requires only `@opentelemetry/api`: `trace.getTracer('name').startActiveSpan(...)`.
 - The instrumentation is backend-agnostic — switching to Grafana Tempo or a managed OTLP endpoint (e.g., Grafana Cloud, Honeycomb) requires only an endpoint env var change.
 

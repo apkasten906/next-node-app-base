@@ -33,9 +33,8 @@ data:
         url: http://jaeger:16686
         editable: false
         jsonData:
-          # Link Jaeger traces from Grafana Explore using the traceId field
-          tracesToLogsV2:
-            datasourceUid: prometheus
+          # tracesToLogsV2 wiring is intentionally deferred until Loki datasource
+          # is provisioned in this environment.
           nodeGraph:
             enabled: true
 

@@ -9,7 +9,9 @@ import type { ITracingService } from './ITracingService';
  * TracingService
  *
  * Initialises the OpenTelemetry Node SDK with OTLP HTTP export to Jaeger.
- * Tracing is disabled when TRACING_ENABLED=false (default in test / CI).
+ * Tracing defaults:
+ *   - enabled in runtime contexts (development / production)
+ *   - disabled in non-runtime contexts (test / CI) unless explicitly enabled
  *
  * Configuration via environment variables (standard OTEL convention):
  *   OTEL_SERVICE_NAME             - Service name label (default: "backend")
@@ -17,7 +19,7 @@ import type { ITracingService } from './ITracingService';
  *   OTEL_EXPORTER_OTLP_ENDPOINT   - Jaeger OTLP collector base URL
  *                                   (default: http://localhost:4318)
  *   OTEL_RESOURCE_ATTRIBUTES      - Additional resource key=value pairs
- *   TRACING_ENABLED               - Set to "false" to disable (default: "true")
+ *   TRACING_ENABLED               - Explicit override: "true" or "false"
  */
 @injectable()
 export class TracingService implements ITracingService {
@@ -25,7 +27,15 @@ export class TracingService implements ITracingService {
   private readonly enabled: boolean;
 
   constructor() {
-    this.enabled = process.env['TRACING_ENABLED'] !== 'false';
+    const explicitToggle = process.env['TRACING_ENABLED'];
+    const isCi = process.env['CI'] === 'true';
+    const isTest = process.env['NODE_ENV'] === 'test';
+
+    // Default policy:
+    // - runtime contexts: on
+    // - non-runtime contexts (CI/test): off
+    // Explicit TRACING_ENABLED always wins.
+    this.enabled = explicitToggle !== undefined ? explicitToggle === 'true' : !isCi && !isTest;
 
     if (!this.enabled) {
       this.sdk = null;

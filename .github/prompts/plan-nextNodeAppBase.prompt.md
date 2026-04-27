@@ -431,7 +431,7 @@ Consequence: lower migration risk and clearer package boundaries.
 ### Next priority (in order)
 
 1. **Lint/CI boundary enforcement** (Migration Plan step 5) — add an ESLint rule or CI check preventing raw `fetch` calls to backend endpoints from inside `components/**` and `app/**/page.tsx`. Prevents regression without a code review.
-2. **Phase 10 observability remainder** (branch: `feat/phase-10-observability`) — Jaeger distributed tracing, Loki centralized logging, Alertmanager, Kiali.
+2. **Phase 10 observability remainder** (branch: `feat/phase-10-observability`) — Jaeger distributed tracing, Loki centralized logging, **rewire Grafana Jaeger `tracesToLogsV2` to Loki datasource during Loki rollout**, Alertmanager, Kiali.
 3. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona + `MODERATOR` role; still on hold.
 4. **Contract package extraction** (Migration Plan step 6) — once the second consumer app (`the-azure-citadel`) is bootstrapped, promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package.
 5. **Phase 8.5 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.

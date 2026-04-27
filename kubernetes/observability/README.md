@@ -205,7 +205,7 @@ OTEL_SERVICE_NAME=backend
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 ```
 
-To disable tracing in unit tests, set `TRACING_ENABLED=false` (the default when unset in tests is disabled — see `TracingService` constructor).
+Tracing defaults to **disabled** in non-runtime contexts (CI / `NODE_ENV=test`) unless explicitly enabled. In runtime contexts (development / production), tracing is enabled unless explicitly disabled.
 
 | Dashboard                        | UID               | What it shows                                                               |
 | -------------------------------- | ----------------- | --------------------------------------------------------------------------- |
