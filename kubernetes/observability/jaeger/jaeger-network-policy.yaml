@@ -53,13 +53,33 @@ spec:
       ports:
         - protocol: TCP
           port: 14269
+    # Allow local developer `kubectl port-forward` access to the Jaeger
+    # collector and Query UI. Port-forward traffic originates from the node
+    # (kubelet/APIServer proxy), so this rule must be source-unrestricted
+    # to allow port-forwarding during local development. In production you may
+    # wish to restrict or remove this rule and instead expose the UI via an
+    # ingress controller or bastion.
+    - ports:
+        - protocol: TCP
+          port: 16686 # Jaeger Query UI
+        - protocol: TCP
+          port: 4318 # OTLP HTTP collector (port-forward)
+        - protocol: TCP
+          port: 4317 # OTLP gRPC collector (port-forward)
     # Allow kubelet health probes via Istio sidecar status port
     - ports:
         - protocol: TCP
           port: 15021
   egress:
-    # Allow DNS resolution
-    - ports:
+    # Allow DNS resolution (restricted to kube-dns in kube-system)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
         - protocol: UDP
           port: 53
         - protocol: TCP
