@@ -12,7 +12,7 @@ import morgan from 'morgan';
 import { container } from 'tsyringe';
 
 import { setupSwagger } from './config/swagger';
-import { TracingService } from './infrastructure/observability';
+import type { ITracingService } from './infrastructure/observability';
 import { apiVersionMiddleware } from './middleware/api-version.middleware';
 import { correlationIdMiddleware } from './middleware/correlation-id.middleware';
 import { attachUserIfPresent } from './middleware/jwt.middleware';
@@ -435,7 +435,7 @@ export class App {
       await this.cache.disconnect();
 
       // Flush any buffered OpenTelemetry spans before exit
-      const tracing = container.resolve<TracingService>('TracingService');
+      const tracing = container.resolve<ITracingService>('TracingService');
       await tracing.shutdown();
 
       this.logger.info('Connections closed');

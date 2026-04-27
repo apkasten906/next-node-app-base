@@ -1,7 +1,8 @@
 export interface ITracingService {
   /**
-   * Returns true if tracing has been successfully initialised and the SDK
-   * is actively exporting spans.
+   * Returns true when tracing is enabled by configuration.
+   * This does not guarantee that the SDK has been successfully initialized
+   * or that spans are currently being exported.
    */
   isEnabled(): boolean;
 

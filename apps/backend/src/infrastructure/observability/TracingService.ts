@@ -44,8 +44,16 @@ export class TracingService implements ITracingService {
 
     const endpoint = process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] ?? 'http://localhost:4318';
 
+    // Normalize exporter URL: allow users to provide either a base URL
+    // (e.g. http://localhost:4318) or a full signal endpoint
+    // (e.g. http://collector:4318/v1/traces). Avoid double-appending
+    // `/v1/traces` when it is already present.
+    const normalizedUrl = endpoint.endsWith('/v1/traces')
+      ? endpoint
+      : `${endpoint.replace(/\/+$/u, '')}/v1/traces`;
+
     const exporter = new OTLPTraceExporter({
-      url: `${endpoint}/v1/traces`,
+      url: normalizedUrl,
     });
 
     // Service name / version / resource attributes are read from standard

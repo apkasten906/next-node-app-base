@@ -6,12 +6,6 @@ Reframe this repository from a single reusable app template into a reusable plat
 
 This plan is analysis-first. It does not authorize destructive moves. It should guide safe, incremental refactoring.
 
-## Current Snapshot
-
-- **Stable and merged**: frontend auth/UI boundary cleanup and lint/CI boundary enforcement are complete.
-- **In progress**: distributed tracing is implemented on `feat/phase-10-jaeger-tracing` and open as PR #51.
-- **Next execution target**: finish the remaining Phase 10 observability slice: Loki, Grafana Jaeger-to-Loki rewiring, Alertmanager, and Kiali.
-
 ## Guardrails
 
 - Do not start with broad file moves or package splits.
@@ -371,12 +365,16 @@ UI components must not directly call backend or auth endpoints.
 
 - Once seams are stable and validated, move folders toward the target structure with mechanical, low-risk refactors.
 
-## J. Execution Notes
+## J. First Concrete Changes — ✅ DONE (PR #50, April 2026)
 
-The detailed step-by-step execution history for the frontend boundary cleanup is intentionally collapsed here to avoid duplicating status across multiple sections.
+All six steps were completed as part of `feat/frontend-auth-boundaries`:
 
-- Historical implementation details are captured by PR #50 and its follow-up lint/CI enforcement work.
-- The live source of truth for completed, in-flight, and next work is section M below.
+1. ✅ Introduced `apps/frontend/lib/api/auth-api.ts` as the single auth transport module.
+2. ✅ Introduced `apps/frontend/src/application/auth/sign-in.ts` and `src/hooks/auth/use-sign-in.ts`.
+3. ✅ Refactored `signin-client.tsx` to call `useSignIn()` instead of direct `fetch`.
+4. ✅ Introduced `apps/frontend/src/server/auth/require-current-user.ts` (server-only).
+5. ✅ Refactored `dashboard/page.tsx` and `dashboard/bdd/page.tsx` to use server gateways.
+6. ✅ **DONE**: Added frontend boundary enforcement via ESLint + CI workflow, with contributor guidance.
 
 ## K. ADR Notes
 
@@ -421,7 +419,7 @@ Consequence: lower migration risk and clearer package boundaries.
 - The first refactoring wave (frontend auth/UI boundaries) is complete. Backend service extraction comes after Phase 10 observability.
 - ✅ UI/auth boundary cleanup is in place and validated. File moves remain gated behind seam stabilization.
 
-## M. Execution State and Next Focus
+## M. Current Status and Next Focus
 
 ### Completed — April 2026
 
