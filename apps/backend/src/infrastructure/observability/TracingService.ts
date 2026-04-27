@@ -65,7 +65,11 @@ export class TracingService implements ITracingService {
       ],
     });
 
-    this.sdk.start();
+    void Promise.resolve(this.sdk.start()).catch((error: unknown) => {
+      // Tracing must not crash the app during bootstrap, but startup failures
+      // should be visible instead of silently disabling telemetry.
+      console.error('Failed to initialize OpenTelemetry tracing', error);
+    });
   }
 
   isEnabled(): boolean {

@@ -55,6 +55,10 @@ if (!container.isRegistered('TracingService')) {
   container.registerSingleton('TracingService', TracingService);
 }
 
+// Eagerly resolve tracing so the OpenTelemetry SDK is initialised during
+// application bootstrap rather than only on shutdown.
+container.resolve<TracingService>('TracingService');
+
 // Register user domain bindings
 if (!container.isRegistered(UserRepository)) {
   container.registerSingleton(UserRepository);

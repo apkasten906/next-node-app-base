@@ -129,8 +129,8 @@ The policy is implemented in `TracingService` constructor before any OTel SDK ca
 
 ## Related ADRs
 
-- [ADR-013](./013-correlation-ids.md) — Correlation IDs — `X-Correlation-ID` header propagated by the correlation-id middleware complements trace context for log–trace correlation.
-- [ADR-015](./015-prometheus-rules-configmap.md) — Prometheus rules ConfigMap.
+- [ADR-013](./013-correlation-ids-for-request-tracing.md) — Correlation IDs — `X-Correlation-ID` header propagated by the correlation-id middleware complements trace context for log–trace correlation.
+- [ADR-015](./015-prometheus-rules-management.md) — Prometheus rules ConfigMap.
 - [ADR-016](./016-secure-by-default-prometheus-scraping.md) — Secure-by-default Prometheus scraping.
 - [ADR-017](./017-grafana-loki-observability-stack.md) — Grafana + Loki — Jaeger is added as a datasource alongside Prometheus.
 
