@@ -2,19 +2,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the OTLP exporter and NodeSDK before importing TracingService
 vi.mock('@opentelemetry/exporter-trace-otlp-http', () => ({
-  OTLPTraceExporter: vi.fn().mockImplementation(() => ({
-    /* dummy exporter */
-  })),
+  // Use a class expression so `new OTLPTraceExporter()` succeeds in Vitest v4+.
+  OTLPTraceExporter: vi.fn().mockImplementation(class OTLPTraceExporter {}),
 }));
 
 const startMock = vi.fn().mockResolvedValue(undefined);
 const shutdownMock = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('@opentelemetry/sdk-node', () => ({
-  NodeSDK: vi.fn().mockImplementation(() => ({
-    start: startMock,
-    shutdown: shutdownMock,
-  })),
+  // Use a regular function so `new NodeSDK()` succeeds and instances carry the
+  // shared startMock / shutdownMock spies that the tests assert on.
+  NodeSDK: vi.fn().mockImplementation(function NodeSDK(this: {
+    start: typeof startMock;
+    shutdown: typeof shutdownMock;
+  }) {
+    this.start = startMock;
+    this.shutdown = shutdownMock;
+  }),
 }));
 
 // Auto-instrumentations are not exercised in these unit tests; provide a noop
@@ -41,7 +45,7 @@ describe('TracingService', () => {
   it('is disabled in CI by default', async () => {
     process.env.CI = 'true';
     // Re-import with CI set
-    const mod = await import('../../../../infrastructure/observability/TracingService');
+    const mod = await import('../../../infrastructure/observability/TracingService');
     const TS = mod.TracingService;
     const svc = new TS();
     expect(svc.isEnabled()).toBe(false);
@@ -49,13 +53,16 @@ describe('TracingService', () => {
 
   it('is disabled in NODE_ENV=test unless TRACING_ENABLED=true', async () => {
     process.env.NODE_ENV = 'test';
-    const mod1 = await import('../../../../infrastructure/observability/TracingService');
+    const mod1 = await import('../../../infrastructure/observability/TracingService');
     const TS = mod1.TracingService;
     const svc = new TS();
     expect(svc.isEnabled()).toBe(false);
 
     process.env.TRACING_ENABLED = 'true';
-    const mod2 = await import('../../../../infrastructure/observability/TracingService');
+    // Must reset module registry so the next import re-executes TracingService
+    // and picks up the updated TRACING_ENABLED env var.
+    vi.resetModules();
+    const mod2 = await import('../../../infrastructure/observability/TracingService');
     const TS2 = mod2.TracingService;
     const svc2 = new TS2();
     expect(svc2.isEnabled()).toBe(true);
@@ -66,7 +73,7 @@ describe('TracingService', () => {
     process.env.OTEL_EXPORTER_OTLP_ENDPOINT = 'http://collector:4318/';
 
     // Re-import to pick up env
-    const mod = await import('../../../../infrastructure/observability/TracingService');
+    const mod = await import('../../../infrastructure/observability/TracingService');
     const TS = mod.TracingService;
     const svc = new TS();
 
@@ -82,7 +89,7 @@ describe('TracingService', () => {
     process.env.TRACING_ENABLED = 'true';
     process.env.OTEL_EXPORTER_OTLP_ENDPOINT = 'http://collector:4318/v1/traces';
 
-    const mod = await import('../../../../infrastructure/observability/TracingService');
+    const mod = await import('../../../infrastructure/observability/TracingService');
     const TS = mod.TracingService;
     const svc = new TS();
 

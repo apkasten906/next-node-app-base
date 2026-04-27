@@ -1,6 +1,8 @@
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import { NodeSDK } from '@opentelemetry/sdk-node';
+import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { injectable } from 'tsyringe';
 
 import type { ITracingService } from './ITracingService';
@@ -56,14 +58,16 @@ export class TracingService implements ITracingService {
       url: normalizedUrl,
     });
 
-    // Service name / version / resource attributes are read from standard
-    // OTEL env vars (OTEL_SERVICE_NAME, OTEL_RESOURCE_ATTRIBUTES) by the SDK.
-    // Set sensible defaults so the service is identifiable when env vars are absent.
-    if (!process.env['OTEL_SERVICE_NAME']) {
-      process.env['OTEL_SERVICE_NAME'] = 'backend';
-    }
+    // Service name is supplied via Resource so the default 'backend' does not
+    // require mutating process.env. The OTEL_SERVICE_NAME env var, when set,
+    // is read by the SDK's own env-detector and will override this default.
+    const serviceName = process.env['OTEL_SERVICE_NAME'] ?? 'backend';
+    const resource = resourceFromAttributes({
+      [ATTR_SERVICE_NAME]: serviceName,
+    });
 
     this.sdk = new NodeSDK({
+      resource,
       traceExporter: exporter,
       instrumentations: [
         getNodeAutoInstrumentations({
@@ -73,11 +77,16 @@ export class TracingService implements ITracingService {
       ],
     });
 
-    void Promise.resolve(this.sdk.start()).catch((error: unknown) => {
-      // Tracing must not crash the app during bootstrap, but startup failures
-      // should be visible instead of silently disabling telemetry.
-      console.error('Failed to initialize OpenTelemetry tracing', error);
-    });
+    // NodeSDK.start() is synchronous; wrap in try/catch so a startup failure
+    // does not crash the application. The error is written to stderr so it
+    // remains visible without silently disabling telemetry.
+    try {
+      this.sdk.start();
+    } catch (error: unknown) {
+      process.stderr.write(
+        `[TracingService] Failed to initialize OpenTelemetry tracing: ${String(error)}\n`
+      );
+    }
   }
 
   isEnabled(): boolean {

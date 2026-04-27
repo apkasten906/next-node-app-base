@@ -431,12 +431,13 @@ export class App {
         });
       }
 
-      await this.database.disconnect();
-      await this.cache.disconnect();
-
-      // Flush any buffered OpenTelemetry spans before exit
+      // Flush buffered OpenTelemetry spans first so spans from database and
+      // cache teardown operations are exported before those connections close.
       const tracing = container.resolve<ITracingService>('TracingService');
       await tracing.shutdown();
+
+      await this.database.disconnect();
+      await this.cache.disconnect();
 
       this.logger.info('Connections closed');
     } catch (error) {
