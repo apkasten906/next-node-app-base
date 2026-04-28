@@ -98,4 +98,17 @@ describe('TracingService', () => {
     await svc.shutdown();
     expect(shutdownMock).toHaveBeenCalled();
   });
+
+  it('does not append /v1/traces when endpoint has trailing slash after it', async () => {
+    process.env.TRACING_ENABLED = 'true';
+    process.env.OTEL_EXPORTER_OTLP_ENDPOINT = 'http://collector:4318/v1/traces/';
+
+    const mod = await import('../../../infrastructure/observability/TracingService');
+    const TS = mod.TracingService;
+    const svc = new TS();
+
+    expect(startMock).toHaveBeenCalled();
+    await svc.shutdown();
+    expect(shutdownMock).toHaveBeenCalled();
+  });
 });

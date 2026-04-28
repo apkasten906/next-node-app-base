@@ -70,6 +70,8 @@ spec:
           port: 3000
         - protocol: TCP
           port: 15090 # Istio Envoy metrics
+        - protocol: TCP
+          port: 14269 # Jaeger admin / metrics
     # Allow DNS resolution
     - to:
         - namespaceSelector:

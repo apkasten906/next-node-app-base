@@ -48,10 +48,11 @@ export class TracingService implements ITracingService {
 
     // Normalize exporter URL: allow users to provide either a base URL
     // (e.g. http://localhost:4318) or a full signal endpoint
-    // (e.g. http://collector:4318/v1/traces). Avoid double-appending
-    // `/v1/traces` when it is already present.
-    const normalizedUrl = endpoint.endsWith('/v1/traces')
-      ? endpoint
+    // (e.g. http://collector:4318/v1/traces or http://collector:4318/v1/traces/).
+    // Avoid double-appending `/v1/traces` when it is already present, including
+    // when the user supplied a trailing slash after the signal path.
+    const normalizedUrl = /\/v1\/traces\/?$/u.test(endpoint)
+      ? endpoint.replace(/\/+$/u, '')
       : `${endpoint.replace(/\/+$/u, '')}/v1/traces`;
 
     const exporter = new OTLPTraceExporter({

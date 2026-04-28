@@ -57,6 +57,7 @@ export class App {
   private readonly database: DatabaseService;
   private readonly cache: CacheService;
   private websocket?: WebSocketService;
+  private readonly tracing: ITracingService;
 
   private queuesEnabled(): boolean {
     return process.env['DISABLE_QUEUES'] !== 'true';
@@ -68,6 +69,10 @@ export class App {
 
   constructor() {
     this.app = express();
+    // Resolve TracingService eagerly so the OpenTelemetry SDK is started at
+    // application initialisation time rather than deferred until shutdown.
+    // The singleton instance created here is the same one shut down later.
+    this.tracing = container.resolve<ITracingService>('TracingService');
     this.logger = container.resolve(LoggerService);
     this.database = container.resolve(DatabaseService);
     this.cache = container.resolve(CacheService);
@@ -433,8 +438,7 @@ export class App {
 
       // Flush buffered OpenTelemetry spans first so spans from database and
       // cache teardown operations are exported before those connections close.
-      const tracing = container.resolve<ITracingService>('TracingService');
-      await tracing.shutdown();
+      await this.tracing.shutdown();
 
       await this.database.disconnect();
       await this.cache.disconnect();
