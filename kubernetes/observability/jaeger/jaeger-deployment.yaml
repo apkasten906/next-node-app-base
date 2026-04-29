@@ -1,0 +1,155 @@
+# Jaeger All-in-One Deployment and Services
+#
+# Uses the all-in-one image for development / staging clusters.
+# In production, replace with the Jaeger Operator or a split
+# collector + query + storage deployment backed by Elasticsearch or Cassandra.
+#
+# Ports exposed:
+#   4317  - OTLP gRPC (OpenTelemetry collector receiver)
+#   4318  - OTLP HTTP (OpenTelemetry collector receiver)
+#   16686 - Jaeger Query UI and HTTP API (used by Grafana datasource)
+#   14269 - Jaeger admin / health
+#
+# In-memory storage is used by default (suitable for development only).
+# Traces are lost on pod restart.  Switch to a persistent backend by
+# setting SPAN_STORAGE_TYPE and the matching storage env vars.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: observability
+  labels:
+    app: jaeger
+    component: tracing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: tracing
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '14269'
+        prometheus.io/path: '/metrics'
+    spec:
+      # Jaeger does not call the Kubernetes API — disable the auto-mounted
+      # service-account token to reduce the blast radius of a container escape.
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+      containers:
+        - name: jaeger
+          image: jaegertracing/all-in-one:1.57
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              containerPort: 4318
+              protocol: TCP
+            - name: query-http
+              containerPort: 16686
+              protocol: TCP
+            - name: admin
+              containerPort: 14269
+              protocol: TCP
+          env:
+            - name: SPAN_STORAGE_TYPE
+              value: memory
+            - name: MEMORY_MAX_TRACES
+              value: '10000'
+            # Disable the Jaeger agent UDP ports — OTLP-only ingestion
+            - name: COLLECTOR_OTLP_ENABLED
+              value: 'true'
+            # Disable the legacy thrift endpoints to reduce attack surface
+            - name: COLLECTOR_ZIPKIN_HOST_PORT
+              value: ''
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              # Jaeger writes temp files and logs to ephemeral storage even with
+              # in-memory trace storage.  256Mi covers normal operation; raise if
+              # switching to a file-backed storage type (e.g. Badger).
+              ephemeral-storage: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              # 1Gi cap prevents runaway writes from evicting other pods on the
+              # same node.  Increase proportionally if MEMORY_MAX_TRACES is raised.
+              ephemeral-storage: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: admin
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: admin
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+---
+# ClusterIP for OTLP ingestion (backends in other namespaces use this)
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  namespace: observability
+  labels:
+    app: jaeger
+    component: tracing
+spec:
+  selector:
+    app: jaeger
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+      protocol: TCP
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+      protocol: TCP
+  type: ClusterIP
+---
+# ClusterIP for Grafana query access and UI (within observability namespace)
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  namespace: observability
+  labels:
+    app: jaeger
+    component: tracing
+spec:
+  selector:
+    app: jaeger
+  ports:
+    - name: query-http
+      port: 16686
+      targetPort: query-http
+      protocol: TCP
+    - name: admin
+      port: 14269
+      targetPort: admin
+      protocol: TCP
+  type: ClusterIP

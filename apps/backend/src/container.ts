@@ -5,7 +5,7 @@ import { container } from 'tsyringe';
 
 // Register authentication services
 import { UserController } from './controllers/user.controller';
-import { MetricsService } from './infrastructure/observability';
+import { MetricsService, TracingService } from './infrastructure/observability';
 import { UserRepository } from './repositories/user.repository';
 import { AuditLogService } from './services/audit/audit-log.service';
 import { AuthorizationService } from './services/auth/authorization.service';
@@ -51,6 +51,14 @@ if (!container.isRegistered('PrometheusRegistry')) {
 if (!container.isRegistered('MetricsService')) {
   container.registerSingleton('MetricsService', MetricsService);
 }
+if (!container.isRegistered('TracingService')) {
+  container.registerSingleton('TracingService', TracingService);
+}
+
+// Tracing SDK should be initialised from a dedicated early-entry bootstrap
+// (e.g., `bootstrap.ts`) to ensure auto-instrumentation starts before other
+// instrumented modules are imported. Avoid eager resolution here to keep
+// container imports side-effect free.
 
 // Register user domain bindings
 if (!container.isRegistered(UserRepository)) {
