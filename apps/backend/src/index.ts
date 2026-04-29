@@ -69,9 +69,9 @@ export class App {
 
   constructor() {
     this.app = express();
-    // Resolve TracingService eagerly so the OpenTelemetry SDK is started at
-    // application initialisation time rather than deferred until shutdown.
-    // The singleton instance created here is the same one shut down later.
+    // Obtain the TracingService singleton that was already started in
+    // bootstrap.ts before any instrumented modules (express, pg, etc.)
+    // were loaded. Resolving here gives us the instance needed for shutdown.
     this.tracing = container.resolve<ITracingService>('TracingService');
     this.logger = container.resolve(LoggerService);
     this.database = container.resolve(DatabaseService);
@@ -436,12 +436,12 @@ export class App {
         });
       }
 
-      // Flush buffered OpenTelemetry spans first so spans from database and
-      // cache teardown operations are exported before those connections close.
-      await this.tracing.shutdown();
-
       await this.database.disconnect();
       await this.cache.disconnect();
+
+      // Shut down OpenTelemetry last so spans emitted during dependency
+      // teardown can still be captured and exported before tracing stops.
+      await this.tracing.shutdown();
 
       this.logger.info('Connections closed');
     } catch (error) {

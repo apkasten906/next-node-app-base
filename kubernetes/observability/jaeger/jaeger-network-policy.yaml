@@ -1,6 +1,6 @@
 # NetworkPolicy for Jaeger
 # Principle of least privilege:
-#   - Only the backend application namespace may send traces to the collector.
+#   - Only the backend application (default namespace) may send traces to the collector.
 #   - Only Grafana (in the observability namespace) may query the Jaeger API.
 #   - Prometheus may scrape the admin port.
 #   - No egress required beyond health probes (in-memory storage only).
@@ -21,11 +21,11 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Allow the backend application namespace to send OTLP traces
+    # Allow the backend application (runs in the 'default' namespace) to send OTLP traces
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: backend
+              kubernetes.io/metadata.name: default
       ports:
         - protocol: TCP
           port: 4317 # OTLP gRPC
