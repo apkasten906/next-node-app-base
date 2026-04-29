@@ -36,7 +36,7 @@ Jaeger provides distributed tracing for:
 
 Jaeger receives traces from the backend over **OTLP HTTP** (port 4318) using the OpenTelemetry Node.js SDK. See `../../docs/adr/019-opentelemetry-jaeger-distributed-tracing.md` for the full decision record.
 
-The `all-in-one` image is used here (in-memory storage, suitable for development/staging). For production, replace with the Jaeger Operator or a split deployment backed by Elasticsearch or Badger — only an env var change is required in the application.
+The `all-in-one` image is used here (in-memory storage, suitable for development/staging). For production, replace it with the Jaeger Operator or a split deployment backed by Elasticsearch or Badger. This is a Jaeger deployment/storage configuration change; the application's OpenTelemetry instrumentation can remain unchanged as long as it continues exporting to the same OTLP endpoint. Only update application env vars if the OTLP endpoint itself changes when switching trace backends or collectors.
 
 ### Centralized Logging
 

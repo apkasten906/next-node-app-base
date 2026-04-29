@@ -2,8 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the OTLP exporter and NodeSDK before importing TracingService
 vi.mock('@opentelemetry/exporter-trace-otlp-http', () => ({
-  // Use a class expression so `new OTLPTraceExporter()` succeeds in Vitest v4+.
-  OTLPTraceExporter: vi.fn().mockImplementation(class OTLPTraceExporter {}),
+  // Use a regular function so `new OTLPTraceExporter(opts)` succeeds and the
+  // constructor args (including `url`) are captured for assertion.
+  OTLPTraceExporter: vi.fn().mockImplementation(function (
+    this: { url?: string },
+    opts?: { url?: string }
+  ) {
+    if (opts?.url) this.url = opts.url;
+  }),
 }));
 
 const startMock = vi.fn().mockResolvedValue(undefined);

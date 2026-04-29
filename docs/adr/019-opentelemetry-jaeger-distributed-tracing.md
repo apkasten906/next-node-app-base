@@ -119,7 +119,7 @@ The policy is implemented in `TracingService` constructor before any OTel SDK ca
 ### Negative
 
 - `@opentelemetry/auto-instrumentations-node` adds ~119 packages to the backend dependency tree (protobufjs, grpc transitive deps). Acceptable for a platform template; production deployments that are size-sensitive can trim to only required instrumentations.
-- The `NodeSDK` `start()` call must happen before any instrumented library is imported. The current setup initialises `TracingService` in the DI container, which runs during `container.ts` import — this is before Express routes are imported. If this order changes, auto-instrumentation for Express may be incomplete.
+- The `NodeSDK` `start()` call must happen before any instrumented library is imported. `TracingService` is instantiated in `bootstrap.ts` (the very first import in `index.ts`) via `container.registerInstance`, so the SDK is started before `express`, `pg`/Prisma, and all other instrumented dependencies are loaded. `NodeSDK.start()` is synchronous in the current SDK release (`@opentelemetry/sdk-node@0.215.0`); a `try/catch` is used to surface startup errors to stderr without crashing the process.
 - In-memory Jaeger storage is ephemeral. Do not rely on it for compliance, SLO evidence, or post-mortem analysis.
 
 ### Neutral

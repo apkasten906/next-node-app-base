@@ -37,7 +37,8 @@ export class TracingService implements ITracingService {
     // - runtime contexts: on
     // - non-runtime contexts (CI/test): off
     // Explicit TRACING_ENABLED always wins.
-    this.enabled = explicitToggle !== undefined ? explicitToggle === 'true' : !isCi && !isTest;
+    const isRuntime = !isCi && !isTest;
+    this.enabled = explicitToggle === undefined ? isRuntime : explicitToggle === 'true';
 
     if (!this.enabled) {
       this.sdk = null;
@@ -78,9 +79,9 @@ export class TracingService implements ITracingService {
       ],
     });
 
-    // NodeSDK.start() is synchronous; wrap in try/catch so a startup failure
-    // does not crash the application. The error is written to stderr so it
-    // remains visible without silently disabling telemetry.
+    // NodeSDK.start() is synchronous in the current SDK release (returns void,
+    // not Promise<void>). The try/catch reliably catches synchronous startup
+    // errors and writes them to stderr without crashing the process.
     try {
       this.sdk.start();
     } catch (error: unknown) {

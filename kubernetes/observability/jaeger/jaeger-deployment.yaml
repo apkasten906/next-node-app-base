@@ -37,6 +37,9 @@ spec:
         prometheus.io/port: '14269'
         prometheus.io/path: '/metrics'
     spec:
+      # Jaeger does not call the Kubernetes API — disable the auto-mounted
+      # service-account token to reduce the blast radius of a container escape.
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
@@ -72,9 +75,16 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
+              # Jaeger writes temp files and logs to ephemeral storage even with
+              # in-memory trace storage.  256Mi covers normal operation; raise if
+              # switching to a file-backed storage type (e.g. Badger).
+              ephemeral-storage: 256Mi
             limits:
               cpu: 500m
               memory: 512Mi
+              # 1Gi cap prevents runaway writes from evicting other pods on the
+              # same node.  Increase proportionally if MEMORY_MAX_TRACES is raised.
+              ephemeral-storage: 1Gi
           livenessProbe:
             httpGet:
               path: /
