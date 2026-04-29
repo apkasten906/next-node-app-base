@@ -80,6 +80,13 @@ describe('TracingService', () => {
     // When enabled, NodeSDK.start should have been called
     expect(startMock).toHaveBeenCalled();
 
+    // Assert the exporter was constructed with the correctly normalized URL
+    // (trailing slash stripped, /v1/traces appended exactly once)
+    const { OTLPTraceExporter } = await import('@opentelemetry/exporter-trace-otlp-http');
+    expect(OTLPTraceExporter).toHaveBeenCalledWith(
+      expect.objectContaining({ url: 'http://collector:4318/v1/traces' })
+    );
+
     // Shutdown should call NodeSDK.shutdown without throwing
     await svc.shutdown();
     expect(shutdownMock).toHaveBeenCalled();
@@ -95,6 +102,12 @@ describe('TracingService', () => {
 
     expect(startMock).toHaveBeenCalled();
 
+    // Assert the URL is passed through unchanged (no double-append)
+    const { OTLPTraceExporter } = await import('@opentelemetry/exporter-trace-otlp-http');
+    expect(OTLPTraceExporter).toHaveBeenCalledWith(
+      expect.objectContaining({ url: 'http://collector:4318/v1/traces' })
+    );
+
     await svc.shutdown();
     expect(shutdownMock).toHaveBeenCalled();
   });
@@ -108,6 +121,13 @@ describe('TracingService', () => {
     const svc = new TS();
 
     expect(startMock).toHaveBeenCalled();
+
+    // Assert trailing slash is stripped and /v1/traces is not duplicated
+    const { OTLPTraceExporter } = await import('@opentelemetry/exporter-trace-otlp-http');
+    expect(OTLPTraceExporter).toHaveBeenCalledWith(
+      expect.objectContaining({ url: 'http://collector:4318/v1/traces' })
+    );
+
     await svc.shutdown();
     expect(shutdownMock).toHaveBeenCalled();
   });
