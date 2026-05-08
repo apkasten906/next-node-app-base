@@ -140,10 +140,5 @@
     "virtualservice",
     "wordprocessingml",
     "WSJF"
-  ],
-  "chat.tools.terminal.autoApprove": {
-    "ConvertFrom-Json": true,
-    "Get-Member": true,
-    "ForEach-Object": true
-  }
+  ]
 }

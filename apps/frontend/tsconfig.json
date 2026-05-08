@@ -5,12 +5,10 @@
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "jsx": "preserve",
     "module": "esnext",
-    "moduleResolution": "bundler",
     "allowJs": true,
     "noEmit": true,
     "isolatedModules": true,
     "rootDir": ".",
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
       "@repo/utils": ["../../packages/utils/src"],

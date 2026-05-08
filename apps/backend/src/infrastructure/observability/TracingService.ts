@@ -17,10 +17,10 @@ import type { ITracingService } from './ITracingService';
  *
  * Configuration via environment variables (standard OTEL convention):
  *   OTEL_SERVICE_NAME             - Service name label (default: "backend")
- *   OTEL_SERVICE_VERSION          - Service version label
  *   OTEL_EXPORTER_OTLP_ENDPOINT   - Jaeger OTLP collector base URL
  *                                   (default: http://localhost:4318)
  *   OTEL_RESOURCE_ATTRIBUTES      - Additional resource key=value pairs
+ *                                   (e.g. service.version=1.0.0)
  *   TRACING_ENABLED               - Explicit override: "true" or "false"
  */
 @injectable()
