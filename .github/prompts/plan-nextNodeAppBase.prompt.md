@@ -348,7 +348,7 @@ UI components must not directly call backend or auth endpoints.
 ### 5. Add a lightweight architectural enforcement mechanism — ✅ DONE (PR `feat/lint-ci-boundary-enforcement`, April 2026)
 
 - `no-restricted-syntax` rule in `eslint.config.js` blocks raw `fetch()` in `components/**`, `app/**/!(route).{ts,tsx}`, and `src/hooks/**`.
-- Exceptions: `lib/api/**`, `src/server/**`, `app/api/**` route handlers, and test files.
+- Exceptions: `app/api/**` (entire directory excluded via ESLint `ignores`). Files outside those three glob patterns — including `lib/api/**` and `src/server/**` — are not subject to the rule. Test files are not explicitly excluded; a test file inside a blocked directory would be caught.
 - `lint.yml` CI workflow enforces the rule on every push and PR.
 - `CONTRIBUTING.md` documents the required call path for contributors.
 
