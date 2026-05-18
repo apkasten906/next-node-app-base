@@ -12,6 +12,7 @@ import morgan from 'morgan';
 import { container } from 'tsyringe';
 
 import { setupSwagger } from './config/swagger';
+import type { ITracingService } from './infrastructure/observability';
 import { apiVersionMiddleware } from './middleware/api-version.middleware';
 import { correlationIdMiddleware } from './middleware/correlation-id.middleware';
 import { attachUserIfPresent } from './middleware/jwt.middleware';
@@ -56,6 +57,7 @@ export class App {
   private readonly database: DatabaseService;
   private readonly cache: CacheService;
   private websocket?: WebSocketService;
+  private readonly tracing: ITracingService;
 
   private queuesEnabled(): boolean {
     return process.env['DISABLE_QUEUES'] !== 'true';
@@ -67,6 +69,10 @@ export class App {
 
   constructor() {
     this.app = express();
+    // Obtain the TracingService singleton that was already started in
+    // bootstrap.ts before any instrumented modules (express, pg, etc.)
+    // were loaded. Resolving here gives us the instance needed for shutdown.
+    this.tracing = container.resolve<ITracingService>('TracingService');
     this.logger = container.resolve(LoggerService);
     this.database = container.resolve(DatabaseService);
     this.cache = container.resolve(CacheService);
@@ -432,6 +438,11 @@ export class App {
 
       await this.database.disconnect();
       await this.cache.disconnect();
+
+      // Shut down OpenTelemetry last so spans emitted during dependency
+      // teardown can still be captured and exported before tracing stops.
+      await this.tracing.shutdown();
+
       this.logger.info('Connections closed');
     } catch (error) {
       this.logger.error('Error during shutdown', error as Error);

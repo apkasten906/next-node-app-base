@@ -26,6 +26,18 @@ data:
           httpMethod: "POST"
           incrementalQuerying: true
 
+      - name: Jaeger
+        type: jaeger
+        uid: jaeger
+        access: proxy
+        url: http://jaeger:16686
+        editable: false
+        jsonData:
+          # tracesToLogsV2 wiring is intentionally deferred until Loki datasource
+          # is provisioned in this environment.
+          nodeGraph:
+            enabled: true
+
   dashboards.yaml: |
     apiVersion: 1
     providers:

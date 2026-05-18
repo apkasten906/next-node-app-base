@@ -34,6 +34,10 @@ Jaeger provides distributed tracing for:
 - Performance bottleneck identification
 - Error tracking and debugging
 
+Jaeger receives traces from the backend over **OTLP HTTP** (port 4318) using the OpenTelemetry Node.js SDK. See `../../docs/adr/019-opentelemetry-jaeger-distributed-tracing.md` for the full decision record.
+
+The `all-in-one` image is used here (in-memory storage, suitable for development/staging). For production, replace it with the Jaeger Operator or a split deployment backed by Elasticsearch or Badger. This is a Jaeger deployment/storage configuration change; the application's OpenTelemetry instrumentation can remain unchanged as long as it continues exporting to the same OTLP endpoint. Only update application env vars if the OTLP endpoint itself changes when switching trace backends or collectors.
+
 ### Centralized Logging
 
 Choose between:
@@ -166,6 +170,63 @@ kubectl port-forward -n observability svc/grafana 3000:3000
 ```
 
 Three dashboards are pre-loaded automatically:
+
+### Deploy Jaeger
+
+```bash
+# Deploy Jaeger (Deployment + Services)
+kubectl apply -f jaeger/jaeger-deployment.yaml
+
+# Deploy NetworkPolicy
+kubectl apply -f jaeger/jaeger-network-policy.yaml
+
+# Verify
+kubectl get pods -n observability -l app=jaeger
+kubectl logs -n observability -l app=jaeger
+```
+
+### Access Jaeger UI
+
+```bash
+# Port forward Jaeger Query UI
+kubectl port-forward -n observability svc/jaeger 16686:16686
+
+# Open http://localhost:16686 in browser
+# Select "backend" from the Service drop-down and click "Find Traces"
+```
+
+#### Backend configuration for local development
+
+Traces are sent to Jaeger over OTLP HTTP. Set these env vars in `apps/backend/.env`:
+
+```env
+TRACING_ENABLED=true
+OTEL_SERVICE_NAME=backend
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+```
+
+Note on local vs in-cluster endpoints
+
+If Jaeger is deployed in-cluster you will typically point the backend at the in-cluster collector service (example):
+
+```env
+# when the backend runs inside the cluster
+OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger-collector.observability:4318
+```
+
+When developing locally against an in-cluster Jaeger, you can port-forward the collector to `localhost:4318` so the application can use the `http://localhost:4318` endpoint shown above. Example:
+
+```bash
+# Port-forward the Jaeger collector (OTLP/HTTP)
+kubectl -n observability port-forward svc/jaeger-collector 4318:4318
+
+# Port-forward the Jaeger query UI (optional)
+kubectl -n observability port-forward svc/jaeger 16686:16686
+```
+
+If you're running a local Jaeger (e.g., Docker `all-in-one`) that exposes `4318`/`16686` directly on the host, point `OTEL_EXPORTER_OTLP_ENDPOINT` to the matching host URL instead.
+
+Tracing defaults to **disabled** in non-runtime contexts (CI / `NODE_ENV=test`) unless explicitly enabled. In runtime contexts (development / production), tracing is enabled unless explicitly disabled.
 
 | Dashboard                        | UID               | What it shows                                                               |
 | -------------------------------- | ----------------- | --------------------------------------------------------------------------- |
