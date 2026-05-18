@@ -146,7 +146,7 @@ UI component / page
 
 **Allowed locations for `fetch`:** `apps/frontend/lib/api/**`, `apps/frontend/src/server/**`, and `apps/frontend/app/api/**` (the entire Next.js API routes directory is excluded from the rule).
 
-**Blocked locations:** `apps/frontend/components/**`, all `.ts`/`.tsx` files under `apps/frontend/app/**` except those inside `app/api/**` (i.e. `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, and any other non-API-route file), and `apps/frontend/src/hooks/**`. Note: test files inside these directories are also subject to the rule.
+**Blocked locations:** files matching `apps/frontend/app/**/!(route).{ts,tsx}` (i.e. any `.ts`/`.tsx` under `app/**` whose filename is not `route` — `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, etc. are blocked; `route.ts`/`route.tsx` are exempt everywhere under `app/**`; and the entire `app/api/**` directory is excluded from the rule), `apps/frontend/components/**`, and `apps/frontend/src/hooks/**`. Note: test files inside blocked directories are also subject to the rule.
 
 This rule is enforced automatically by ESLint (`no-restricted-syntax` in the root `eslint.config.js`) and by the `Lint` CI workflow. A violation will fail the pre-commit hook and block the PR.
 
