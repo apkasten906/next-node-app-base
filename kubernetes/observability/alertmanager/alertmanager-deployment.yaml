@@ -1,8 +1,8 @@
 # Alertmanager Deployment, Service, and PersistentVolumeClaim
 #
 # Port: 9093 (HTTP API + UI used by Prometheus to route alerts)
-# Port: 9094 (cluster mesh — unused in single-replica dev mode; kept for
-#             operational parity with multi-replica HA configs)
+# Clustering is disabled via --cluster.listen-address= ; port 9094 is not
+# exposed.
 ---
 apiVersion: apps/v1
 kind: Deployment

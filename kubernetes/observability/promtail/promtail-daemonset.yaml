@@ -5,7 +5,8 @@
 # Loki over HTTP (port 3100).
 #
 # Security notes:
-#   - hostPath mounts are read-only and scoped to /var/log and /run/promtail.
+#   - The /var/log hostPath mount is read-only.  /run/promtail (positions
+#     file) is backed by an emptyDir volume, not a hostPath.
 #   - The container runs as root because kubelet writes logs with root
 #     ownership.  The ServiceAccount token is auto-mounted for Kubernetes
 #     service-discovery only; the ClusterRole grants read access to pods and
