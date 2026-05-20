@@ -31,12 +31,13 @@ metadata:
     app: promtail
     component: logging
 rules:
+  # Minimal permissions for kubernetes_sd_configs role: pod.
+  # nodes — required for pod-to-node metadata (__meta_kubernetes_pod_node_name).
+  # pods  — required for pod discovery and label/annotation metadata.
+  # nodes/proxy, services, and endpoints are not needed for pod-role SD.
   - apiGroups: ['']
     resources:
       - nodes
-      - nodes/proxy
-      - services
-      - endpoints
       - pods
     verbs: ['get', 'watch', 'list']
 ---
