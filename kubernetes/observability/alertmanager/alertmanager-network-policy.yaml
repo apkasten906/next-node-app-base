@@ -55,3 +55,15 @@ spec:
     - ports:
         - protocol: TCP
           port: 443
+    # Allow Istio control-plane communication (xDS/SDS config from istiod).
+    # Required when istio-injection: enabled is set on the namespace so the
+    # envoy sidecar can receive configuration and come up healthy.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+      ports:
+        - protocol: TCP
+          port: 15012
+        - protocol: TCP
+          port: 15014

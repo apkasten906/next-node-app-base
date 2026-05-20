@@ -43,12 +43,13 @@ data:
             filterBySpanID: false
             customQuery: false
             tags:
-              - key: app
+              # Map the OTel resource attribute service.name (set by TracingService
+              # via ATTR_SERVICE_NAME) to the Loki 'app' label (set by Promtail
+              # from the pod's app label).  namespace/pod attributes are omitted
+              # because no K8s resource detector or OTEL_RESOURCE_ATTRIBUTES is
+              # configured; filterByTraceID provides the primary log correlation.
+              - key: service.name
                 value: app
-              - key: namespace
-                value: namespace
-              - key: pod
-                value: pod
 
       - name: Loki
         type: loki
