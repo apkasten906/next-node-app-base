@@ -10,7 +10,7 @@ This plan is analysis-first. It does not authorize destructive moves. It should 
 
 - **Stable and merged**: frontend auth/UI boundary cleanup and lint/CI boundary enforcement are complete.
 - **Stable and merged**: distributed tracing (`feat/phase-10-jaeger-tracing`, PR #51) is complete.
-- **Next execution target**: finish the remaining Phase 10 observability slice: Loki, Grafana Jaeger-to-Loki rewiring, Alertmanager, and Kiali.
+- **In progress**: Phase 10 observability remainder on `feat/phase-10-loki-alertmanager` — Loki, Promtail, Alertmanager manifests written; Grafana `tracesToLogsV2` wired; ADR-020 authored.
 
 ## Guardrails
 
@@ -441,7 +441,7 @@ Consequence: lower migration risk and clearer package boundaries.
 
 ### Next priority (in order)
 
-1. **Phase 10 observability remainder** — Loki centralized logging, **rewire Grafana Jaeger `tracesToLogsV2` to Loki datasource during Loki rollout**, Alertmanager, Kiali.
+1. **Phase 10 observability remainder** — ✅ Loki + Promtail manifests written, Alertmanager manifests written, Grafana `tracesToLogsV2` wired to Loki, ADR-020 authored. Remaining: Kiali (low priority, deferred until Istio is in use). **Branch: `feat/phase-10-loki-alertmanager`**.
 2. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona + `MODERATOR` role; still on hold.
 3. **Contract package extraction** (Migration Plan step 6) — once the second consumer app (`the-azure-citadel`) is bootstrapped, promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package.
 4. **Phase 8.5 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.

@@ -33,10 +33,38 @@ data:
         url: http://jaeger:16686
         editable: false
         jsonData:
-          # tracesToLogsV2 wiring is intentionally deferred until Loki datasource
-          # is provisioned in this environment.
           nodeGraph:
             enabled: true
+          tracesToLogsV2:
+            datasourceUid: loki
+            spanStartTimeShift: '-5m'
+            spanEndTimeShift: '5m'
+            filterByTraceID: true
+            filterBySpanID: false
+            customQuery: false
+            tags:
+              - key: app
+                value: app
+              - key: namespace
+                value: namespace
+              - key: pod
+                value: pod
+
+      - name: Loki
+        type: loki
+        uid: loki
+        access: proxy
+        url: http://loki:3100
+        editable: false
+        jsonData:
+          maxLines: 1000
+          derivedFields:
+            # Automatically link Loki log lines containing a traceId to Jaeger.
+            - name: TraceID
+              matcherRegex: '"traceId":"(\w+)"'
+              url: '$${__value.raw}'
+              datasourceUid: jaeger
+              urlDisplayLabel: 'View Trace in Jaeger'
 
   dashboards.yaml: |
     apiVersion: 1
