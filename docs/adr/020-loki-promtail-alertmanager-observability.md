@@ -44,6 +44,7 @@ With Loki provisioned, the Jaeger datasource in `grafana-config.yaml` is updated
 
 - Spans link to Loki log lines via `app`, `namespace`, and `pod` labels.
 - A `derivedFields` rule on the Loki datasource extracts `traceId` from structured JSON logs and links directly to the corresponding Jaeger trace.
+- `LoggerService` injects `traceId` and `spanId` fields into every Winston log record via a dedicated format step that reads the active OpenTelemetry span context (`@opentelemetry/api`). The fields are omitted when no sampled span is active, so non-traced requests are unaffected.
 
 ## Implementation
 
@@ -80,7 +81,7 @@ With Loki provisioned, the Jaeger datasource in `grafana-config.yaml` is updated
 
 ### Environment: Kubernetes deployment order
 
-```
+```sh
 1. kubectl apply -f kubernetes/observability/loki/
 2. kubectl apply -f kubernetes/observability/promtail/
 3. kubectl apply -f kubernetes/observability/alertmanager/alertmanager-config.yaml
@@ -115,8 +116,9 @@ Receiver type is deployment-specific. Webhooks are the most portable default —
 ## Consequences
 
 - **Positive**: the observability triad is complete; Grafana Explore supports unified metrics + logs + traces correlation from a single query.
-- **Positive**: fired Prometheus alerts now reach an operator inbox instead of being silently dropped.
+- **Positive**: fired Prometheus alerts now reach an operator inbox instead of being silently dropped. Alertmanager uses `--config.expand-env=true` (v0.25+) to expand `${VAR}` placeholders in `alertmanager.yml` from container environment variables at start-up.
 - **Positive**: `tracesToLogsV2` in Grafana is now wired, enabling one-click navigation from a Jaeger trace span to the corresponding Loki log stream.
+- **Positive**: `derivedFields` in the Loki datasource is functional end-to-end: `LoggerService` now emits `traceId` and `spanId` on every log record produced within a sampled OTEL span, so log lines link directly back to Jaeger traces.
 - **Negative**: two additional PVCs (Loki 10 Gi, Alertmanager 2 Gi) are required in the cluster.
 - **Negative**: Promtail runs as root to read host log files. This is the expected and documented trade-off for log collection via hostPath; the blast radius is contained by a dedicated ServiceAccount with a minimal ClusterRole.
 - **Neutral**: Loki uses in-cluster filesystem storage. Log data is lost if the PVC is deleted. For production, migrate to object storage (GCS/S3) and enable the ruler component for alerting on log patterns.

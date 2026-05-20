@@ -42,6 +42,9 @@ spec:
             - '--web.listen-address=:9093'
             - '--cluster.listen-address=' # disable HA clustering in single-replica mode
             - '--log.level=warn'
+            # Expand ${VAR} placeholders in alertmanager.yml from container env vars.
+            # Supported since Alertmanager v0.25; env vars are sourced from alertmanager-secret.
+            - '--config.expand-env=true'
           ports:
             - name: http
               containerPort: 9093
@@ -77,9 +80,11 @@ spec:
             requests:
               cpu: 50m
               memory: 64Mi
+              ephemeral-storage: 64Mi
             limits:
               cpu: 200m
               memory: 256Mi
+              ephemeral-storage: 256Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
