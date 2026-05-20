@@ -61,9 +61,10 @@ spec:
       ports:
         - protocol: TCP
           port: 3100
-    # Allow Kubernetes API for pod/node service-discovery
-    - to:
-        - namespaceSelector: {}
-      ports:
+    # Allow Kubernetes API for pod/node service-discovery.
+    # No 'to:' selector: kube-apiserver is accessed via a ClusterIP Service
+    # (kubernetes.default.svc) whose endpoint IP is not a pod, so a
+    # namespaceSelector/podSelector would silently block the traffic.
+    - ports:
         - protocol: TCP
           port: 443

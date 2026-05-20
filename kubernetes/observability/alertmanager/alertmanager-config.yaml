@@ -34,12 +34,12 @@ data:
       group_interval: 5m
       repeat_interval: 1h
       routes:
-        - match:
-            severity: critical
+        - matchers:
+            - severity="critical"
           receiver: critical-receiver
           continue: false
-        - match:
-            severity: warning
+        - matchers:
+            - severity="warning"
           receiver: warning-receiver
           continue: false
 
@@ -62,10 +62,10 @@ data:
     inhibit_rules:
       # Suppress warning-level alerts when a critical alert with the same
       # identity labels is already firing, reducing duplicate pages.
-      - source_match:
-          severity: critical
-        target_match:
-          severity: warning
+      - source_matchers:
+          - severity="critical"
+        target_matchers:
+          - severity="warning"
         equal:
           - alertname
           - cluster

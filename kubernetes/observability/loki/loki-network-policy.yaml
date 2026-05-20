@@ -1,6 +1,6 @@
 # NetworkPolicy for Loki
 # Principle of least privilege:
-#   - Only Promtail (in any namespace, identified by label) may push logs.
+#   - Only Promtail (in the observability namespace) may push logs.
 #   - Only Grafana (observability namespace) may query the Loki HTTP API.
 #   - Prometheus may scrape the /metrics endpoint.
 #   - No external egress required (filesystem storage, in-cluster ring).
