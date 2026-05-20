@@ -107,13 +107,13 @@ data:
             target_label: app
           - source_labels: [__meta_kubernetes_pod_label_component]
             target_label: component
-          # Build the log path from the discovered pod UID and container name.
+          # Build the log path from the discovered pod UID.  The /*/ wildcard
+          # covers the per-container subdirectory that kubelet creates under
+          # /var/log/pods/<namespace>_<pod-name>_<uid>/<container>/<n>.log.
           - source_labels:
               - __meta_kubernetes_pod_uid
-              - __meta_kubernetes_pod_container_name
             target_label: __path__
-            separator: /
-            replacement: /var/log/pods/*$1/*.log
+            replacement: /var/log/pods/*$1/*/*.log
           # Carry through the correlation ID label when it is set on the pod.
           - source_labels: [__meta_kubernetes_pod_annotation_correlation_id]
             target_label: correlation_id
