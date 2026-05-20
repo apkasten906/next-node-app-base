@@ -1,5 +1,9 @@
+import { PassThrough } from 'node:stream';
+
+import { trace, TraceFlags } from '@opentelemetry/api';
 import { container } from 'tsyringe';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import winston from 'winston';
 
 import { LoggerService } from '../../services/logger.service';
 
@@ -80,5 +84,77 @@ describe('LoggerService', () => {
       expect(logger).toHaveProperty('warn');
       expect(logger).toHaveProperty('error');
     });
+  });
+});
+
+function captureNextLog(logger: winston.Logger): Promise<Record<string, unknown>> {
+  return new Promise((resolve) => {
+    const stream = new PassThrough();
+    const transport = new winston.transports.Stream({ stream });
+    stream.once('data', (chunk: Buffer) => {
+      logger.remove(transport);
+      resolve(JSON.parse(chunk.toString().trim()) as Record<string, unknown>);
+    });
+    logger.add(transport);
+  });
+}
+
+describe('LoggerService — injectTraceContext format step', () => {
+  let loggerService: LoggerService;
+
+  beforeEach(() => {
+    process.env['LOG_LEVEL'] = 'debug';
+    loggerService = container.resolve(LoggerService);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('includes traceId and spanId when a sampled span is active', async () => {
+    vi.spyOn(trace, 'getActiveSpan').mockReturnValue({
+      spanContext: () => ({
+        traceId: 'a'.repeat(32),
+        spanId: 'b'.repeat(16),
+        traceFlags: TraceFlags.SAMPLED,
+        isRemote: false,
+      }),
+    });
+
+    const capture = captureNextLog(loggerService.getLogger());
+    loggerService.info('sampled span test');
+    const output = await capture;
+
+    expect(output).toHaveProperty('traceId', 'a'.repeat(32));
+    expect(output).toHaveProperty('spanId', 'b'.repeat(16));
+  });
+
+  it('omits traceId and spanId when there is no active span', async () => {
+    vi.spyOn(trace, 'getActiveSpan').mockReturnValue(undefined);
+
+    const capture = captureNextLog(loggerService.getLogger());
+    loggerService.info('no span test');
+    const output = await capture;
+
+    expect(output).not.toHaveProperty('traceId');
+    expect(output).not.toHaveProperty('spanId');
+  });
+
+  it('omits traceId and spanId when the active span is not sampled', async () => {
+    vi.spyOn(trace, 'getActiveSpan').mockReturnValue({
+      spanContext: () => ({
+        traceId: 'a'.repeat(32),
+        spanId: 'b'.repeat(16),
+        traceFlags: 0,
+        isRemote: false,
+      }),
+    });
+
+    const capture = captureNextLog(loggerService.getLogger());
+    loggerService.info('unsampled span test');
+    const output = await capture;
+
+    expect(output).not.toHaveProperty('traceId');
+    expect(output).not.toHaveProperty('spanId');
   });
 });

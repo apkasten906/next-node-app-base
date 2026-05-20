@@ -201,6 +201,8 @@ spec:
               readOnly: true
             - name: positions
               mountPath: /run/promtail
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: config
           configMap:
@@ -209,4 +211,6 @@ spec:
           hostPath:
             path: /var/log
         - name: positions
+          emptyDir: {}
+        - name: tmp
           emptyDir: {}
