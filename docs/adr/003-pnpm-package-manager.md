@@ -28,16 +28,16 @@ The project requires a package manager to handle dependencies across multiple wo
 
 ## Decision
 
-We will use **pnpm** (version 8+) as our package manager.
+We will use **pnpm** (version 11+) as our package manager.
 
 ### Installation
 
 ```json
 // package.json
 {
-  "packageManager": "pnpm@8.15.0",
+  "packageManager": "pnpm@11.1.3",
   "engines": {
-    "pnpm": ">=8.0.0"
+    "pnpm": ">=11.0.0"
   }
 }
 ```
@@ -281,7 +281,7 @@ This decision will be reviewed:
 
 ## References
 
-- pnpm v8.15.0
+- pnpm v11.1.3
 - Turborepo integration
 - Content-addressable storage architecture
 - Workspace protocol specification

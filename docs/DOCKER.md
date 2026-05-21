@@ -81,7 +81,7 @@ docker compose exec redis redis-cli -a devredis
 # Frontend
 docker build \
   --build-arg NODE_VERSION=25 \
-  --build-arg PNPM_VERSION=8.15.0 \
+  --build-arg PNPM_VERSION=11.1.3 \
   --build-arg NEXT_PUBLIC_API_URL=http://localhost:3001 \
   --build-arg NEXT_PUBLIC_WEBSOCKET_URL=http://localhost:3001 \
   -f apps/frontend/Dockerfile \
@@ -90,7 +90,7 @@ docker build \
 # Backend
 docker build \
   --build-arg NODE_VERSION=25 \
-  --build-arg PNPM_VERSION=8.15.0 \
+  --build-arg PNPM_VERSION=11.1.3 \
   -f apps/backend/Dockerfile \
   -t next-node-backend .
 ```
