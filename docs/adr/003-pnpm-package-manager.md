@@ -34,8 +34,11 @@ We will use **pnpm** (version 11+) as our package manager.
 
 ```json
 // package.json
+// Note: the actual `packageManager` value includes a corepack-generated SHA-512
+// integrity hash appended after the version, e.g. "pnpm@11.1.3+sha512.<hash>".
+// Run `corepack use pnpm@11.1.3` in the repo root to regenerate it.
 {
-  "packageManager": "pnpm@11.1.3",
+  "packageManager": "pnpm@11.1.3+sha512.<corepack-generated-hash>",
   "engines": {
     "pnpm": ">=11.0.0"
   }
