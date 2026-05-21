@@ -4,6 +4,7 @@ import { container } from 'tsyringe';
 import { AuditLogService } from '../services/audit/audit-log.service';
 import { AuthorizationService } from '../services/auth/authorization.service';
 import { DatabaseService } from '../services/database.service';
+import { getFirstString } from '../utils/request-values';
 
 const router: import('express').Router = Router();
 
@@ -61,7 +62,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     const audit = container.resolve<AuditLogService>('AuditLogService');
 
     const userId = req.user?.userId;
-    const { id } = req.params;
+    const id = getFirstString(req.params['id']);
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized' });
@@ -125,7 +126,7 @@ router.patch('/:id', async (req: Request, res: Response): Promise<void> => {
     const audit = container.resolve<AuditLogService>('AuditLogService');
 
     const userId = req.user?.userId;
-    const { id } = req.params;
+    const id = getFirstString(req.params['id']);
     const { name, image } = req.body;
 
     if (!userId) {
@@ -188,7 +189,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
     const audit = container.resolve<AuditLogService>('AuditLogService');
 
     const userId = req.user?.userId;
-    const { id } = req.params;
+    const id = getFirstString(req.params['id']);
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized' });

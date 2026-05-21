@@ -448,8 +448,8 @@ Consequence: lower migration risk and clearer package boundaries.
 
 ### Next priority (in order)
 
-1. **Create PR for `chore/devcontainer-updates`** — pnpm engine constraint + devcontainer extension cleanup; branch already pushed to `origin/chore/devcontainer-updates`.
-2. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona + `MODERATOR` role; still on hold.
-3. **Contract package extraction** (Migration Plan step 6) — once the second consumer app (`the-azure-citadel`) is bootstrapped, promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package.
-4. **Phase 8.5 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.
-5. **Turborepo upgrade** (branch: `chore/upgrade-turborepo-v2`) — bump `turbo` from `^1.11.3` to `2.9.14`; rename `pipeline` → `tasks` in `turbo.json`.
+1. **`chore/devcontainer-updates`** — devcontainer rework is substantial (issues discovered in fork); will be handled as a separate PR from the fork or handed off from a copilot session there. Branch pushed to `origin/chore/devcontainer-updates`; implementation deferred.
+2. **Turborepo upgrade** — ✅ Complete and ready to commit/push on `chore/upgrade-turborepo-v2`: `turbo` bumped from `^1.11.3` to `2.9.14`; `pipeline` renamed to `tasks` in `turbo.json`. Root cause of earlier v1.13.4 reports: an orphaned legacy `node_modules/turbo-windows-64` real directory (leftover from a previous turbo v1 npm install) caused the turbo v2 shim to pick v1.13.4 as the "local" binary. Fixed by deleting `node_modules/turbo-windows-64`.
+3. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona + `MODERATOR` role; still on hold.
+4. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum` (not `the-azure-citadel`); promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
+5. **Phase 8.5 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.
