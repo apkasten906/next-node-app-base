@@ -23,23 +23,39 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        // Language & formatting
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "bradlc.vscode-tailwindcss",
-        "prisma.prisma",
-        "ms-azuretools.vscode-docker",
-        "eamodio.gitlens",
-        "github.vscode-pull-request-github",
+        "editorconfig.editorconfig",
+        "davidanson.vscode-markdownlint",
+        "streetsidesoftware.code-spell-checker",
+        // TypeScript / Node
         "ms-vscode.vscode-typescript-next",
-        "vitest.explorer",
-        "ms-playwright.playwright",
-        "usernamehw.errorlens",
         "christian-kohler.path-intellisense",
         "christian-kohler.npm-intellisense",
-        "streetsidesoftware.code-spell-checker",
-        "redhat.vscode-yaml",
+        // UI / styling
+        "bradlc.vscode-tailwindcss",
+        // Database / ORM
+        "prisma.prisma",
+        // Testing
+        "vitest.explorer",
+        "ms-playwright.playwright",
+        "alexkrechik.cucumberautocomplete",
+        // Containers & infrastructure
+        "ms-azuretools.vscode-docker",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
-        "redhat.vscode-xml"
+        // Data formats
+        "redhat.vscode-yaml",
+        "redhat.vscode-xml",
+        // Git & GitHub
+        "eamodio.gitlens",
+        "github.vscode-pull-request-github",
+        "github.vscode-github-actions",
+        // Diagrams
+        "mermaidchart.vscode-mermaid-chart",
+        // Developer experience
+        "usernamehw.errorlens",
+        "sonarsource.sonarlint-vscode"
       ],
       "settings": {
         "editor.formatOnSave": true,
