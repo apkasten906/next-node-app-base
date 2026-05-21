@@ -72,12 +72,26 @@ The backend core is implemented and running.
 - ✅ WebSocket service (optional; can be disabled for E2E)
 - ✅ File storage service with provider implementations
 
+### ✅ Phase 10: Observability — Loki, Promtail, Alertmanager, Trace↔Log Correlation
+
+**Completed:** PR #58 merged to master (May 2026)
+
+- ✅ Loki deployment, config, service, and NetworkPolicy manifests
+- ✅ Promtail DaemonSet with RBAC-narrowed ClusterRole, `/tmp` emptyDir, and log path glob
+- ✅ Alertmanager deployment, config (updated to `matchers:` syntax), secret template, NetworkPolicy
+- ✅ Prometheus NetworkPolicy Istio egress rules
+- ✅ All observability NetworkPolicies updated with Istio sidecar egress (TCP 15012/15014)
+- ✅ Grafana `tracesToLogsV2` datasource link wired to Loki for trace-to-log correlation
+- ✅ Backend `injectTraceContext` Winston format step; `logger.service.test.ts` unit tests added
+- ✅ ADR-020 authored and index regenerated
+
 ## Current Focus / Next Steps
 
-- [ ] Add correlation ID middleware and propagate into logs
-- [ ] Harden/extend read-replica usage (only if needed; currently single DB is sufficient)
-- [ ] Add true multi-level caching (L1 in-memory) if required for performance
-- [ ] Expand CI security/contract testing (Pact, OWASP ZAP): currently scaffolded/placeholders
+- [ ] Create PR for `chore/devcontainer-updates` (branch already pushed) — pnpm 10.23.0 engine constraint + organized devcontainer extensions
+- [ ] E2E personas moderator (`chore/e2e-personas-moderator`) — `moderator` persona + `MODERATOR` role
+- [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `the-azure-citadel` proves reuse
+- [ ] Phase 8.5 Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks
+- [ ] Turborepo upgrade `^1.11.3` → `2.9.14` (`chore/upgrade-turborepo-v2`)
 
 ## Technology Stack Implemented
 

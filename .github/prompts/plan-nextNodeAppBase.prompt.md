@@ -10,7 +10,7 @@ This plan is analysis-first. It does not authorize destructive moves. It should 
 
 - **Stable and merged**: frontend auth/UI boundary cleanup and lint/CI boundary enforcement are complete.
 - **Stable and merged**: distributed tracing (`feat/phase-10-jaeger-tracing`, PR #51) is complete.
-- **In progress**: Phase 10 observability remainder on `feat/phase-10-loki-alertmanager` — Loki, Promtail, Alertmanager manifests written; Grafana `tracesToLogsV2` wired; ADR-020 authored.
+- **Stable and merged**: Phase 10 observability remainder (`feat/phase-10-loki-alertmanager`, PR #58, May 2026) — Loki, Promtail, Alertmanager manifests, Grafana `tracesToLogsV2` wiring, backend `injectTraceContext` logger format, all Kubernetes NetworkPolicy Istio egress rules, ADR-020 delivered.
 
 ## Guardrails
 
@@ -424,7 +424,7 @@ Consequence: lower migration risk and clearer package boundaries.
 
 ## M. Execution State and Next Focus
 
-### Completed — April 2026
+### Completed — April/May 2026
 
 - ✅ `feat/frontend-auth-boundaries` merged to master as PR #50.
   - All direct auth/backend fetches removed from UI components and server pages.
@@ -438,10 +438,18 @@ Consequence: lower migration risk and clearer package boundaries.
 - ✅ `feat/phase-10-jaeger-tracing` merged to master as PR #51 (May 2026).
   - Jaeger Kubernetes manifests, Grafana datasource, backend OpenTelemetry bootstrap, ADR-019, and observability docs delivered.
   - Trace-to-logs rewiring (`tracesToLogsV2`) intentionally deferred until Loki rollout.
+- ✅ `feat/phase-10-loki-alertmanager` merged to master as PR #58 (May 2026).
+  - Loki, Promtail, and Alertmanager Kubernetes manifests (deployments, configs, services, network policies).
+  - Grafana `tracesToLogsV2` datasource link wired to Loki; Alertmanager `matchers:` syntax corrected.
+  - All Kubernetes NetworkPolicy objects updated with Istio egress rules (Loki, Promtail, Alertmanager, Grafana, Prometheus).
+  - Backend `injectTraceContext` Winston format step added to `logger.service.ts`; three unit tests added.
+  - ADR-020 authored. Kiali deferred (low priority, until Istio is actively in use).
+- ⏳ `chore/devcontainer-updates` (branch pushed to origin, PR not yet created) — pnpm 10.23.0 engine constraint, organized devcontainer extension list with section comments, `openai.chatgpt` in AI section, spell-check word additions.
 
 ### Next priority (in order)
 
-1. **Phase 10 observability remainder** — ✅ Loki + Promtail manifests written, Alertmanager manifests written, Grafana `tracesToLogsV2` wired to Loki, ADR-020 authored. Remaining: Kiali (low priority, deferred until Istio is in use). **Branch: `feat/phase-10-loki-alertmanager`**.
+1. **Create PR for `chore/devcontainer-updates`** — pnpm engine constraint + devcontainer extension cleanup; branch already pushed to `origin/chore/devcontainer-updates`.
 2. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona + `MODERATOR` role; still on hold.
 3. **Contract package extraction** (Migration Plan step 6) — once the second consumer app (`the-azure-citadel`) is bootstrapped, promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package.
 4. **Phase 8.5 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.
+5. **Turborepo upgrade** (branch: `chore/upgrade-turborepo-v2`) — bump `turbo` from `^1.11.3` to `2.9.14`; rename `pipeline` → `tasks` in `turbo.json`.
