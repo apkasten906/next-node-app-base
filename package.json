@@ -5,9 +5,9 @@
   "description": "Production-ready monorepo base template with Next.js frontend and Node.js backend",
   "engines": {
     "node": ">=25.0.0",
-    "pnpm": ">=8.0.0"
+    "pnpm": ">=10.0.0"
   },
-  "packageManager": "pnpm@8.15.0",
+  "packageManager": "pnpm@10.23.0",
   "scripts": {
     "dev": "turbo run dev",
     "dev:frontend": "turbo run dev --filter=frontend",

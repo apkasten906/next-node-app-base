@@ -10,7 +10,7 @@ inputs:
   pnpm-version:
     description: pnpm version to use
     required: false
-    default: '8.15.0'
+    default: '10.23.0'
   cache-dependency-path:
     description: Path(s) (relative to repo root) or glob(s) to lockfile(s) for cache keying
     required: false
