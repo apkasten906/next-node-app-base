@@ -39,7 +39,10 @@
         "streetsidesoftware.code-spell-checker",
         "redhat.vscode-yaml",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
-        "redhat.vscode-xml"
+        "redhat.vscode-xml",
+        "sonarsource.sonarlint-vscode",
+        // AI
+        "openai.chatgpt"
       ],
       "settings": {
         "editor.formatOnSave": true,
