@@ -36,7 +36,6 @@ permissions:
 
 env:
   NODE_VERSION: "25.x"
-  PNPM_VERSION: "8.15.0"
   REGISTRY_URL_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['registry-url'] || '' }}
   DRY_RUN_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['dry-run'] || '' }}
   PACKAGES_FILTER_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['packages-filter'] || '' }}
@@ -54,7 +53,6 @@ jobs:
         uses: ./.github/actions/setup-node-pnpm
         with:
           node-version: ${{ env.NODE_VERSION }}
-          pnpm-version: ${{ env.PNPM_VERSION }}
           install: "true"
 
       - name: Build all packages
@@ -82,7 +80,6 @@ jobs:
         uses: ./.github/actions/setup-node-pnpm
         with:
           node-version: ${{ env.NODE_VERSION }}
-          pnpm-version: ${{ env.PNPM_VERSION }}
           install: "false"
 
       - name: Download build artifacts
