@@ -1,0 +1,82 @@
+# NetworkPolicy for Promtail
+# Promtail runs as a DaemonSet and needs:
+#   - Egress to Loki (port 3100) to push logs.
+#   - Egress to the Kubernetes API (443) for pod/node service-discovery.
+#   - Ingress from Prometheus (port 9080) for metrics scraping.
+#   - No ingress from untrusted sources.
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: promtail
+  namespace: observability
+  labels:
+    app: promtail
+    component: logging-security
+spec:
+  podSelector:
+    matchLabels:
+      app: promtail
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow Prometheus to scrape Promtail metrics
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - protocol: TCP
+          port: 9080
+    # Allow kubelet health probes via Istio sidecar status port
+    - ports:
+        - protocol: TCP
+          port: 15021
+  egress:
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow log push to Loki
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app: loki
+      ports:
+        - protocol: TCP
+          port: 3100
+    # Allow Kubernetes API for pod/node service-discovery.
+    # No 'to:' selector: kube-apiserver is accessed via a ClusterIP Service
+    # (kubernetes.default.svc) whose endpoint IP is not a pod, so a
+    # namespaceSelector/podSelector would silently block the traffic.
+    - ports:
+        - protocol: TCP
+          port: 443
+    # Allow Istio control-plane communication (xDS/SDS config from istiod).
+    # Required when istio-injection: enabled is set on the namespace so the
+    # envoy sidecar can receive configuration and come up healthy.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+      ports:
+        - protocol: TCP
+          port: 15012
+        - protocol: TCP
+          port: 15014

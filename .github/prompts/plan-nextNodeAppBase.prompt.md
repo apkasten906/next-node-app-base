@@ -9,8 +9,8 @@ This plan is analysis-first. It does not authorize destructive moves. It should 
 ## Current Snapshot
 
 - **Stable and merged**: frontend auth/UI boundary cleanup and lint/CI boundary enforcement are complete.
-- **In progress**: distributed tracing is implemented on `feat/phase-10-jaeger-tracing` and open as PR #51.
-- **Next execution target**: finish the remaining Phase 10 observability slice: Loki, Grafana Jaeger-to-Loki rewiring, Alertmanager, and Kiali.
+- **Stable and merged**: distributed tracing (`feat/phase-10-jaeger-tracing`, PR #51) is complete.
+- **In progress**: Phase 10 observability remainder on `feat/phase-10-loki-alertmanager` — Loki, Promtail, Alertmanager manifests written; Grafana `tracesToLogsV2` wired; ADR-020 authored.
 
 ## Guardrails
 
@@ -431,18 +431,17 @@ Consequence: lower migration risk and clearer package boundaries.
   - Layered architecture (`useSignIn` → `AuthApplicationService` → `authApi` → `apiClient`) established.
   - `requireCurrentUser()` and `getBddStatusSnapshot()` server gateways in place.
   - `copilot-instructions.md` added with SOLID + boundary rules.
-- ✅ Frontend boundary enforcement landed after PR #50.
-  - Root ESLint config blocks direct `fetch()` in frontend UI-facing files.
-  - `.github/workflows/lint.yml` runs ESLint in CI.
-  - `CONTRIBUTING.md` documents the architecture boundary and allowed transport layers.
-- ✅ `feat/phase-10-jaeger-tracing` is implemented and open as PR #51.
-  - Jaeger Kubernetes manifests, Grafana datasource, backend OpenTelemetry bootstrap, ADR-019, and observability docs are in the PR.
-  - Trace-to-logs rewiring is intentionally deferred until Loki rollout.
+- ✅ `feat/lint-ci-boundary-enforcement` merged to master as PR #57 (May 2026).
+  - `no-restricted-syntax` ESLint rule blocks raw `fetch()` in `components/**`, `app/**/!(route).{ts,tsx}`, and `src/hooks/**`; `app/api/**` excluded entirely via `ignores`.
+  - `.github/workflows/lint.yml` runs `pnpm -w lint` in CI on every push and PR; ESLint JSON report uploaded as artifact on failure.
+  - `CONTRIBUTING.md` documents the frontend layering rule, exact blocked globs, and allowed transport layers.
+- ✅ `feat/phase-10-jaeger-tracing` merged to master as PR #51 (May 2026).
+  - Jaeger Kubernetes manifests, Grafana datasource, backend OpenTelemetry bootstrap, ADR-019, and observability docs delivered.
+  - Trace-to-logs rewiring (`tracesToLogsV2`) intentionally deferred until Loki rollout.
 
 ### Next priority (in order)
 
-1. **Phase 10 observability remainder** — Loki centralized logging, **rewire Grafana Jaeger `tracesToLogsV2` to Loki datasource during Loki rollout**, Alertmanager, Kiali.
-2. **Merge PR #51 (`feat/phase-10-jaeger-tracing`)** — completes the distributed tracing slice of Phase 10.
-3. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona + `MODERATOR` role; still on hold.
-4. **Contract package extraction** (Migration Plan step 6) — once the second consumer app (`the-azure-citadel`) is bootstrapped, promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package.
-5. **Phase 8.5 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.
+1. **Phase 10 observability remainder** — ✅ Loki + Promtail manifests written, Alertmanager manifests written, Grafana `tracesToLogsV2` wired to Loki, ADR-020 authored. Remaining: Kiali (low priority, deferred until Istio is in use). **Branch: `feat/phase-10-loki-alertmanager`**.
+2. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona + `MODERATOR` role; still on hold.
+3. **Contract package extraction** (Migration Plan step 6) — once the second consumer app (`the-azure-citadel`) is bootstrapped, promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package.
+4. **Phase 8.5 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.

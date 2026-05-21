@@ -67,7 +67,13 @@ spec:
         - protocol: TCP
           port: 8080
         - protocol: TCP
+          port: 9080 # Promtail metrics
+        - protocol: TCP
           port: 3000
+        - protocol: TCP
+          port: 3100 # Loki metrics
+        - protocol: TCP
+          port: 9093 # Alertmanager metrics
         - protocol: TCP
           port: 15090 # Istio Envoy metrics
         - protocol: TCP
@@ -85,9 +91,32 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
+    # Allow Prometheus to send alerts to Alertmanager
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app: alertmanager
+      ports:
+        - protocol: TCP
+          port: 9093
     # Allow Kubernetes API access for service discovery and node metrics proxy scraping
     - to:
         - namespaceSelector: {}
       ports:
         - protocol: TCP
           port: 443
+    # Allow Istio control-plane communication (xDS/SDS config from istiod).
+    # Required when istio-injection: enabled is set on the namespace so the
+    # envoy sidecar can receive configuration and come up healthy.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+      ports:
+        - protocol: TCP
+          port: 15012
+        - protocol: TCP
+          port: 15014

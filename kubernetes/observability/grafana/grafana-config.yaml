@@ -33,10 +33,41 @@ data:
         url: http://jaeger:16686
         editable: false
         jsonData:
-          # tracesToLogsV2 wiring is intentionally deferred until Loki datasource
-          # is provisioned in this environment.
           nodeGraph:
             enabled: true
+          tracesToLogsV2:
+            datasourceUid: loki
+            spanStartTimeShift: '-5m'
+            spanEndTimeShift: '5m'
+            filterByTraceID: true
+            filterBySpanID: false
+            customQuery: false
+            tags:
+              # Map the OTel resource attribute service.name (set by TracingService
+              # via ATTR_SERVICE_NAME) to the Loki 'app' label (set by Promtail
+              # from the pod's app label).  namespace/pod attributes are omitted
+              # because no K8s resource detector or OTEL_RESOURCE_ATTRIBUTES is
+              # configured; filterByTraceID provides the primary log correlation.
+              - key: service.name
+                value: app
+
+      - name: Loki
+        type: loki
+        uid: loki
+        access: proxy
+        url: http://loki:3100
+        editable: false
+        jsonData:
+          maxLines: 1000
+          derivedFields:
+            # Automatically link Loki log lines containing a traceId to Jaeger.
+            # matcherRegex captures exactly 32 lowercase hex chars — the
+            # canonical OTel 128-bit trace ID format emitted by LoggerService.
+            - name: TraceID
+              matcherRegex: '"traceId":"([0-9a-f]{32})"'
+              url: '${__value.raw}'
+              datasourceUid: jaeger
+              urlDisplayLabel: 'View Trace in Jaeger'
 
   dashboards.yaml: |
     apiVersion: 1

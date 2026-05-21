@@ -1,0 +1,72 @@
+# Alertmanager ConfigMap
+#
+# Default routing:
+#   - critical alerts → critical-receiver (webhook; URL supplied via secret env var)
+#   - warning alerts  → warning-receiver  (webhook; URL supplied via secret env var)
+#   - everything else → null receiver (silenced)
+#
+# Inhibition: a firing critical alert suppresses the corresponding warning alert
+# for the same {alertname, cluster, service} tuple to reduce notification noise.
+#
+# Replace the webhook receivers with PagerDuty, Slack, or email stanzas as
+# needed for each environment.  Keep this file receiver-type-agnostic and
+# inject credentials via the alertmanager-secret Secret.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: observability
+  labels:
+    app: alertmanager
+    component: alerting
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+      # Optional: set a global SMTP or HTTP proxy here.
+
+    templates: []
+
+    route:
+      receiver: 'null'
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 10s
+      group_interval: 5m
+      repeat_interval: 1h
+      routes:
+        - matchers:
+            - severity="critical"
+          receiver: critical-receiver
+          continue: false
+        - matchers:
+            - severity="warning"
+          receiver: warning-receiver
+          continue: false
+
+    receivers:
+      - name: 'null'
+        # Default sink — alerts that do not match any child route are silenced.
+
+      - name: critical-receiver
+        webhook_configs:
+          - url: '${ALERTMANAGER_CRITICAL_WEBHOOK_URL}'
+            send_resolved: true
+            http_config:
+              # Add bearer_token_file or TLS config here for authenticated endpoints.
+
+      - name: warning-receiver
+        webhook_configs:
+          - url: '${ALERTMANAGER_WARNING_WEBHOOK_URL}'
+            send_resolved: true
+
+    inhibit_rules:
+      # Suppress warning-level alerts when a critical alert with the same
+      # identity labels is already firing, reducing duplicate pages.
+      - source_matchers:
+          - severity="critical"
+        target_matchers:
+          - severity="warning"
+        equal:
+          - alertname
+          - cluster
+          - service

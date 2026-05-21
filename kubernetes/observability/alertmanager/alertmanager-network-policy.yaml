@@ -1,0 +1,69 @@
+# NetworkPolicy for Alertmanager
+# Principle of least privilege:
+#   - Only Prometheus may push alerts to Alertmanager (port 9093).
+#   - Alertmanager may egress to the internet to fire webhook notifications.
+#   - Prometheus may scrape Alertmanager metrics (port 9093).
+#   - No other ingress is permitted.
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: alertmanager
+  namespace: observability
+  labels:
+    app: alertmanager
+    component: alerting-security
+spec:
+  podSelector:
+    matchLabels:
+      app: alertmanager
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow Prometheus to send alerts and scrape metrics
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+          podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - protocol: TCP
+          port: 9093
+    # Allow kubelet health probes via Istio sidecar status port
+    - ports:
+        - protocol: TCP
+          port: 15021
+  egress:
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow outbound HTTPS for webhook notifications (PagerDuty, Slack, etc.)
+    # Restrict this to specific CIDRs in production if egress filtering is available.
+    - ports:
+        - protocol: TCP
+          port: 443
+    # Allow Istio control-plane communication (xDS/SDS config from istiod).
+    # Required when istio-injection: enabled is set on the namespace so the
+    # envoy sidecar can receive configuration and come up healthy.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+      ports:
+        - protocol: TCP
+          port: 15012
+        - protocol: TCP
+          port: 15014
