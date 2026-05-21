@@ -13,7 +13,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Install pnpm
-RUN npm install -g pnpm@10.23.0
+RUN npm install -g pnpm@11.1.3
 
 # Install common global packages
 RUN pnpm add -g \

@@ -8,8 +8,16 @@ export interface QueueJobOptions {
   backoff?: number | { type: string; delay: number };
   lifo?: boolean;
   timeout?: number;
-  removeOnComplete?: boolean | number | { count?: number; age?: number };
-  removeOnFail?: boolean | number | { count?: number };
+  removeOnComplete?:
+    | boolean
+    | number
+    | { count: number }
+    | { age: number; count?: number; limit?: number };
+  removeOnFail?:
+    | boolean
+    | number
+    | { count: number }
+    | { age: number; count?: number; limit?: number };
   jobId?: string;
 }
 

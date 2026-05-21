@@ -12,6 +12,7 @@ import {
   parseSorting,
   sortToPrismaOrderBy,
 } from '../utils/query-helpers';
+import { getFirstString } from '../utils/request-values';
 
 const router: import('express').Router = Router();
 
@@ -188,8 +189,10 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       return;
     }
 
+    const id = getFirstString(req.params['id']);
+
     const user = await db.user.findUnique({
-      where: { id: req.params['id'] },
+      where: { id },
       select: {
         id: true,
         email: true,

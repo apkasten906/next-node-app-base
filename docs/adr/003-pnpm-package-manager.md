@@ -28,16 +28,19 @@ The project requires a package manager to handle dependencies across multiple wo
 
 ## Decision
 
-We will use **pnpm** (version 8+) as our package manager.
+We will use **pnpm** (version 11+) as our package manager.
 
 ### Installation
 
 ```json
 // package.json
+// Note: the actual `packageManager` value includes a corepack-generated SHA-512
+// integrity hash appended after the version, e.g. "pnpm@11.1.3+sha512.<hash>".
+// Run `corepack use pnpm@11.1.3` in the repo root to regenerate it.
 {
-  "packageManager": "pnpm@8.15.0",
+  "packageManager": "pnpm@11.1.3+sha512.<corepack-generated-hash>",
   "engines": {
-    "pnpm": ">=8.0.0"
+    "pnpm": ">=11.0.0"
   }
 }
 ```
@@ -281,7 +284,7 @@ This decision will be reviewed:
 
 ## References
 
-- pnpm v8.15.0
+- pnpm v11.1.3
 - Turborepo integration
 - Content-addressable storage architecture
 - Workspace protocol specification
