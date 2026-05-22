@@ -1,4 +1,4 @@
-import { After, AfterAll, Before, BeforeAll, Status, setDefaultTimeout } from '@cucumber/cucumber';
+import { After, AfterAll, Before, BeforeAll, ITestCaseHookParameter, Status, setDefaultTimeout } from '@cucumber/cucumber';
 import * as promClient from 'prom-client';
 
 // Import the test-specific container bootstrap so all non-observability
@@ -18,15 +18,19 @@ AfterAll(async function () {
   console.log('🥒 Cucumber test suite completed');
 });
 
-Before(async function (this: World) {
+Before(async function (this: World, { pickle }: ITestCaseHookParameter) {
   // Fresh metrics registry per scenario to prevent cross-scenario leakage.
   const registry = new promClient.Registry();
   const metricsService = new MetricsService(registry);
   container.registerInstance('PrometheusRegistry', registry);
   container.registerInstance('MetricsService', metricsService);
 
-  // Initialize test app for each scenario (if method exists)
-  if (typeof this.initializeApp === 'function') {
+  // Scenarios tagged @no-server perform file/config inspection only.
+  // Skipping full app init avoids unnecessary DB/Redis/Docker connections.
+  const scenarioTags = pickle.tags.map((t) => t.name);
+  const needsServer = !scenarioTags.includes('@no-server');
+
+  if (needsServer && typeof this.initializeApp === 'function') {
     await this.initializeApp();
   }
 });

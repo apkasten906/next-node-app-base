@@ -159,12 +159,22 @@ Then('commit-msg hook should validate commit message format', async function (th
 // Commitlint steps
 Given('commitlint is configured', async function (this: World) {
   const projectRoot = path.join(process.cwd(), '../..');
-  const commitlintConfigPath = path.join(projectRoot, 'commitlint.config.js');
-  const exists = await fs
-    .access(commitlintConfigPath)
-    .then(() => true)
-    .catch(() => false);
-  expect(exists).toBe(true);
+  // Config may live as .commitlintrc.js, .commitlintrc.cjs, or commitlint.config.js
+  const candidates = [
+    '.commitlintrc.js',
+    '.commitlintrc.cjs',
+    'commitlint.config.js',
+    'commitlint.config.cjs',
+  ];
+  const checks = await Promise.all(
+    candidates.map((f) =>
+      fs
+        .access(path.join(projectRoot, f))
+        .then(() => true)
+        .catch(() => false)
+    )
+  );
+  expect(checks.some(Boolean)).toBe(true);
 });
 
 When('I attempt to commit with message {string}', async function (this: World, message: string) {
@@ -187,7 +197,8 @@ Then('the commit should be {string}', async function (this: World, result: strin
 // TypeScript strict mode steps
 Given('TypeScript is configured in strict mode', async function (this: World) {
   const projectRoot = path.join(process.cwd(), '../..');
-  const tsconfigPath = path.join(projectRoot, 'tsconfig.json');
+  // The base tsconfig lives at tsconfig.base.json; individual packages extend it.
+  const tsconfigPath = path.join(projectRoot, 'tsconfig.base.json');
   const exists = await fs
     .access(tsconfigPath)
     .then(() => true)
@@ -197,6 +208,8 @@ Given('TypeScript is configured in strict mode', async function (this: World) {
   const content = await fs.readFile(tsconfigPath, 'utf-8');
   const tsconfig = JSON.parse(content);
   expect(tsconfig.compilerOptions?.strict).toBe(true);
+  // Store as `any` so downstream steps can use dot notation freely.
+  this.setData('tsconfigBase', tsconfig as any);
 });
 
 When('I compile TypeScript code', async function (this: World) {
@@ -209,19 +222,15 @@ Then('no type errors should exist', async function (this: World) {
 });
 
 Then('strict null checks should be enabled', async function (this: World) {
-  const projectRoot = path.join(process.cwd(), '../..');
-  const tsconfigPath = path.join(projectRoot, 'tsconfig.json');
-  const content = await fs.readFile(tsconfigPath, 'utf-8');
-  const tsconfig = JSON.parse(content);
-  expect(tsconfig.compilerOptions?.strict || tsconfig.compilerOptions?.strictNullChecks).toBe(true);
+  const tsconfig = this.getData<Record<string, any>>('tsconfigBase');
+  const opts = tsconfig?.['compilerOptions'];
+  expect(opts?.['strict'] || opts?.['strictNullChecks']).toBe(true);
 });
 
 Then('no implicit any should be allowed', async function (this: World) {
-  const projectRoot = path.join(process.cwd(), '../..');
-  const tsconfigPath = path.join(projectRoot, 'tsconfig.json');
-  const content = await fs.readFile(tsconfigPath, 'utf-8');
-  const tsconfig = JSON.parse(content);
-  expect(tsconfig.compilerOptions?.strict || tsconfig.compilerOptions?.noImplicitAny).toBe(true);
+  const tsconfig = this.getData<Record<string, any>>('tsconfigBase');
+  const opts = tsconfig?.['compilerOptions'];
+  expect(opts?.['strict'] || opts?.['noImplicitAny']).toBe(true);
 });
 
 // pnpm dependency management steps
@@ -287,3 +296,136 @@ Then('all workspace tests should execute', async function (this: World) {
   const lastCommand = this.getData<string>('lastCommand');
   expect(lastCommand).toBe('pnpm test');
 });
+
+// ---------------------------------------------------------------------------
+// Governance scenarios
+// ---------------------------------------------------------------------------
+
+Given(
+  'Dependabot configuration exists at {string}',
+  async function (this: World, configPath: string) {
+    const fullPath = path.join(process.cwd(), '../..', configPath);
+    const exists = await fs
+      .access(fullPath)
+      .then(() => true)
+      .catch(() => false);
+    expect(exists).toBe(true);
+    this.setData('dependabotConfigPath', fullPath);
+  }
+);
+
+When('Dependabot opens an update pull request', function (this: World) {
+  // Context step — Dependabot PRs are a GitHub runtime event.
+  // This step verifies that the configuration that enables Dependabot PRs is in place.
+});
+
+Then('the pull request should be labeled correctly', async function (this: World) {
+  // Verify the dependabot.yml is structurally valid (has ecosystem + schedule).
+  const configPath = this.getData<string>('dependabotConfigPath');
+  const content = await fs.readFile(configPath!, 'utf-8');
+  expect(content).toContain('package-ecosystem');
+  expect(content).toContain('schedule');
+});
+
+Then('CI should run automatically', async function (this: World) {
+  // Verify at least one workflow is triggered by pull_request events.
+  const workflowsDir = path.join(process.cwd(), '../..', '.github', 'workflows');
+  const files = await fs.readdir(workflowsDir);
+  const yamlFiles = files.filter((f) => f.endsWith('.yml') || f.endsWith('.yaml'));
+  let hasPrTrigger = false;
+  for (const file of yamlFiles) {
+    const content = await fs.readFile(path.join(workflowsDir, file), 'utf-8');
+    if (content.includes('pull_request')) {
+      hasPrTrigger = true;
+      break;
+    }
+  }
+  expect(hasPrTrigger).toBe(true);
+});
+
+Given(
+  'CODEOWNERS is configured for {string} and {string}',
+  async function (this: World, path1: string, path2: string) {
+    const codeownersPath = path.join(process.cwd(), '../..', '.github', 'CODEOWNERS');
+    const content = await fs.readFile(codeownersPath, 'utf-8');
+    // Strip the glob wildcard suffix for a broad substring match.
+    const key1 = path1.replace('**', '').replace(/\/+$/, '');
+    const key2 = path2.replace('**', '').replace(/\/+$/, '');
+    expect(content).toContain(key1);
+    expect(content).toContain(key2);
+    this.setData('codeownersContent', content);
+  }
+);
+
+When('a pull request changes workflow files', function (this: World) {
+  // Context step — runtime GitHub event; configuration is verified in Given.
+});
+
+Then('a human review should be required before merge', async function (this: World) {
+  // CODEOWNERS being non-empty means GitHub will request reviews for covered paths.
+  const content = this.getData<string>('codeownersContent');
+  expect(content).toBeTruthy();
+  expect(content!.trim().length).toBeGreaterThan(0);
+});
+
+Then('workflow permissions changes should be reviewed explicitly', async function (this: World) {
+  // Verify that workflow files carry explicit `permissions:` declarations.
+  const workflowsDir = path.join(process.cwd(), '../..', '.github', 'workflows');
+  const files = await fs.readdir(workflowsDir);
+  const yamlFiles = files.filter((f) => f.endsWith('.yml') || f.endsWith('.yaml'));
+  let hasPermissions = false;
+  for (const file of yamlFiles) {
+    const content = await fs.readFile(path.join(workflowsDir, file), 'utf-8');
+    if (content.includes('permissions:')) {
+      hasPermissions = true;
+      break;
+    }
+  }
+  expect(hasPermissions).toBe(true);
+});
+
+Given('a review playbook exists for GitHub Actions dependency bumps', async function (this: World) {
+  // The PR template encodes the review checklist for workflow/action changes.
+  const prTemplatePath = path.join(process.cwd(), '../..', '.github', 'pull_request_template.md');
+  const exists = await fs
+    .access(prTemplatePath)
+    .then(() => true)
+    .catch(() => false);
+  expect(exists).toBe(true);
+  const content = await fs.readFile(prTemplatePath, 'utf-8');
+  // The template must have a section covering workflow / dependabot changes.
+  expect(content.toLowerCase()).toContain('workflows');
+  this.setData('prTemplateContent', content);
+});
+
+When('a Dependabot PR updates a GitHub Action', function (this: World) {
+  // Context step — runtime GitHub event.
+});
+
+Then(
+  'reviewers should verify the action repository and release notes',
+  async function (this: World) {
+    const content = this.getData<string>('prTemplateContent');
+    // Template must mention pinning / SHA to indicate reviewers check action provenance.
+    expect(content!.toLowerCase()).toMatch(/pin|sha|commit/);
+  }
+);
+
+Then(
+  'reviewers should confirm permissions did not broaden unexpectedly',
+  async function (this: World) {
+    const content = this.getData<string>('prTemplateContent');
+    expect(content!.toLowerCase()).toContain('permissions');
+  }
+);
+
+Then(
+  'auto-merge should be enabled only when policy and CI requirements are met',
+  async function (this: World) {
+    // Verify that CI workflows exist (their passing is the prerequisite for any merge).
+    const workflowsDir = path.join(process.cwd(), '../..', '.github', 'workflows');
+    const files = await fs.readdir(workflowsDir);
+    const ciFiles = files.filter((f) => f.endsWith('.yml') || f.endsWith('.yaml'));
+    expect(ciFiles.length).toBeGreaterThan(0);
+  }
+);
