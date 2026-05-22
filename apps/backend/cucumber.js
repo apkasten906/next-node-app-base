@@ -7,6 +7,9 @@ process.env.TEST_EXTERNAL_SERVICES = process.env.TEST_EXTERNAL_SERVICES ?? 'fals
 process.env.REDIS_MOCK = process.env.REDIS_MOCK ?? 'true';
 process.env.DISABLE_QUEUES = process.env.DISABLE_QUEUES ?? 'true';
 process.env.DISABLE_WEBSOCKETS = process.env.DISABLE_WEBSOCKETS ?? 'true';
+// Disable OpenTelemetry tracing in BDD tests — avoids ECONNREFUSED hangs when
+// the OTLP/Jaeger collector is not running in the devcontainer.
+process.env.TRACING_ENABLED = process.env.TRACING_ENABLED ?? 'false';
 
 const common = {
   require: ['features/support/**/*.ts', 'features/step_definitions/**/*.ts'],

@@ -8,9 +8,12 @@ import { container } from '../../src/container-test';
 import { MetricsService } from '../../src/infrastructure/observability';
 import { World } from './world';
 
+// Set the default timeout at module scope so it applies to every hook and step
+// registered in this file (and in files loaded after it). Calling it inside
+// BeforeAll is too late for already-registered hooks.
+setDefaultTimeout(30_000);
+
 BeforeAll(async function () {
-  // Set a reasonable default timeout for steps to prevent indefinite hangs
-  setDefaultTimeout(30_000);
   console.log('🥒 Cucumber test suite starting...');
 });
 
@@ -35,7 +38,7 @@ Before(async function (this: World, { pickle }: ITestCaseHookParameter) {
   }
 });
 
-After(async function (this: World, { result, pickle }) {
+After({ timeout: 30_000 }, async function (this: World, { result, pickle }) {
   // Log scenario result
   if (result?.status === Status.FAILED) {
     console.error(`❌ Scenario failed: ${pickle.name}`);
@@ -46,9 +49,16 @@ After(async function (this: World, { result, pickle }) {
     console.log(`✅ Scenario passed: ${pickle.name}`);
   }
 
-  // Cleanup after each scenario (if method exists)
+  // Cleanup after each scenario (if method exists).
+  // Errors are swallowed so that infrastructure teardown issues (e.g. OTel
+  // exporter flushing when the collector is not running) do not mark an
+  // otherwise-passing scenario as failed.
   if (typeof this.cleanup === 'function') {
-    await this.cleanup();
+    try {
+      await this.cleanup();
+    } catch (err) {
+      console.warn('Scenario cleanup error (ignored):', (err as Error).message);
+    }
   }
 
   // Defensive teardown: `prom-client@15` default metrics don't run on an interval,

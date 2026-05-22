@@ -28,7 +28,8 @@ Then('the response status should be {int}', function (this: World, status: numbe
 });
 
 Then('the response should contain:', function (this: World, dataTable: any) {
-  const fields = dataTable.raw().map((row: string[]) => row[0]);
+  // dataTable.rows() skips the header row, giving only the data rows.
+  const fields = dataTable.rows().map((row: string[]) => row[0]);
   const body = this.response?.body;
 
   fields.forEach((field: string) => {
