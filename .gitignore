@@ -36,6 +36,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Non-pnpm lock files (this project uses pnpm exclusively)
+package-lock.json
+yarn.lock
+npm-shrinkwrap.json
+
 # Local env files
 .env
 .env.local
@@ -78,6 +83,7 @@ pids/
 *.pid
 *.seed
 *.pid.lock
+.pnpm-store/
 
 # Prisma
 prisma/*.db

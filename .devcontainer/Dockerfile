@@ -15,6 +15,11 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 # Install pnpm
 RUN npm install -g pnpm@11.1.3
 
+# pnpm 9+ requires PNPM_HOME to be set and in PATH before global installs.
+# Use a system-wide location so all users in the container can run the binaries.
+ENV PNPM_HOME="/usr/local/share/pnpm"
+ENV PATH="${PNPM_HOME}/bin:${PATH}"
+
 # Install common global packages
 RUN pnpm add -g \
     typescript \
@@ -25,16 +30,9 @@ RUN pnpm add -g \
 # Set up working directory
 WORKDIR /workspace
 
-# Configure git
-RUN git config --global --add safe.directory /workspace
+# Pre-create node_modules so the named volume is initialised with the correct
+# ownership.  This must happen while still running as root (before USER).
+RUN mkdir -p /workspace/node_modules && chown -R node:node /workspace/node_modules
 
-# Create non-root user
-ARG USERNAME=node
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
-
-# Switch to non-root user
-USER $USERNAME
-
-# Set default shell
-SHELL ["/bin/bash", "-c"]
+# Switch to non-root user (already exists in the base image)
+USER node

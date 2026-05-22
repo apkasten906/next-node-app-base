@@ -4,17 +4,9 @@
   "service": "app",
   "workspaceFolder": "/workspace",
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "25",
-      "nodeGypDependencies": true,
-      "installYarnUsingApt": false
-    },
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
       "version": "latest",
       "moby": true
-    },
-    "ghcr.io/devcontainers/features/git:1": {
-      "version": "latest"
     },
     "ghcr.io/devcontainers/features/github-cli:1": {
       "version": "latest"
@@ -74,7 +66,7 @@
     }
   },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
-  "forwardPorts": [3000, 3001, 5432, 6379],
+  "forwardPorts": [3000, 3001, "db:5432", "redis:6379"],
   "portsAttributes": {
     "3000": {
       "label": "Frontend (Next.js)",
@@ -84,11 +76,11 @@
       "label": "Backend (Express)",
       "onAutoForward": "notify"
     },
-    "5432": {
+    "db:5432": {
       "label": "PostgreSQL",
       "onAutoForward": "silent"
     },
-    "6379": {
+    "redis:6379": {
       "label": "Redis",
       "onAutoForward": "silent"
     }
