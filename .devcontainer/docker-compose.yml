@@ -16,11 +16,13 @@ services:
     # ts-node compilation + 20+ BDD scenarios + VS Code language servers need
     # significant headroom. Capping here prevents OOM from taking down the
     # entire Docker Desktop VM.
+    # Sized for 7-8 GB Docker Desktop allocation: 5G app + 256M db + 128M redis
+    # + ~300M daemon ≈ 5.7G, well within 7.43G.
     deploy:
       resources:
         limits:
           cpus: '4'
-          memory: 4G
+          memory: 5G
         reservations:
           cpus: '1'
           memory: 1G
