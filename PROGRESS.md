@@ -85,13 +85,30 @@ The backend core is implemented and running.
 - ✅ Backend `injectTraceContext` Winston format step; `logger.service.test.ts` unit tests added
 - ✅ ADR-020 authored and index regenerated
 
+### ✅ Chore: DevContainer Toolchain Alignment
+
+**Completed:** PR #59 merged to master (May 2026)
+
+- ✅ pnpm engine constraint raised to `>=11.0.0`; `packageManager` pinned to `pnpm@11.1.3+sha512`
+- ✅ Devcontainer extensions list reorganised with labelled sections
+- ✅ `openai.chatgpt` extension added under AI section
+- ✅ Spell-check word list additions
+
+### ✅ Chore: Turborepo v2 Upgrade and pnpm 11 Toolchain Alignment
+
+**Completed:** PR #60 merged to master (May 2026)
+
+- ✅ `turbo` upgraded from `^1.11.3` to `2.9.14`
+- ✅ `turbo.json` `pipeline` key renamed to `tasks` (Turborepo v2 breaking rename)
+- ✅ pnpm version unified to `11.1.3` across root `package.json`, CI workflows, and devcontainer
+- ✅ Orphaned `node_modules/turbo-windows-64` directory removed (was causing ghost v1.13.4 resolution)
+- ✅ ADR-003 and `CONTRIBUTING.md` updated with corepack hash discipline
+
 ## Current Focus / Next Steps
 
-- [ ] Create PR for `chore/devcontainer-updates` (branch already pushed) — pnpm 10.23.0 engine constraint + organized devcontainer extensions
-- [ ] E2E personas moderator (`chore/e2e-personas-moderator`) — `moderator` persona + `MODERATOR` role
-- [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `the-azure-citadel` proves reuse
-- [ ] Phase 8.5 Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks
-- [ ] Turborepo upgrade `^1.11.3` → `2.9.14` (`chore/upgrade-turborepo-v2`)
+- [ ] E2E personas moderator (`chore/e2e-personas-moderator`) — `moderator` persona + `MODERATOR` role; branch has one commit ready, needs PR and merge
+- [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `fasciculum-instrumentorum` fork proves reuse
+- [ ] Phase 11 Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks; begin with ADR and interface contracts
 
 ## Technology Stack Implemented
 
@@ -335,13 +352,4 @@ c6f9a8d - feat: implement Phase 2 - Security Framework
 1200741 - chore: initial commit with Phase 1 complete - Foundation & Governance
 ```
 
-## Next Steps
 
-1. **Phase 3: Backend Core** - Implement Express server with Prisma ORM
-2. **Phase 4: Istio Service Mesh** - Configure service mesh for production
-3. **Phase 5: Infrastructure Services** - Add Redis, Bull/BullMQ, Socket.io
-4. **Phase 6-13**: Continue through remaining implementation phases
-
----
-
-Last Updated: November 20, 2025
