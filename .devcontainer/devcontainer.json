@@ -65,6 +65,9 @@
       }
     }
   },
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached,readonly"
+  ],
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "forwardPorts": [3000, 3001, "db:5432", "redis:6379"],
   "portsAttributes": {
