@@ -50,7 +50,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: '1'
           memory: 128M
         reservations:
           memory: 32M
@@ -93,7 +93,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
+          cpus: '4'
           memory: 1G
         reservations:
           memory: 256M
@@ -129,7 +129,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
+          cpus: '4'
           memory: 1G
         reservations:
           memory: 256M
