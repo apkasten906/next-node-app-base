@@ -13,6 +13,17 @@ services:
     depends_on:
       - db
       - redis
+    # ts-node compilation + 20+ BDD scenarios + VS Code language servers need
+    # significant headroom. Capping here prevents OOM from taking down the
+    # entire Docker Desktop VM.
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 1G
 
   db:
     image: postgres:16-alpine
@@ -25,6 +36,13 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - devcontainer-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+        reservations:
+          memory: 64M
 
   redis:
     image: redis:7-alpine
@@ -34,6 +52,13 @@ services:
       - redis-data:/data
     networks:
       - devcontainer-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          memory: 32M
 
 networks:
   devcontainer-net:
