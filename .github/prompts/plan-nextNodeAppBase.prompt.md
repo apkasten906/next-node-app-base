@@ -11,6 +11,8 @@ This plan is analysis-first. It does not authorize destructive moves. It should 
 - **Stable and merged**: frontend auth/UI boundary cleanup and lint/CI boundary enforcement are complete.
 - **Stable and merged**: distributed tracing (`feat/phase-10-jaeger-tracing`, PR #51) is complete.
 - **Stable and merged**: Phase 10 observability remainder (`feat/phase-10-loki-alertmanager`, PR #58, May 2026) — Loki, Promtail, Alertmanager manifests, Grafana `tracesToLogsV2` wiring, backend `injectTraceContext` logger format, all Kubernetes NetworkPolicy Istio egress rules, ADR-020 delivered.
+- **Stable and merged**: `chore/devcontainer-updates` (PR #59, May 2026) — pnpm 11 engine constraint (`>=11.0.0`), `packageManager` pinned to `pnpm@11.1.3`, devcontainer extensions reorganised with section comments, spell-check word additions.
+- **Stable and merged**: `chore/upgrade-turborepo-v2` (PR #60, May 2026) — `turbo` upgraded from `^1.11.3` to `2.9.14`; `pipeline` key renamed to `tasks` in `turbo.json`; pnpm toolchain aligned to `11.1.3` across root, CI, and devcontainer; orphaned `node_modules/turbo-windows-64` directory removed.
 
 ## Guardrails
 
@@ -444,12 +446,19 @@ Consequence: lower migration risk and clearer package boundaries.
   - All Kubernetes NetworkPolicy objects updated with Istio egress rules (Loki, Promtail, Alertmanager, Grafana, Prometheus).
   - Backend `injectTraceContext` Winston format step added to `logger.service.ts`; three unit tests added.
   - ADR-020 authored. Kiali deferred (low priority, until Istio is actively in use).
-- ⏳ `chore/devcontainer-updates` (branch pushed to origin, PR not yet created) — pnpm 10.23.0 engine constraint, organized devcontainer extension list with section comments, `openai.chatgpt` in AI section, spell-check word additions.
+- ✅ `chore/devcontainer-updates` merged to master as PR #59 (May 2026).
+  - pnpm engine constraint raised to `>=11.0.0`; `packageManager` field pinned to `pnpm@11.1.3+sha512`.
+  - Devcontainer extensions list reorganised with labelled sections; `openai.chatgpt` added in AI section; spell-check word additions.
+- ✅ `chore/upgrade-turborepo-v2` merged to master as PR #60 (May 2026).
+  - `turbo` dependency upgraded from `^1.11.3` to `2.9.14`.
+  - `turbo.json` `pipeline` key renamed to `tasks` (Turborepo v2 breaking rename).
+  - pnpm toolchain unified to `11.1.3` across root `package.json`, CI workflows, and devcontainer.
+  - Orphaned `node_modules/turbo-windows-64` directory (root cause of v1.13.4 ghost resolution) removed.
+  - ADR-003 and `CONTRIBUTING.md` updated to document corepack hash discipline.
 
 ### Next priority (in order)
 
-1. **`chore/devcontainer-updates`** — devcontainer rework is substantial (issues discovered in fork); will be handled as a separate PR from the fork or handed off from a copilot session there. Branch pushed to `origin/chore/devcontainer-updates`; implementation deferred.
-2. **Turborepo upgrade** — ✅ Complete and ready to commit/push on `chore/upgrade-turborepo-v2`: `turbo` bumped from `^1.11.3` to `2.9.14`; `pipeline` renamed to `tasks` in `turbo.json`. Root cause of earlier v1.13.4 reports: an orphaned legacy `node_modules/turbo-windows-64` real directory (leftover from a previous turbo v1 npm install) caused the turbo v2 shim to pick v1.13.4 as the "local" binary. Fixed by deleting `node_modules/turbo-windows-64`.
-3. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona + `MODERATOR` role; still on hold.
-4. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum` (not `the-azure-citadel`); promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
-5. **Phase 8.5 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.
+1. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona fixture and `MODERATOR` role seed; branch has one commit ready (`cfc47f8`); needs PR, CI green, and merge.
+2. **Automated semantic versioning (Changesets)** — conventional commits are enforced by commitlint and `conventional-changelog-conventionalcommits` is already installed; the missing piece is a version-bump + CHANGELOG automation tool. Adopt `@changesets/cli` (natural fit for pnpm workspaces — versions packages independently), add a `chore/changesets-setup` GitHub Actions workflow that opens a "Version Packages" PR on merge to master, and catch up the stale `CHANGELOG.md` entries for all 2026 phases. Gate on: contract package extraction is not a blocker, but activate before the first real publish of `@repo/types` / `@repo/contracts`.
+3. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
+4. **Phase 11 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet; begin with ADR and interface contracts in `packages/types`.
