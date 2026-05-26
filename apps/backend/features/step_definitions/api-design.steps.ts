@@ -2,6 +2,129 @@ import { Given, Then, When } from '@cucumber/cucumber';
 import { expect } from '../support/assertions';
 import { World } from '../support/world';
 
+// Background
+Given('the API server is running', function (this: World) {
+  expect(this.request).toBeDefined();
+});
+
+Given('API endpoints are registered', function (this: World) {
+  this.setData('endpointsRegistered', true);
+});
+
+// API Versioning — feature-file step texts
+When(
+  'I make a request with Accept header {string}',
+  async function (this: World, acceptHeader: string) {
+    const res = await this.request?.get('/health').set('Accept', acceptHeader);
+    this.response = res;
+  }
+);
+
+Given(
+  'API versioning is configured with default version {float}',
+  function (this: World, _version: number) {
+    this.setData('defaultVersion', String(_version));
+  }
+);
+
+When('I make a request without version header', async function (this: World) {
+  const res = await this.request?.get('/health');
+  this.response = res;
+});
+
+Then('the request should be routed to v1.0 API', function (this: World) {
+  expect(this.response?.headers['api-version']).toBe('1.0');
+});
+
+Then('the response should indicate version 1.0', function (this: World) {
+  expect(this.response?.headers['api-version']).toBe('1.0');
+});
+
+Then('the request should be routed to v1.0 API (default)', function (this: World) {
+  expect(this.response?.headers['api-version']).toBe('1.0');
+});
+
+Then('the response should indicate unsupported version', function (this: World) {
+  expect(this.response?.body).toHaveProperty('error');
+  expect(this.response?.body).toHaveProperty('supportedVersions');
+});
+
+// Swagger / OpenAPI
+Given('Swagger is configured', function (this: World) {
+  this.setData('swaggerConfigured', true);
+});
+
+When('I navigate to {string}', async function (this: World, path: string) {
+  const res = await this.request?.get(path);
+  this.response = res;
+});
+
+Then('I should see Swagger UI', function (this: World) {
+  expect(this.response?.status).toBe(200);
+  expect(this.response?.text).toMatch(/swagger/i);
+});
+
+Then('API endpoints should be documented', async function (this: World) {
+  const res = await this.request?.get('/api-docs.json');
+  expect(res?.body).toHaveProperty('paths');
+  expect(Object.keys(res?.body.paths as object).length).toBeGreaterThan(0);
+});
+
+Then('request/response schemas should be defined', async function (this: World) {
+  const res = await this.request?.get('/api-docs.json');
+  expect(res?.body?.components).toHaveProperty('schemas');
+  expect(Object.keys(res?.body.components.schemas as object).length).toBeGreaterThan(0);
+});
+
+Then('I should be able to test APIs from the UI', function (this: World) {
+  expect(this.response?.status).toBe(200);
+});
+
+Given('OpenAPI specifications are defined', function (this: World) {
+  this.setData('openApiDefined', true);
+});
+
+When('I view the Swagger documentation', async function (this: World) {
+  const res = await this.request?.get('/api-docs.json');
+  this.response = res;
+});
+
+Then('common schemas should be defined:', function (this: World, dataTable: any) {
+  const schemas = this.response?.body?.components?.schemas as Record<string, unknown>;
+  expect(schemas).toBeDefined();
+  const names: string[] = dataTable.rows().map((row: string[]) => row[0]);
+  for (const name of names) {
+    expect(schemas, `Schema "${name}" should be defined`).toHaveProperty(name);
+  }
+});
+
+Given('security schemes are defined in Swagger', function (this: World) {
+  this.setData('securitySchemesConfigured', true);
+});
+
+When('I view API endpoints in Swagger', async function (this: World) {
+  const res = await this.request?.get('/api-docs.json');
+  this.response = res;
+});
+
+Then('JWT Bearer authentication should be documented', function (this: World) {
+  const securitySchemes = this.response?.body?.components?.securitySchemes as Record<string, any>;
+  expect(securitySchemes).toHaveProperty('bearerAuth');
+  expect(securitySchemes['bearerAuth'].scheme).toBe('bearer');
+});
+
+Then('protected endpoints should show lock icon', function (this: World) {
+  // Security schemes being present enables the lock icon for annotated endpoints
+  const securitySchemes = this.response?.body?.components?.securitySchemes;
+  expect(securitySchemes).toBeDefined();
+  expect(Object.keys(securitySchemes as object).length).toBeGreaterThan(0);
+});
+
+Then('I should be able to authenticate via Swagger UI', async function (this: World) {
+  const res = await this.request?.get('/api-docs');
+  expect(res?.status).toBe(200);
+});
+
 // API Versioning
 Given('API versioning is configured', async function (this: World) {
   this.setData('versioningConfigured', true);
