@@ -7,6 +7,8 @@ process.env.TEST_EXTERNAL_SERVICES = process.env.TEST_EXTERNAL_SERVICES ?? 'fals
 process.env.REDIS_MOCK = process.env.REDIS_MOCK ?? 'true';
 process.env.DISABLE_QUEUES = process.env.DISABLE_QUEUES ?? 'true';
 process.env.DISABLE_WEBSOCKETS = process.env.DISABLE_WEBSOCKETS ?? 'true';
+process.env.CORS_ORIGIN =
+  process.env.CORS_ORIGIN ?? 'http://localhost:3000,https://trusted-domain.com';
 // Disable OpenTelemetry tracing in BDD tests — avoids ECONNREFUSED hangs when
 // the OTLP/Jaeger collector is not running in the devcontainer.
 process.env.TRACING_ENABLED = process.env.TRACING_ENABLED ?? 'false';

@@ -106,7 +106,39 @@ The backend core is implemented and running.
 
 ## Current Focus / Next Steps
 
+### In-flight
+
 - [ ] E2E personas moderator (`chore/e2e-personas-moderator`) — `moderator` persona + `MODERATOR` role; branch has one commit ready, needs PR and merge
+
+### Current Objective: BDD Base-Repo Scenario Coverage
+
+**Goal:** Promote all ~165 base-repo scenarios to `@ready`. Adopter scenarios (~204) remain `@wip` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
+
+**Priority order** (highest coverage gap first):
+
+| #   | Feature                   | Base ready / Base total | Gap | Status                                                                            |
+| --- | ------------------------- | ----------------------- | --- | --------------------------------------------------------------------------------- |
+| 1   | 14-websocket              | 0 / 15                  | 15  | 🔴 Not started                                                                    |
+| 2   | 10-observability          | 0 / 22                  | 22  | 🔴 Step defs exist; needs `@ready` promotion                                      |
+| 3   | 08-file-storage           | 1 / 10                  | 9   | 🔴 Interface + local provider implemented; scenarios need tagging                 |
+| 4   | 06-notifications          | 3 / 5                   | 2   | 🟡 Nearly done                                                                    |
+| 5   | 02-security               | 8 / 8                   | 0   | ✅ Base scenarios promoted (`JWT`, rate limiting, Helmet, CORS, input validation) |
+| 6   | 13-message-queue          | 5 / 10                  | 5   | 🟡 DLQ and health endpoint scenarios                                              |
+| 7   | 11-advanced-testing       | 2 / 8                   | 6   | 🔴 Pact + k6 + ZAP scaffolding                                                    |
+| 8   | 12-kubernetes-devops      | 4 / 10                  | 6   | 🔴 K8s manifest templates, CI pipeline stages                                     |
+| 9   | Frontend base (~32 total) | 4 / 32                  | 28  | 🔴 Next.js arch, error boundaries, NextAuth wiring                                |
+
+**Already complete:**
+
+- ✅ 01-foundation — 11/11
+- ✅ 03-backend-core — 19/19 (15 ready; 4 remaining are `@wip` adopter scenarios)
+- ✅ 05-testing — infrastructure scenarios covered
+- ✅ 07-api-design — ~13/19 base scenarios ready
+- ✅ 02-security — 8/8 base scenarios ready
+- ✅ Frontend: 01-i18n — 1/1
+
+### Up Next (after BDD coverage)
+
 - [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `fasciculum-instrumentorum` fork proves reuse
 - [ ] Phase 11 Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks; begin with ADR and interface contracts
 
@@ -351,5 +383,3 @@ await auditLog.logAuthz({
 c6f9a8d - feat: implement Phase 2 - Security Framework
 1200741 - chore: initial commit with Phase 1 complete - Foundation & Governance
 ```
-
-

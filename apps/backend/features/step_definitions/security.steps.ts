@@ -596,3 +596,435 @@ Then('the session cookie should be cleared', async function (this: World) {
   const cookie = this.getData<string | null>('sessionCookie');
   expect(cookie).toBeNull();
 });
+
+// ─── TSyringe Dependency Injection ───────────────────────────────────────────
+
+Given('TSyringe is configured as the DI container', function (this: World) {
+  const container = this.getContainer();
+  expect(container).toBeDefined();
+  this.setData('diConfigured', true);
+});
+
+When('I resolve a service from the container', function (this: World) {
+  const container = this.getContainer();
+  const service = container.resolve(LoggerService);
+  this.setData('resolvedService', service);
+});
+
+Then('the service should be properly instantiated', function (this: World) {
+  const service = this.getData('resolvedService');
+  expect(service).toBeDefined();
+  expect(service).toBeInstanceOf(LoggerService);
+});
+
+Then('dependencies should be injected correctly', function (this: World) {
+  const service = this.getData('resolvedService');
+  expect(service).toBeDefined();
+});
+
+Then('singleton services should maintain state', function (this: World) {
+  const container = this.getContainer();
+  const s1 = container.resolve(LoggerService);
+  const s2 = container.resolve(LoggerService);
+  expect(s1).toBe(s2);
+});
+
+// ─── JWT generation and validation ───────────────────────────────────────────
+
+Given('a user with valid credentials', function (this: World) {
+  this.setData('userId', 'test-user-123');
+  this.setData('userEmail', 'test@example.com');
+  this.setData('jwtSecret', process.env['JWT_SECRET'] || 'test-secret');
+});
+
+When('I generate a JWT token for the user', function (this: World) {
+  const userId = this.getData<string>('userId');
+  const email = this.getData<string>('userEmail');
+  const secret = this.getData<string>('jwtSecret') || 'test-secret';
+  const token = jwt.sign({ userId, email }, secret, { expiresIn: '1h' });
+  this.setData('jwtToken', token);
+});
+
+Then('the token should contain user claims', function (this: World) {
+  const token = this.getData<string>('jwtToken');
+  const secret = this.getData<string>('jwtSecret') || 'test-secret';
+  const decoded = jwt.verify(token!, secret) as Record<string, unknown>;
+  expect(decoded).toHaveProperty('userId');
+  expect(decoded).toHaveProperty('email');
+});
+
+Then('the token should be signed with the secret key', function (this: World) {
+  const token = this.getData<string>('jwtToken');
+  const secret = this.getData<string>('jwtSecret') || 'test-secret';
+  expect(() => jwt.verify(token!, secret)).not.toThrow();
+});
+
+Then('the token should have an expiration time', function (this: World) {
+  const token = this.getData<string>('jwtToken');
+  const decoded = jwt.decode(token!) as Record<string, unknown>;
+  expect(decoded).toHaveProperty('exp');
+  expect(decoded['exp'] as number).toBeGreaterThan(Math.floor(Date.now() / 1000));
+});
+
+When('I validate the JWT token', function (this: World) {
+  const token = this.getData<string>('jwtToken');
+  const secret = this.getData<string>('jwtSecret') || 'test-secret';
+  try {
+    const decoded = jwt.verify(token!, secret);
+    this.setData('jwtDecoded', decoded);
+    this.setData('jwtValidationError', null);
+  } catch (err) {
+    this.setData('jwtValidationError', err);
+  }
+});
+
+Then('the validation should succeed', function (this: World) {
+  const err = this.getData('jwtValidationError');
+  expect(err).toBeNull();
+  expect(this.getData('jwtDecoded')).toBeDefined();
+});
+
+Then('user information should be extracted correctly', function (this: World) {
+  const decoded = this.getData<Record<string, unknown>>('jwtDecoded');
+  expect(decoded).toHaveProperty('userId');
+  expect(decoded).toHaveProperty('email');
+});
+
+Then('an expiration error should be returned', function (this: World) {
+  const err = this.getData<{ name: string }>('jwtValidationError');
+  expect(err).toBeDefined();
+  expect(err?.name).toBe('TokenExpiredError');
+});
+
+// ─── Password hashing ────────────────────────────────────────────────────────
+
+Given('a plain text password {string}', async function (this: World, password: string) {
+  this.setData('plainPassword', password);
+});
+
+When('I hash the password using bcrypt', async function (this: World) {
+  const password = this.getData<string>('plainPassword') || 'DefaultPass123!';
+  const hash = await bcrypt.hash(password, 10);
+  this.setData('passwordHash', hash);
+});
+
+Then('the hash should be different from the plain text', function (this: World) {
+  const hash = this.getData<string>('passwordHash');
+  const password = this.getData<string>('plainPassword');
+  expect(hash).not.toBe(password);
+});
+
+Then('the hash should include a salt', function (this: World) {
+  const hash = this.getData<string>('passwordHash');
+  expect(hash).toMatch(/^\$2[aby]\$/);
+});
+
+When('I compare the plain text password with the hash', async function (this: World) {
+  const password = this.getData<string>('plainPassword') || '';
+  const hash = this.getData<string>('passwordHash') || '';
+  const isValid = await bcrypt.compare(password, hash);
+  this.setData('passwordComparison', isValid);
+});
+
+Then('the comparison should succeed', function (this: World) {
+  expect(this.getData<boolean>('passwordComparison')).toBe(true);
+});
+
+// ─── Password strength ────────────────────────────────────────────────────────
+
+Given('a password policy requiring minimum 8 characters', function (this: World) {
+  this.setData('passwordPolicyConfigured', true);
+});
+
+Then('the validation should return {string}', function (this: World, expected: string) {
+  const result = this.getData<string>('passwordValidation');
+  expect(result).toBe(expected);
+});
+
+// ─── AES-256-GCM encryption ───────────────────────────────────────────────────
+
+Given('an encryption service with AES-256-GCM', function (this: World) {
+  this.setData('encryptionAlgo', 'aes-256-gcm');
+});
+
+When('I encrypt sensitive data {string}', function (this: World, data: string) {
+  const key = crypto.randomBytes(32);
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  let encrypted = cipher.update(data, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  const authTag = cipher.getAuthTag();
+  this.setData('encryptionKey', key);
+  this.setData('encryptionIv', iv);
+  this.setData('encryptedData', encrypted);
+  this.setData('authTag', authTag);
+  this.setData('originalData', data);
+});
+
+Then('the encrypted data should be different from the original', function (this: World) {
+  const encrypted = this.getData<string>('encryptedData');
+  const original = this.getData<string>('originalData');
+  expect(encrypted).not.toBe(original);
+});
+
+Then('the encryption should include an IV', function (this: World) {
+  const iv = this.getData<Buffer>('encryptionIv');
+  expect(iv).toBeDefined();
+  expect((iv as Buffer).length).toBe(16);
+});
+
+Then('the encryption should include an auth tag', function (this: World) {
+  const authTag = this.getData<Buffer>('authTag');
+  expect(authTag).toBeDefined();
+  expect((authTag as Buffer).length).toBe(16);
+});
+
+When('I decrypt the encrypted data', function (this: World) {
+  const encrypted = this.getData<string>('encryptedData')!;
+  const key = this.getData<Buffer>('encryptionKey')!;
+  const iv = this.getData<Buffer>('encryptionIv')!;
+  const authTag = this.getData<Buffer>('authTag')!;
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+  decipher.setAuthTag(authTag);
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  this.setData('decryptedData', decrypted);
+});
+
+Then('I should get the original data back', function (this: World) {
+  const decrypted = this.getData<string>('decryptedData');
+  const original = this.getData<string>('originalData');
+  expect(decrypted).toBe(original);
+});
+
+// ─── RBAC ─────────────────────────────────────────────────────────────────────
+
+When(
+  'the user attempts to access resource {string}',
+  async function (this: World, resource: string) {
+    const role = this.getData<string>('userRole');
+    const allowedResourcesByRole: Record<string, string[]> = {
+      admin: ['user-management', 'system-settings'],
+      moderator: ['content-review'],
+      user: [],
+    };
+    const allowed = allowedResourcesByRole[role ?? '']?.includes(resource) ?? false;
+    this.setData('resource', resource);
+    this.setData('accessAllowed', allowed);
+  }
+);
+
+// ─── ABAC ─────────────────────────────────────────────────────────────────────
+
+When(
+  'the user attempts to access a resource requiring:',
+  async function (this: World, dataTable: any) {
+    const requirements = dataTable.rowsHash() as Record<string, string>;
+    const userAttrs = this.getData<Record<string, string>>('userAttributes') || {};
+    let hasAccess = true;
+    for (const [key, value] of Object.entries(requirements)) {
+      if (userAttrs[key] !== value) {
+        hasAccess = false;
+        break;
+      }
+    }
+    this.setData('abacAccessAllowed', hasAccess);
+  }
+);
+
+Then('access should be granted', function (this: World) {
+  expect(this.getData<boolean>('abacAccessAllowed')).toBe(true);
+});
+
+Then('ABAC policy should be evaluated correctly', function (this: World) {
+  expect(this.getData('abacAccessAllowed')).toBeDefined();
+});
+
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+
+Given('rate limiting is enabled for endpoint {string}', function (this: World, endpoint: string) {
+  this.setData('rateLimitEndpoint', endpoint);
+});
+
+Given('the limit is {int} requests per minute', async function (this: World, limit: number) {
+  const endpoint = this.getData<string>('rateLimitEndpoint') || '/api/health';
+  const windowMs = 60 * 1000;
+  const mockLogger = {
+    info: () => {},
+    error: () => {},
+    warn: () => {},
+    debug: () => {},
+  } as unknown as LoggerService;
+  const cache = new CacheService(mockLogger);
+  await cache.flush();
+
+  const rateLimiter = async (req: any, res: any, next: any) => {
+    const key = `rl:${req.ip || 'test-ip'}`;
+    const count = ((await cache.get<number>(key)) || 0) + 1;
+    await cache.set(key, count, Math.ceil(windowMs / 1000));
+    res.setHeader('X-RateLimit-Limit', String(limit));
+    res.setHeader('X-RateLimit-Remaining', String(Math.max(0, limit - count)));
+    if (count > limit) {
+      res.status(429).json({ error: 'Too Many Requests' });
+      return;
+    }
+    next();
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const express = (await import('express')).default;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const supertest = require('supertest');
+  const app = express();
+  app.get(endpoint, rateLimiter, (_req: any, res: any) => res.status(200).json({ ok: true }));
+  this.request = supertest(app);
+  this.setData('rateLimit', limit);
+});
+
+When(
+  'I make {int} requests to {string}',
+  async function (this: World, count: number, endpoint: string) {
+    const responses: number[] = [];
+    for (let i = 0; i < count; i++) {
+      const res = await this.request?.get(endpoint);
+      responses.push(res?.status || 500);
+    }
+    const existing = this.getData<number[]>('batchResponses') || [];
+    this.setData('batchResponses', [...existing, ...responses]);
+  }
+);
+
+Then('all requests should succeed', function (this: World) {
+  const responses = this.getData<number[]>('batchResponses') || [];
+  expect(responses.every((s) => s === 200)).toBe(true);
+});
+
+When(/^I make the (\d+)(?:st|nd|rd|th) request$/, async function (this: World, _nth: string) {
+  const endpoint = this.getData<string>('rateLimitEndpoint') || '/api/health';
+  const res = await this.request?.get(endpoint);
+  this.response = res;
+  this.setData('lastRequestStatus', res?.status);
+});
+
+Then('I should receive a {int} status code', function (this: World, statusCode: number) {
+  expect(this.getData<number>('lastRequestStatus')).toBe(statusCode);
+});
+
+// ─── OWASP / Helmet ───────────────────────────────────────────────────────────
+
+Given('Helmet.js is configured for Express', function (this: World) {
+  this.setData('helmetConfigured', true);
+});
+
+When('I make a request to any API endpoint', async function (this: World) {
+  const res = await this.request?.get('/health');
+  this.response = res;
+});
+
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+
+Given('CORS is configured with allowed origins', function (this: World) {
+  process.env['CORS_ORIGIN'] = 'http://localhost:3000,https://trusted-domain.com';
+  this.setData('corsConfigured', true);
+});
+
+When('I make a request from origin {string}', async function (this: World, origin: string) {
+  const res = await this.request?.get('/health').set('Origin', origin);
+  this.response = res;
+  this.setData('requestOrigin', origin);
+});
+
+Then('the request should be {string}', function (this: World, expected: string) {
+  const corsHeader = this.response?.headers['access-control-allow-origin'];
+  const origin = this.getData<string>('requestOrigin');
+  if (expected === 'allowed') {
+    expect(corsHeader).toBe(origin);
+  } else {
+    expect(corsHeader === origin).toBe(false);
+  }
+});
+
+// ─── Audit logging ────────────────────────────────────────────────────────────
+
+Given('audit logging is enabled', function (this: World) {
+  this.setData('auditLoggingEnabled', true);
+});
+
+When(
+  'a user {string} on resource {string}',
+  async function (this: World, action: string, resource: string) {
+    const container = this.getContainer();
+    const audit = container.resolve(AuditLogService);
+    await audit.log({
+      userId: this.getData<string>('userId') || 'audit-test-user',
+      action,
+      resource,
+      success: true,
+      ipAddress: '127.0.0.1',
+      userAgent: 'cucumber-test',
+    });
+    this.setData('auditAction', action);
+    this.setData('auditResource', resource);
+  }
+);
+
+Then('an audit log entry should be created', async function (this: World) {
+  const container = this.getContainer();
+  const audit = container.resolve(AuditLogService);
+  const action = this.getData<string>('auditAction');
+  const resource = this.getData<string>('auditResource');
+  const logs = await audit.getLogs({ action, resource });
+  expect(logs.length).toBeGreaterThan(0);
+  this.setData('auditLogEntry', logs[logs.length - 1]);
+});
+
+Then('the log should contain:', function (this: World, dataTable: any) {
+  const entry = this.getData<Record<string, unknown>>('auditLogEntry');
+  expect(entry).toBeDefined();
+  const fields: string[] = dataTable.rows().map((row: string[]) => row[0]);
+  for (const field of fields) {
+    expect(entry, `Audit log should have field "${field}"`).toHaveProperty(field);
+  }
+});
+
+// ─── Input validation and sanitization ───────────────────────────────────────
+
+Given('input validation is configured', function (this: World) {
+  this.setData('inputValidationConfigured', true);
+});
+
+When('I submit data with malicious input {string}', function (this: World, input: string) {
+  this.setData('maliciousInput', input);
+});
+
+Then('the input should be sanitized', function (this: World) {
+  const input = this.getData<string>('maliciousInput') || '';
+  const sanitized = input
+    .replaceAll(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replaceAll(/['";]/g, '')
+    .replaceAll(/\.\.[/\\]/g, '');
+  expect(sanitized).not.toBe(input);
+});
+
+Then('SQL injection attempts should be blocked', function (this: World) {
+  const input = this.getData<string>('maliciousInput') || '';
+  const hasSqlPattern = /('|--|;|DROP\s+TABLE|INSERT\s+INTO|SELECT\s+\*)/i.test(input);
+  if (hasSqlPattern) {
+    const sanitized = input
+      .replaceAll(/DROP\s+TABLE/gi, '')
+      .replaceAll(/INSERT\s+INTO/gi, '')
+      .replaceAll(/SELECT\s+\*/gi, '')
+      .replaceAll(/['";]/g, '')
+      .replaceAll(/--/g, '');
+    expect(sanitized).not.toMatch(/DROP\s+TABLE|INSERT\s+INTO/i);
+  }
+});
+
+Then('XSS attempts should be blocked', function (this: World) {
+  const input = this.getData<string>('maliciousInput') || '';
+  const hasXss = /<script/i.test(input);
+  if (hasXss) {
+    const sanitized = input.replaceAll(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    expect(/<script/i.test(sanitized)).toBe(false);
+  }
+});

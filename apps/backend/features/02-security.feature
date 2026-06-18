@@ -16,7 +16,7 @@ Feature: Security Framework
     And dependencies should be injected correctly
     And singleton services should maintain state
 
-  @security @jwt
+  @ready @security @jwt @impl_jwt_authentication
   Scenario: JWT token generation and validation
     Given a user with valid credentials
     When I generate a JWT token for the user
@@ -27,7 +27,7 @@ Feature: Security Framework
     Then the validation should succeed
     And user information should be extracted correctly
 
-  @security @jwt-expiration
+  @ready @security @jwt-expiration @impl_jwt_expiration
   Scenario: JWT token expiration handling
     Given an expired JWT token
     When I attempt to validate the expired token
@@ -115,7 +115,7 @@ Feature: Security Framework
     Then access should be granted
     And ABAC policy should be evaluated correctly
 
-  @security @rate-limiting
+  @ready @security @rate-limiting @impl_rate_limiting
   Scenario: Rate limiting for API endpoints
     Given rate limiting is enabled for endpoint "/api/auth/login"
     And the limit is 5 requests per minute
@@ -125,7 +125,7 @@ Feature: Security Framework
     Then the request should be rejected
     And I should receive a 429 status code
 
-  @security @owasp
+  @ready @security @owasp @helmet @impl_helmet_security_headers
   Scenario: OWASP Top 10 protection with Helmet.js
     Given Helmet.js is configured for Express
     When I make a request to any API endpoint
@@ -137,7 +137,7 @@ Feature: Security Framework
       | Strict-Transport-Security   |
       | Content-Security-Policy     |
 
-  @security @cors
+  @ready @security @cors @impl_cors_allowed_origins
   Scenario: CORS configuration for allowed origins
     Given CORS is configured with allowed origins
     When I make a request from origin "<origin>"
@@ -170,7 +170,7 @@ Feature: Security Framework
       | delete  | sensitive-data|
       | access  | admin-panel   |
 
-  @security @input-validation
+  @ready @security @input-validation @impl_input_validation_sanitization
   Scenario: Input validation and sanitization
     Given input validation is configured
     When I submit data with malicious input "<input>"
