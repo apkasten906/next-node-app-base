@@ -118,8 +118,8 @@ The backend core is implemented and running.
 
 | #   | Feature                   | Base ready / Base total | Gap | Status                                                                            |
 | --- | ------------------------- | ----------------------- | --- | --------------------------------------------------------------------------------- |
-| 1   | 14-websocket              | 0 / 15                  | 15  | 🔴 Not started                                                                    |
-| 2   | 10-observability          | 0 / 22                  | 22  | 🔴 Step defs exist; needs `@ready` promotion                                      |
+| 1   | 14-websocket              | 18 / 18                 | 0   | ✅ Base scenarios promoted (service wiring, rooms, messages, presence, health)    |
+| 2   | 10-observability          | 0 / 22                  | 22  | 🔴 Next target: step defs exist; needs `@ready` promotion                         |
 | 3   | 08-file-storage           | 1 / 10                  | 9   | 🔴 Interface + local provider implemented; scenarios need tagging                 |
 | 4   | 06-notifications          | 3 / 5                   | 2   | 🟡 Nearly done                                                                    |
 | 5   | 02-security               | 8 / 8                   | 0   | ✅ Base scenarios promoted (`JWT`, rate limiting, Helmet, CORS, input validation) |
@@ -135,6 +135,7 @@ The backend core is implemented and running.
 - ✅ 05-testing — infrastructure scenarios covered
 - ✅ 07-api-design — ~13/19 base scenarios ready
 - ✅ 02-security — 8/8 base scenarios ready
+- ✅ 14-websocket — 18/18 base scenarios ready
 - ✅ Frontend: 01-i18n — 1/1
 
 ### Up Next (after BDD coverage)
