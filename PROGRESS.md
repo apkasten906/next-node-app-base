@@ -106,10 +106,6 @@ The backend core is implemented and running.
 
 ## Current Focus / Next Steps
 
-### In-flight
-
-- [ ] E2E personas moderator (`chore/e2e-personas-moderator`) — `moderator` persona + `MODERATOR` role; branch has one commit ready, needs PR and merge
-
 ### Current Objective: BDD Base-Repo Scenario Coverage
 
 **Goal:** Promote all ~162 base-repo scenarios to `@ready`. Adopter scenarios remain `@wip` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
@@ -141,6 +137,7 @@ The backend core is implemented and running.
 
 ### Up Next (after BDD coverage)
 
+- [ ] E2E personas moderator (`chore/e2e-personas-moderator`) — resume after BDD coverage is complete; `moderator` persona + `MODERATOR` role branch has one commit ready and then needs PR, green CI, and merge
 - [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `fasciculum-instrumentorum` fork proves reuse
 - [ ] Phase 11 Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks; begin with ADR and interface contracts
 
