@@ -9,7 +9,7 @@ services:
       # Keep Codex authentication and local state across container rebuilds.
       - codex-data:/home/node/.codex
     command: sleep infinity
-    privileged: true
+    # privileged: true
     networks:
       - devcontainer-net
     depends_on:

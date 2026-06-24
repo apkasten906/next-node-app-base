@@ -53,6 +53,7 @@
   "playwright.showBrowser": true,
   "playwright.showTrace": false,
   "testing.automaticallyOpenPeekView": "never",
+  "python.terminal.activateEnvironment": false,
   "playwright.env": {
     "REUSE_EXISTING_SERVER": "true"
   },
