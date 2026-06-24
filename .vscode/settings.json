@@ -1,7 +1,4 @@
 {
-  "remote.extensionKind": {
-    "openai.chatgpt": ["ui"]
-  },
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {

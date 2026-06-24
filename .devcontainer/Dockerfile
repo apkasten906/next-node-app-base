@@ -34,5 +34,9 @@ WORKDIR /workspace
 # ownership.  This must happen while still running as root (before USER).
 RUN mkdir -p /workspace/node_modules && chown -R node:node /workspace/node_modules
 
+# Seed ownership for the persistent Codex volume. Docker copies this directory's
+# metadata into a new named volume, allowing the non-root node user to write it.
+RUN mkdir -p /home/node/.codex && chown -R node:node /home/node/.codex
+
 # Switch to non-root user (already exists in the base image)
 USER node

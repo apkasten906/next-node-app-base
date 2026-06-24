@@ -6,6 +6,8 @@ services:
     volumes:
       - ..:/workspace:cached
       - node_modules:/workspace/node_modules
+      # Keep Codex authentication and local state across container rebuilds.
+      - codex-data:/home/node/.codex
     command: sleep infinity
     privileged: true
     networks:
@@ -75,3 +77,4 @@ volumes:
   postgres-data:
   redis-data:
   node_modules:
+  codex-data:

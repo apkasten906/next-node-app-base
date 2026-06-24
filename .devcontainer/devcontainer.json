@@ -43,6 +43,8 @@
         "eamodio.gitlens",
         "github.vscode-pull-request-github",
         "github.vscode-github-actions",
+        // AI assistance
+        "openai.chatgpt",
         // Diagrams
         "mermaidchart.vscode-mermaid-chart",
         // Developer experience
@@ -71,6 +73,7 @@
     "source=${localEnv:USERPROFILE}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached,readonly"
   ],
   "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "git config --global --replace-all safe.directory ${containerWorkspaceFolder}",
   "forwardPorts": [3000, 3001, "db:5432", "redis:6379"],
   "portsAttributes": {
     "3000": {
