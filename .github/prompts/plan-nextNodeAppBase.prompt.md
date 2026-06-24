@@ -459,7 +459,7 @@ Consequence: lower migration risk and clearer package boundaries.
 ### Next priority (in order)
 
 1. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona fixture and `MODERATOR` role seed; branch has one commit ready (`cfc47f8`); needs PR, CI green, and merge.
-2. **BDD base-repo scenario coverage** — see section N for full scope breakdown. Priority order within BDD work: observability → file-storage → notifications → message-queue → advanced-testing → kubernetes-devops → frontend base scenarios. Websocket and security base slices are complete. Target: all ~165 base-repo scenarios promoted to `@ready`.
+2. **BDD base-repo scenario coverage** — see section N for full scope breakdown. Observability is now 17/19 base scenarios ready; comprehensive dependency health and explicit SLO compliance reporting remain. Priority order within BDD work: finish observability gaps → file-storage → notifications → message-queue → advanced-testing → kubernetes-devops → frontend base scenarios. Websocket and security base slices are complete. Target: all ~162 base-repo scenarios promoted to `@ready`.
 3. **Automated semantic versioning (Changesets)** — conventional commits are enforced by commitlint and `conventional-changelog-conventionalcommits` is already installed; the missing piece is a version-bump + CHANGELOG automation tool. Adopt `@changesets/cli` (natural fit for pnpm workspaces — versions packages independently), add a `chore/changesets-setup` GitHub Actions workflow that opens a "Version Packages" PR on merge to master, and catch up the stale `CHANGELOG.md` entries for all 2026 phases. Gate on: contract package extraction is not a blocker, but activate before the first real publish of `@repo/types` / `@repo/contracts`.
 4. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
 5. **Phase 11 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet; begin with ADR and interface contracts in `packages/types`.
@@ -470,7 +470,7 @@ The dividing line: **base repo = infrastructure, conventions, and cross-cutting 
 
 The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` permanently in this repo and serve as implementation guides for teams forking the template.
 
-### Base repo responsibility (~165 scenarios)
+### Base repo responsibility (~162 scenarios)
 
 | Feature                      | Scope  | Notes                                                                              |
 | ---------------------------- | ------ | ---------------------------------------------------------------------------------- |
@@ -478,7 +478,7 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` 
 | 03-backend-core              | All 19 | Express, DI (TSyringe), routing, error middleware                                  |
 | 02-security                  | ~8/16  | CORS, Helmet, rate limiting, JWT, Zod validation, HTTPS, CSP                       |
 | 07-api-design                | ~13/19 | REST conventions, response/error formats, OpenAPI, versioning scheme               |
-| 10-observability             | All 22 | Correlation IDs, Winston, Prometheus metrics, structured logs                      |
+| 10-observability             | ~19/22 | Metrics, dashboards, alerts, tracing, structured logs, health, and SLO scaffolding |
 | 05-testing                   | All 12 | Vitest config, coverage thresholds, BDD tooling                                    |
 | 13-message-queue             | ~10/18 | BullMQ setup, worker base class, retry, DLQ pattern, health endpoint               |
 | 14-websocket                 | 18/28  | Socket.io setup, auth rejection, rooms, messaging, presence, health, frontend hook |
@@ -492,10 +492,11 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` 
 | Frontend: 04-error-handling  | ~8/23  | Global error boundary, 4xx/5xx pages, toast notifications                          |
 | Frontend: 01-authentication  | ~3/12  | NextAuth plumbing, token refresh, session persistence                              |
 
-### Adopter responsibility (~204 scenarios — `@wip` permanently in this repo)
+### Adopter responsibility (~207 scenarios — `@wip` permanently in this repo)
 
 | Feature                      | Scope  | Notes                                                                              |
 | ---------------------------- | ------ | ---------------------------------------------------------------------------------- |
+| 10-observability             | ~3/22  | ELK, Sentry, and runtime profiling provider/tool choices                           |
 | 02-security                  | ~8/16  | Business RBAC/ABAC rules, permission models, lockout thresholds, audit log content |
 | 06-notifications             | ~10/15 | SendGrid/Twilio/FCM wiring, email templates, bulk email, SMS/push content          |
 | 08-file-storage              | ~20/30 | S3/Azure/GCP providers, CDN, signed URL TTL policies, business file organisation   |
@@ -510,6 +511,6 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` 
 
 ### BDD backlog priority rationale
 
-- **Observability first**: websocket base coverage is complete; observability remains 0/22 base scenarios ready, yet has full implementation and step definitions. This should be the next quick promotion.
+- **Observability nearly complete**: 17/19 base scenarios are now `@ready` and validate real source/manifests. Comprehensive dependency health and explicit SLO compliance reporting remain `@wip`; ELK, Sentry, and runtime profiling are adopter concerns.
 - **File storage and notifications next**: interfaces and local/console providers already exist; scenarios for the base slice just need tagging.
 - **Frontend last**: Next.js architecture, error boundaries, and auth wiring are real deliverables but depend on backend base scenarios being stable first.

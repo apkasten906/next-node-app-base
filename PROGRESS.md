@@ -112,17 +112,19 @@ The backend core is implemented and running.
 
 ### Current Objective: BDD Base-Repo Scenario Coverage
 
-**Goal:** Promote all ~165 base-repo scenarios to `@ready`. Adopter scenarios (~204) remain `@wip` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
+**Goal:** Promote all ~162 base-repo scenarios to `@ready`. Adopter scenarios remain `@wip` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
+
+**Current generated status (June 24, 2026):** backend 107/263 ready; frontend 4/122 ready; overall 111/385 ready.
 
 **Priority order** (highest coverage gap first):
 
 | #   | Feature                   | Base ready / Base total | Gap | Status                                                            |
 | --- | ------------------------- | ----------------------- | --- | ----------------------------------------------------------------- |
-| 1   | 14-websocket              | 0 / 15                  | 15  | 🔴 Not started                                                    |
-| 2   | 10-observability          | 0 / 22                  | 22  | 🔴 Step defs exist; needs `@ready` promotion                      |
+| 1   | 14-websocket              | 18 / 18                 | 0   | ✅ Base slice complete                                            |
+| 2   | 10-observability          | 17 / 19                 | 2   | 🟡 Health dependency detail and explicit SLO reporting remain     |
 | 3   | 08-file-storage           | 1 / 10                  | 9   | 🔴 Interface + local provider implemented; scenarios need tagging |
 | 4   | 06-notifications          | 3 / 5                   | 2   | 🟡 Nearly done                                                    |
-| 5   | 02-security               | 2 / 8                   | 6   | 🔴 CORS, Helmet, Zod validation scenarios                         |
+| 5   | 02-security               | 8 / 8                   | 0   | ✅ Base slice complete                                            |
 | 6   | 13-message-queue          | 5 / 10                  | 5   | 🟡 DLQ and health endpoint scenarios                              |
 | 7   | 11-advanced-testing       | 2 / 8                   | 6   | 🔴 Pact + k6 + ZAP scaffolding                                    |
 | 8   | 12-kubernetes-devops      | 4 / 10                  | 6   | 🔴 K8s manifest templates, CI pipeline stages                     |
@@ -135,6 +137,7 @@ The backend core is implemented and running.
 - ✅ 05-testing — infrastructure scenarios covered
 - ✅ 07-api-design — ~13/19 base scenarios ready
 - ✅ Frontend: 01-i18n — 1/1
+- ✅ 10-observability — 17/19 base scenarios ready; ELK, Sentry, and runtime profiling classified as adopter concerns
 
 ### Up Next (after BDD coverage)
 
