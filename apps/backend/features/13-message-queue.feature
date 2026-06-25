@@ -17,7 +17,7 @@ Feature: Message Queue System with BullMQ
     And the job should have a unique job ID
     And the job should be visible in Bull Board dashboard
 
-  @queue @email @processing
+  @ready @queue @email @processing @impl_queue_system
   Scenario: Process email job successfully
     Given email queue has a pending job
     When the EmailProcessor processes the job
@@ -25,7 +25,7 @@ Feature: Message Queue System with BullMQ
     And the job status should be "completed"
     And completion time should be recorded
 
-  @queue @email @retry
+  @ready @queue @email @retry @impl_queue_system
   Scenario: Retry failed email job
     Given email queue has a failing job
     And retry strategy is configured with 3 attempts
@@ -60,7 +60,7 @@ Feature: Message Queue System with BullMQ
     Given Bull Board dashboard is configured
     Then the queue monitoring dashboard should be available at "/admin/queues"
 
-  @queue @monitoring
+  @ready @queue @monitoring @impl_queue_system
   Scenario: View queue metrics in Bull Board
     Given Bull Board dashboard is enabled
     And queues have active and completed jobs
@@ -68,6 +68,13 @@ Feature: Message Queue System with BullMQ
     Then I should see all configured queues
     And I should see job counts per queue
     And I should see active, completed, and failed jobs
+
+  @ready @queue @health @impl_queue_system
+  Scenario: Queue health participates in readiness checks
+    Given queue health check is configured
+    When the readiness endpoint checks dependencies
+    Then the readiness response should include queue status
+    And disabled queues should be reported as "disabled"
 
   @queue @management
   Scenario: Pause and resume queue
@@ -106,7 +113,7 @@ Feature: Message Queue System with BullMQ
     Then only 100 jobs should process in first minute
     And 50 jobs should process in second minute
 
-  @queue @error-handling
+  @ready @queue @error-handling @dlq @impl_queue_system
   Scenario: Handle processor errors gracefully
     Given email queue has a job
     And EmailProcessor throws an error

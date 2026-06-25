@@ -458,7 +458,7 @@ Consequence: lower migration risk and clearer package boundaries.
 
 ### Next priority (in order)
 
-1. **BDD base-repo scenario coverage** — see section N for full scope breakdown. Observability, file-storage, and notifications are now complete for base scenarios. Priority order within BDD work: message-queue → advanced-testing → kubernetes-devops → frontend base scenarios. Websocket, security, observability, file-storage, and notifications base slices are complete. Target: all ~162 base-repo scenarios promoted to `@ready`.
+1. **BDD base-repo scenario coverage** — see section N for full scope breakdown. Observability, file-storage, notifications, and message-queue are now complete for base scenarios. Priority order within BDD work: advanced-testing → kubernetes-devops → frontend base scenarios. Message-queue is now complete for the base slice. Websocket, security, observability, file-storage, notifications, and message-queue base slices are complete. Target: all ~162 base-repo scenarios promoted to `@ready`.
 2. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — resume only after BDD coverage is complete. Adds the `moderator` persona fixture and `MODERATOR` role seed; branch has one commit ready (`cfc47f8`), then needs PR, green CI, and merge.
 3. **Automated semantic versioning (Changesets)** — conventional commits are enforced by commitlint and `conventional-changelog-conventionalcommits` is already installed; the missing piece is a version-bump + CHANGELOG automation tool. Adopt `@changesets/cli` (natural fit for pnpm workspaces — versions packages independently), add a `chore/changesets-setup` GitHub Actions workflow that opens a "Version Packages" PR on merge to master, and catch up the stale `CHANGELOG.md` entries for all 2026 phases. Gate on: contract package extraction is not a blocker, but activate before the first real publish of `@repo/types` / `@repo/contracts`.
 4. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
@@ -480,7 +480,7 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` 
 | 07-api-design                | ~13/19 | REST conventions, response/error formats, OpenAPI, versioning scheme               |
 | 10-observability             | ~19/22 | Metrics, dashboards, alerts, tracing, structured logs, health, and SLO scaffolding |
 | 05-testing                   | All 12 | Vitest config, coverage thresholds, BDD tooling                                    |
-| 13-message-queue             | ~10/18 | BullMQ setup, worker base class, retry, DLQ pattern, health endpoint               |
+| 13-message-queue             | ~10/19 | BullMQ setup, worker base class, retry, DLQ pattern, health endpoint               |
 | 14-websocket                 | 18/28  | Socket.io setup, auth rejection, rooms, messaging, presence, health, frontend hook |
 | 11-advanced-testing          | ~8/23  | Pact scaffolding, k6 scaffolding, ZAP scaffolding                                  |
 | 06-notifications             | 5/15   | `NotificationService` interface, email/SMS/push base flows, retry, health check    |
@@ -513,4 +513,5 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` 
 
 - **Observability complete**: 19/19 base scenarios are now `@ready` and validate real source/manifests. ELK, Sentry, and runtime profiling remain adopter concerns.
 - **File storage and notifications next**: interfaces and local/console providers already exist; scenarios for the base slice just need tagging.
+- **Message queue complete**: 10/10 base scenarios are now `@ready`, including retry, failed-job retention, queue metrics, and readiness-health coverage.
 - **Frontend last**: Next.js architecture, error boundaries, and auth wiring are real deliverables but depend on backend base scenarios being stable first.
