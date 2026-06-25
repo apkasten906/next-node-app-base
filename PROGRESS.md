@@ -110,7 +110,7 @@ The backend core is implemented and running.
 
 **Goal:** Promote all ~162 base-repo scenarios to `@ready`. Adopter scenarios remain `@wip` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
 
-**Current generated status (June 25, 2026):** backend 132/264 ready; frontend 4/122 ready; overall 136/386 ready.
+**Current generated status (June 25, 2026):** backend 138/264 ready; frontend 4/122 ready; overall 142/386 ready.
 
 **Priority order** (highest coverage gap first):
 
@@ -123,7 +123,7 @@ The backend core is implemented and running.
 | 5   | 02-security               | 8 / 8                   | 0   | ✅ Base slice complete                             |
 | 6   | 13-message-queue          | 10 / 10                 | 0   | ✅ Base slice complete                             |
 | 7   | 11-advanced-testing       | 8 / 8                   | 0   | ✅ Base slice complete                             |
-| 8   | 12-kubernetes-devops      | 4 / 10                  | 6   | 🔴 K8s manifest templates, CI pipeline stages      |
+| 8   | 12-kubernetes-devops      | 10 / 10                 | 0   | ✅ Base slice complete                             |
 | 9   | Frontend base (~32 total) | 4 / 32                  | 28  | 🔴 Next.js arch, error boundaries, NextAuth wiring |
 
 **Already complete:**
@@ -138,6 +138,7 @@ The backend core is implemented and running.
 - ✅ 06-notifications — 5/5 base scenarios ready; SendGrid/Twilio/FCM, templates, attachments, bulk sends, provider switching, and failure UX remain adopter guides
 - ✅ 13-message-queue — 10/10 base scenarios ready; domain-specific job types and event handlers remain adopter guides
 - ✅ 11-advanced-testing — 8/8 base scenarios ready; visual regression, accessibility, mutation, chaos, monkey, property-based, approval, factory, distributed, and flaky-test workflows remain adopter guides
+- ✅ 12-kubernetes-devops — 10/10 base scenarios ready; ingress, HPA/VPA, rollback, stateful workloads, production deployment strategies, GitOps, vault, notifications, service mesh, operators, backup, and cost optimization remain adopter guides
 
 ### Up Next (after BDD coverage)
 
