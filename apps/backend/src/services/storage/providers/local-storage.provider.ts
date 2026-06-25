@@ -249,6 +249,8 @@ export class LocalStorageProvider implements IStorageProvider {
 
   async healthCheck(): Promise<boolean> {
     try {
+      await this.ensureBaseDirectory();
+
       // Check if base directory is accessible
       await fs.access(this.basePath);
 

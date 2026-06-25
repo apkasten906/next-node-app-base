@@ -292,6 +292,108 @@ data:
       ]
     }
 
+  service-level-objectives.json: |
+    {
+      "uid": "service-level-objectives",
+      "title": "Service Level Objectives",
+      "description": "Rolling 30-day HTTP availability, latency compliance, and error-budget reporting",
+      "tags": ["slo", "reliability", "backend"],
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "1m",
+      "time": { "from": "now-30d", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Availability SLO Compliance",
+          "type": "stat",
+          "gridPos": { "x": 0, "y": 0, "w": 8, "h": 6 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [
+            {
+              "expr": "slo:http_availability:ratio_30d * 100",
+              "legendFormat": "availability",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 99,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 99.9 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 2,
+          "title": "Latency SLO Compliance",
+          "type": "stat",
+          "gridPos": { "x": 8, "y": 0, "w": 8, "h": 6 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [
+            {
+              "expr": "slo:http_latency:ratio_30d * 100",
+              "legendFormat": "requests under 1s",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 95,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 99 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 3,
+          "title": "Error Budget Remaining",
+          "type": "gauge",
+          "gridPos": { "x": 16, "y": 0, "w": 8, "h": 6 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [
+            {
+              "expr": "slo:http_error_budget:remaining * 100",
+              "legendFormat": "remaining",
+              "refId": "A"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "yellow", "value": 25 },
+                  { "color": "green", "value": 50 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        }
+      ]
+    }
+
   infrastructure.json: |
     {
       "uid": "infrastructure",

@@ -458,7 +458,7 @@ Consequence: lower migration risk and clearer package boundaries.
 
 ### Next priority (in order)
 
-1. **BDD base-repo scenario coverage** — see section N for full scope breakdown. Observability is now 17/19 base scenarios ready; comprehensive dependency health and explicit SLO compliance reporting remain. Priority order within BDD work: finish observability gaps → file-storage → notifications → message-queue → advanced-testing → kubernetes-devops → frontend base scenarios. Websocket and security base slices are complete. Target: all ~162 base-repo scenarios promoted to `@ready`.
+1. **BDD base-repo scenario coverage** — see section N for full scope breakdown. Observability is now 19/19 base scenarios ready. Priority order within BDD work: file-storage → notifications → message-queue → advanced-testing → kubernetes-devops → frontend base scenarios. Websocket, security, and observability base slices are complete. Target: all ~162 base-repo scenarios promoted to `@ready`.
 2. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — resume only after BDD coverage is complete. Adds the `moderator` persona fixture and `MODERATOR` role seed; branch has one commit ready (`cfc47f8`), then needs PR, green CI, and merge.
 3. **Automated semantic versioning (Changesets)** — conventional commits are enforced by commitlint and `conventional-changelog-conventionalcommits` is already installed; the missing piece is a version-bump + CHANGELOG automation tool. Adopt `@changesets/cli` (natural fit for pnpm workspaces — versions packages independently), add a `chore/changesets-setup` GitHub Actions workflow that opens a "Version Packages" PR on merge to master, and catch up the stale `CHANGELOG.md` entries for all 2026 phases. Gate on: contract package extraction is not a blocker, but activate before the first real publish of `@repo/types` / `@repo/contracts`.
 4. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
@@ -511,6 +511,6 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` 
 
 ### BDD backlog priority rationale
 
-- **Observability nearly complete**: 17/19 base scenarios are now `@ready` and validate real source/manifests. Comprehensive dependency health and explicit SLO compliance reporting remain `@wip`; ELK, Sentry, and runtime profiling are adopter concerns.
+- **Observability complete**: 19/19 base scenarios are now `@ready` and validate real source/manifests. ELK, Sentry, and runtime profiling remain adopter concerns.
 - **File storage and notifications next**: interfaces and local/console providers already exist; scenarios for the base slice just need tagging.
 - **Frontend last**: Next.js architecture, error boundaries, and auth wiring are real deliverables but depend on backend base scenarios being stable first.

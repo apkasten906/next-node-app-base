@@ -36,7 +36,14 @@ import { initializeQueues } from './services/queue/queue-init';
 import { QueueService } from './services/queue/queue.service';
 import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
 import { registerStorageProvider } from './services/storage/storage-provider.factory';
+import { StorageService } from './services/storage/storage.service';
 import { WebSocketService } from './services/websocket/websocket.service';
+
+interface DependencyHealth {
+  status: 'healthy' | 'unhealthy' | 'disabled';
+  latencyMs: number;
+  details?: Record<string, unknown>;
+}
 
 function readDirEntriesSafe(dir: string): fs.Dirent[] {
   try {
@@ -65,6 +72,28 @@ export class App {
 
   private websocketsEnabled(): boolean {
     return process.env['DISABLE_WEBSOCKETS'] !== 'true';
+  }
+
+  private async checkDependency(check: () => Promise<boolean>): Promise<DependencyHealth> {
+    const startedAt = performance.now();
+
+    try {
+      const healthy = await check();
+      return {
+        status: healthy ? 'healthy' : 'unhealthy',
+        latencyMs: Math.round((performance.now() - startedAt) * 100) / 100,
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        latencyMs: Math.round((performance.now() - startedAt) * 100) / 100,
+        details: { error: error instanceof Error ? error.message : String(error) },
+      };
+    }
+  }
+
+  private disabledDependency(): DependencyHealth {
+    return { status: 'disabled', latencyMs: 0 };
   }
 
   constructor() {
@@ -182,8 +211,10 @@ export class App {
     // Health check endpoint
     this.app.get('/health', async (_req: Request, res: Response) => {
       const health = {
+        service: 'backend',
+        version: process.env['npm_package_version'] || '1.0.0',
         uptime: process.uptime(),
-        timestamp: Date.now(),
+        timestamp: new Date().toISOString(),
         status: 'ok',
       };
 
@@ -193,18 +224,58 @@ export class App {
     // Readiness check endpoint
     this.app.get('/ready', async (_req: Request, res: Response) => {
       try {
-        const dbHealth = await this.database.healthCheck();
-        const cacheHealth = await this.cache.healthCheck();
-        const wsHealth = this.websocket ? await this.websocket.getHealth() : null;
+        const storage = container.resolve(StorageService);
+        const [databaseCheck, cacheCheck, storageCheck] = await Promise.all([
+          this.checkDependency(() => this.database.healthCheck()),
+          this.checkDependency(() => this.cache.healthCheck()),
+          this.checkDependency(() => storage.healthCheck()),
+        ]);
+
+        const queueCheck = this.queuesEnabled()
+          ? await this.checkDependency(() => container.resolve(QueueService).healthCheck())
+          : this.disabledDependency();
+
+        let websocketCheck = this.disabledDependency();
+        if (this.websocketsEnabled()) {
+          if (this.websocket) {
+            const startedAt = performance.now();
+            const websocketHealth = await this.websocket.getHealth();
+            websocketCheck = {
+              status: websocketHealth.status === 'healthy' ? 'healthy' : 'unhealthy',
+              latencyMs: Math.round((performance.now() - startedAt) * 100) / 100,
+              details: { ...websocketHealth },
+            };
+          } else {
+            websocketCheck = {
+              status: 'unhealthy',
+              latencyMs: 0,
+              details: { reason: 'not initialized' },
+            };
+          }
+        }
+
+        const checks = {
+          database: databaseCheck,
+          cache: cacheCheck,
+          storage: storageCheck,
+          queue: queueCheck,
+          websocket: websocketCheck,
+        };
+        const isReady = Object.values(checks).every(
+          (check) => check.status === 'healthy' || check.status === 'disabled'
+        );
 
         const ready = {
-          database: dbHealth,
-          cache: cacheHealth,
-          websocket: wsHealth,
-          status: dbHealth && cacheHealth ? 'ready' : 'not ready',
+          // Preserve the original boolean fields for existing clients.
+          database: databaseCheck.status === 'healthy',
+          cache: cacheCheck.status === 'healthy',
+          websocket: websocketCheck.status === 'disabled' ? null : websocketCheck.details,
+          status: isReady ? 'ready' : 'not ready',
+          timestamp: new Date().toISOString(),
+          checks,
         };
 
-        const statusCode = dbHealth && cacheHealth ? 200 : 503;
+        const statusCode = isReady ? 200 : 503;
         res.status(statusCode).json(ready);
       } catch (error) {
         this.logger.error('Readiness check failed', error as Error);
@@ -213,6 +284,8 @@ export class App {
           cache: false,
           websocket: null,
           status: 'not ready',
+          timestamp: new Date().toISOString(),
+          checks: {},
         });
       }
     });

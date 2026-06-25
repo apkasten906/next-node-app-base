@@ -149,3 +149,51 @@ data:
             annotations:
               summary: 'Potential brute force attack detected'
               description: '{{ $value }} failed authentication attempts per second for {{ $labels.method }}'
+
+      # Template SLOs: 99.9% HTTP availability and 99% of requests below 1 second,
+      # evaluated over a rolling 30-day compliance window.
+      - name: service-level-objectives
+        interval: 1m
+        rules:
+          - record: slo:http_availability:ratio_30d
+            expr: |
+              1 - (
+                sum(increase(http_requests_total{status_code=~"5.."}[30d]))
+                /
+                clamp_min(sum(increase(http_requests_total[30d])), 1)
+              )
+
+          - record: slo:http_latency:ratio_30d
+            expr: |
+              sum(increase(http_request_duration_seconds_bucket{le="1"}[30d]))
+              /
+              clamp_min(sum(increase(http_request_duration_seconds_count[30d])), 1)
+
+          - record: slo:http_error_budget:remaining
+            expr: |
+              clamp_max(
+                clamp_min((slo:http_availability:ratio_30d - 0.999) / (1 - 0.999), 1),
+                1
+              )
+
+          - alert: SLOAvailabilityBudgetBurn
+            expr: slo:http_availability:ratio_30d < 0.999
+            for: 15m
+            labels:
+              severity: critical
+              component: slo
+              objective: availability
+            annotations:
+              summary: 'HTTP availability is below the 99.9% SLO'
+              description: '30-day availability compliance is {{ $value }}; investigate error-budget burn.'
+
+          - alert: SLOLatencyBudgetBurn
+            expr: slo:http_latency:ratio_30d < 0.99
+            for: 15m
+            labels:
+              severity: warning
+              component: slo
+              objective: latency
+            annotations:
+              summary: 'HTTP latency is below the 99% SLO'
+              description: 'Fewer than 99% of requests completed within one second over the 30-day window.'

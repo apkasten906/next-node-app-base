@@ -110,14 +110,14 @@ The backend core is implemented and running.
 
 **Goal:** Promote all ~162 base-repo scenarios to `@ready`. Adopter scenarios remain `@wip` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
 
-**Current generated status (June 24, 2026):** backend 107/263 ready; frontend 4/122 ready; overall 111/385 ready.
+**Current generated status (June 24, 2026):** backend 109/263 ready; frontend 4/122 ready; overall 113/385 ready.
 
 **Priority order** (highest coverage gap first):
 
 | #   | Feature                   | Base ready / Base total | Gap | Status                                                            |
 | --- | ------------------------- | ----------------------- | --- | ----------------------------------------------------------------- |
 | 1   | 14-websocket              | 18 / 18                 | 0   | ✅ Base slice complete                                            |
-| 2   | 10-observability          | 17 / 19                 | 2   | 🟡 Health dependency detail and explicit SLO reporting remain     |
+| 2   | 10-observability          | 19 / 19                 | 0   | ✅ Base slice complete                                            |
 | 3   | 08-file-storage           | 1 / 10                  | 9   | 🔴 Interface + local provider implemented; scenarios need tagging |
 | 4   | 06-notifications          | 3 / 5                   | 2   | 🟡 Nearly done                                                    |
 | 5   | 02-security               | 8 / 8                   | 0   | ✅ Base slice complete                                            |
@@ -133,7 +133,7 @@ The backend core is implemented and running.
 - ✅ 05-testing — infrastructure scenarios covered
 - ✅ 07-api-design — ~13/19 base scenarios ready
 - ✅ Frontend: 01-i18n — 1/1
-- ✅ 10-observability — 17/19 base scenarios ready; ELK, Sentry, and runtime profiling classified as adopter concerns
+- ✅ 10-observability — 19/19 base scenarios ready; ELK, Sentry, and runtime profiling classified as adopter concerns
 
 ### Up Next (after BDD coverage)
 

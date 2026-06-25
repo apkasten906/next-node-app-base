@@ -152,10 +152,20 @@ Feature: Observability and Monitoring
       | http_request_duration_seconds |
       | db_query_duration_seconds    |
 
-  @wip @health-checks
+  @ready @health-checks
   Scenario: Comprehensive health check endpoints
-    Given the base health endpoint does not yet report every dependency
-    Then the scenario remains a base repository implementation gap
+    When I inspect the observability artifact "apps/backend/src/index.ts"
+    Then the observability artifact should contain:
+      | marker                  |
+      | service: 'backend'      |
+      | checkDependency         |
+      | databaseCheck           |
+      | cacheCheck              |
+      | storageCheck            |
+      | queueCheck              |
+      | websocketCheck          |
+      | latencyMs               |
+      | status: isReady         |
 
   @ready @uptime-monitoring
   Scenario: Uptime monitoring and alerting
@@ -214,10 +224,21 @@ Feature: Observability and Monitoring
       | P95 Latency by Route  |
       | CPU Usage Over Time   |
 
-  @wip @slo
+  @ready @slo
   Scenario: Service Level Objectives tracking
-    Given explicit SLO objectives and compliance reporting are not configured
-    Then the scenario remains a base repository implementation gap
+    When I inspect the observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml"
+    Then the observability artifact should contain:
+      | marker                         |
+      | slo:http_availability:ratio_30d |
+      | slo:http_latency:ratio_30d     |
+      | slo:http_error_budget:remaining |
+      | SLOAvailabilityBudgetBurn      |
+      | SLOLatencyBudgetBurn           |
+    And observability artifact "kubernetes/observability/grafana/grafana-dashboards.yaml" should contain:
+      | marker                 |
+      | Service Level Objectives |
+      | Availability SLO Compliance |
+      | Error Budget Remaining |
 
   @ready @correlation-id
   Scenario: Request correlation across logs and traces
