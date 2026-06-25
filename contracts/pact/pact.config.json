@@ -1,0 +1,7 @@
+{
+  "consumer": "next-node-app-base-frontend",
+  "provider": "next-node-app-base-backend",
+  "contractsDir": "contracts/pact/pacts",
+  "providerBaseUrl": "http://localhost:3001",
+  "publishVerificationResult": false
+}
