@@ -458,7 +458,7 @@ Consequence: lower migration risk and clearer package boundaries.
 
 ### Next priority (in order)
 
-1. **BDD base-repo scenario coverage** — see section N for full scope breakdown. Observability and file-storage are now complete for base scenarios. Priority order within BDD work: notifications → message-queue → advanced-testing → kubernetes-devops → frontend base scenarios. Websocket, security, observability, and file-storage base slices are complete. Target: all ~162 base-repo scenarios promoted to `@ready`.
+1. **BDD base-repo scenario coverage** — see section N for full scope breakdown. Observability, file-storage, and notifications are now complete for base scenarios. Priority order within BDD work: message-queue → advanced-testing → kubernetes-devops → frontend base scenarios. Websocket, security, observability, file-storage, and notifications base slices are complete. Target: all ~162 base-repo scenarios promoted to `@ready`.
 2. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — resume only after BDD coverage is complete. Adds the `moderator` persona fixture and `MODERATOR` role seed; branch has one commit ready (`cfc47f8`), then needs PR, green CI, and merge.
 3. **Automated semantic versioning (Changesets)** — conventional commits are enforced by commitlint and `conventional-changelog-conventionalcommits` is already installed; the missing piece is a version-bump + CHANGELOG automation tool. Adopt `@changesets/cli` (natural fit for pnpm workspaces — versions packages independently), add a `chore/changesets-setup` GitHub Actions workflow that opens a "Version Packages" PR on merge to master, and catch up the stale `CHANGELOG.md` entries for all 2026 phases. Gate on: contract package extraction is not a blocker, but activate before the first real publish of `@repo/types` / `@repo/contracts`.
 4. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
@@ -483,7 +483,7 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` 
 | 13-message-queue             | ~10/18 | BullMQ setup, worker base class, retry, DLQ pattern, health endpoint               |
 | 14-websocket                 | 18/28  | Socket.io setup, auth rejection, rooms, messaging, presence, health, frontend hook |
 | 11-advanced-testing          | ~8/23  | Pact scaffolding, k6 scaffolding, ZAP scaffolding                                  |
-| 06-notifications             | ~5/15  | `NotificationService` interface, retry, health check, console dev provider         |
+| 06-notifications             | 5/15   | `NotificationService` interface, email/SMS/push base flows, retry, health check    |
 | 08-file-storage              | 11/30  | `StorageAdapter` interface, local provider, core CRUD, signed URL, validation      |
 | 12-kubernetes-devops         | ~10/34 | Dockerfiles, Docker Compose, GitHub Actions CI, K8s manifest templates             |
 | Frontend: 01-i18n            | All 1  | Locale config                                                                      |
@@ -498,7 +498,7 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` 
 | ---------------------------- | ------ | ---------------------------------------------------------------------------------- |
 | 10-observability             | ~3/22  | ELK, Sentry, and runtime profiling provider/tool choices                           |
 | 02-security                  | ~8/16  | Business RBAC/ABAC rules, permission models, lockout thresholds, audit log content |
-| 06-notifications             | ~10/15 | SendGrid/Twilio/FCM wiring, email templates, bulk email, SMS/push content          |
+| 06-notifications             | ~10/15 | SendGrid/Twilio/FCM wiring, templates, attachments, bulk sends, failure UX         |
 | 08-file-storage              | ~19/30 | S3/Azure/GCP providers, CDN, API auth flows, prefix/pagination, copy/move policies |
 | 12-kubernetes-devops         | ~24/34 | Canary, blue-green, GitOps/ArgoCD, production approvals, secrets pipelines         |
 | 11-advanced-testing          | ~15/23 | Load scenarios with business SLOs, contract tests for custom APIs                  |

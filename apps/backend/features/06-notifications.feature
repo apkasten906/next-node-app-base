@@ -34,7 +34,8 @@ Feature: Notification Service Abstraction
     And no actual email should be sent
     And email content should be visible in logs
 
-  @notifications @sms
+  @notifications @sms @impl_notifications_sms
+  @ready
   Scenario: Send SMS notification
     Given SMS provider is configured
     When I send an SMS to "+1234567890" with message "Verification code: 123456"
@@ -51,7 +52,8 @@ Feature: Notification Service Abstraction
     And Twilio response should include message SID
     And delivery status should be tracked
 
-  @notifications @push
+  @notifications @push @impl_notifications_push
+  @ready
   Scenario: Send push notification
     Given push notification provider is configured
     When I send a push notification to device token "<token>"
