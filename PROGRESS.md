@@ -108,23 +108,25 @@ The backend core is implemented and running.
 
 ### Current Objective: BDD Base-Repo Scenario Coverage
 
-**Goal:** Promote all ~162 base-repo scenarios to `@ready`. Adopter scenarios remain `@wip` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
+**Goal:** Promote all ~163 base-repo scenarios to `@ready`. Adopter scenarios remain `@wip` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
 
 **Current generated status (June 25, 2026):** backend 138/264 ready; frontend 4/122 ready; overall 142/386 ready.
 
 **Priority order** (highest coverage gap first):
 
-| #   | Feature                   | Base ready / Base total | Gap | Status                                             |
-| --- | ------------------------- | ----------------------- | --- | -------------------------------------------------- |
-| 1   | 14-websocket              | 18 / 18                 | 0   | ✅ Base slice complete                             |
-| 2   | 10-observability          | 19 / 19                 | 0   | ✅ Base slice complete                             |
-| 3   | 08-file-storage           | 11 / 11                 | 0   | ✅ Base slice complete                             |
-| 4   | 06-notifications          | 5 / 5                   | 0   | ✅ Base slice complete                             |
-| 5   | 02-security               | 8 / 8                   | 0   | ✅ Base slice complete                             |
-| 6   | 13-message-queue          | 10 / 10                 | 0   | ✅ Base slice complete                             |
-| 7   | 11-advanced-testing       | 8 / 8                   | 0   | ✅ Base slice complete                             |
-| 8   | 12-kubernetes-devops      | 10 / 10                 | 0   | ✅ Base slice complete                             |
-| 9   | Frontend base (~32 total) | 4 / 32                  | 28  | 🔴 Next.js arch, error boundaries, NextAuth wiring |
+| #   | Feature                   | Base ready / Base total | Gap | Status                                                      |
+| --- | ------------------------- | ----------------------- | --- | ----------------------------------------------------------- |
+| 1   | 14-websocket              | 18 / 18                 | 0   | ✅ Base slice complete                                      |
+| 2   | 10-observability          | 19 / 19                 | 0   | ✅ Base slice complete                                      |
+| 3   | 08-file-storage           | 11 / 11                 | 0   | ✅ Base slice complete                                      |
+| 4   | 06-notifications          | 5 / 5                   | 0   | ✅ Base slice complete                                      |
+| 5   | 02-security               | 9 / 9                   | 0   | ✅ Base slice complete                                      |
+| 6   | 13-message-queue          | 10 / 10                 | 0   | ✅ Base slice complete                                      |
+| 7   | 11-advanced-testing       | 8 / 8                   | 0   | ✅ Base slice complete                                      |
+| 8   | 12-kubernetes-devops      | 10 / 10                 | 0   | ✅ Base slice complete                                      |
+| 9   | Frontend base (~32 total) | 4 / 32                  | 28  | 🔴 Next.js arch, error boundaries, backend-only auth wiring |
+
+**BDD prerequisite before frontend auth scenarios:** ✅ ADR-011 backend auth contract coverage added via `@impl_backend_only_auth_contract`, with deterministic checks for `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout`, `GET /api/auth/me`, HttpOnly/SameSite cookie behavior, refresh-token flow, and frontend server-gateway cookie forwarding to `/api/auth/me`. This keeps frontend auth coverage aligned with backend-only auth instead of old NextAuth assumptions.
 
 **Already complete:**
 

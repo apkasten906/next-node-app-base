@@ -11,6 +11,53 @@ import { LoggerService } from '../../src/services/logger.service';
 import { expect } from '../support/assertions';
 import { World } from '../support/world';
 
+function getRecordValue(
+  record: Record<string, string> | undefined,
+  key: string
+): string | undefined {
+  return Object.entries(record ?? {}).find(([entryKey]) => entryKey === key)?.[1];
+}
+
+function removeCaseInsensitivePhrase(input: string, phrase: string): string {
+  let output = input;
+  let index = output.toLowerCase().indexOf(phrase.toLowerCase());
+
+  while (index >= 0) {
+    output = output.slice(0, index) + output.slice(index + phrase.length);
+    index = output.toLowerCase().indexOf(phrase.toLowerCase());
+  }
+
+  return output;
+}
+
+function stripScriptBlocks(input: string): string {
+  let output = input;
+  let start = output.toLowerCase().indexOf('<script');
+
+  while (start >= 0) {
+    const tagEnd = output.indexOf('>', start);
+    if (tagEnd < 0) {
+      output = output.slice(0, start);
+      break;
+    }
+
+    const closeStart = output.toLowerCase().indexOf('</script>', tagEnd + 1);
+    if (closeStart < 0) {
+      output = output.slice(0, start);
+      break;
+    }
+
+    output = output.slice(0, start) + output.slice(closeStart + '</script>'.length);
+    start = output.toLowerCase().indexOf('<script');
+  }
+
+  return output;
+}
+
+function stripDangerousPunctuation(input: string): string {
+  return input.replaceAll("'", '').replaceAll('"', '').replaceAll(';', '');
+}
+
 Given('the security framework is initialized', async function (this: World) {
   // Minimal deterministic init for BDD: prove the DI container and core services are reachable.
   const container = this.getContainer();
@@ -209,7 +256,7 @@ Then('ABAC access should be {string}', async function (this: World, expected: st
   // Simple ABAC check
   let hasAccess = true;
   for (const [key, value] of Object.entries(requirements!)) {
-    if (userAttrs![key] !== value) {
+    if (getRecordValue(userAttrs, key) !== value) {
       hasAccess = false;
       break;
     }
@@ -236,7 +283,7 @@ Given(
     const windowMs = 60 * 1000;
     const maxRequests = limit;
 
-    const rateLimiter = async (req: any, res: any, next: any) => {
+    const rateLimiter = async (req: any, res: any, next: any): Promise<void> => {
       const key = `rl:${req.ip || 'test-ip'}`;
       const existing = (await cache.get<number>(key)) || 0;
       const count = existing + 1;
@@ -253,12 +300,12 @@ Given(
 
     // Create app and attach to World.request
     const express = (await import('express')).default;
-    const req = require('supertest');
+    const { default: request } = await import('supertest');
     const app = express();
     app.get('/api/health', rateLimiter, (_req, res) => res.status(200).json({ ok: true }));
 
     // store in world so When step uses this.request
-    this.request = req(app);
+    this.request = request(app);
     this.setData('rateLimit', limit);
   }
 );
@@ -468,20 +515,19 @@ Then('secrets should be loaded from .env file', async function (this: World) {
 
   const content = await fs.readFile(sourcePath, 'utf-8');
   const lines = content.split(/\r?\n/).filter(Boolean);
-  const kv: Record<string, string> = {};
+  const kv = new Map<string, string>();
   for (const l of lines) {
     const idx = l.indexOf('=');
     if (idx > 0) {
       const k = l.slice(0, idx).trim();
       const v = l.slice(idx + 1).trim();
-      kv[k] = v;
+      kv.set(k, v);
     }
   }
 
   // Ensure a common secret key exists in .env and process.env
-  const key = 'JWT_SECRET';
-  expect(kv[key]).toBeDefined();
-  expect(process.env[key] || kv[key]).toBeDefined();
+  expect(kv.get('JWT_SECRET')).toBeDefined();
+  expect(process.env.JWT_SECRET || kv.get('JWT_SECRET')).toBeDefined();
 
   // Check .env is ignored by git
   const gitignoreExists = await fs
@@ -528,8 +574,8 @@ Then('secrets should be different per environment', async function (this: World)
   expect(envExampleExists).toBe(true);
   expect(envDockerExampleExists).toBe(true);
 
-  const parseEnv = (content: string) => {
-    const kv: Record<string, string> = {};
+  const parseEnv = (content: string): Map<string, string> => {
+    const kv = new Map<string, string>();
     for (const raw of content.split(/\r?\n/)) {
       const line = raw.trim();
       if (!line || line.startsWith('#')) continue;
@@ -540,7 +586,7 @@ Then('secrets should be different per environment', async function (this: World)
       if (value.startsWith('"') && value.endsWith('"') && value.length >= 2) {
         value = value.slice(1, -1);
       }
-      kv[key] = value;
+      kv.set(key, value);
     }
     return kv;
   };
@@ -549,13 +595,161 @@ Then('secrets should be different per environment', async function (this: World)
   const docker = parseEnv(await fs.readFile(envDockerExamplePath, 'utf-8'));
 
   // Keep this deterministic and meaningful: JWT secrets differ between templates.
-  expect(ex['JWT_SECRET']).toBeDefined();
-  expect(docker['JWT_SECRET']).toBeDefined();
-  expect(ex['JWT_SECRET']).not.toBe(docker['JWT_SECRET']);
+  expect(ex.get('JWT_SECRET')).toBeDefined();
+  expect(docker.get('JWT_SECRET')).toBeDefined();
+  expect(ex.get('JWT_SECRET')).not.toBe(docker.get('JWT_SECRET'));
 
   // Also ensure the templates are not identical overall.
-  expect(JSON.stringify(ex)).not.toBe(JSON.stringify(docker));
+  expect(JSON.stringify(Array.from(ex.entries()))).not.toBe(
+    JSON.stringify(Array.from(docker.entries()))
+  );
 });
+
+// ADR-011 backend-only authentication contract checks
+interface Adr011AuthSources {
+  authRoutes: string;
+  backendIndex: string;
+  jwtMiddleware: string;
+  frontendRequireCurrentUser: string;
+  frontendServerApiClient: string;
+}
+
+Given('the ADR-011 backend auth contract source is loaded', async function (this: World) {
+  const projectRoot = path.join(process.cwd(), '..', '..');
+
+  const sources = {
+    authRoutes: await fs.readFile(
+      path.join(projectRoot, 'apps', 'backend', 'src', 'routes', 'auth.routes.ts'),
+      'utf-8'
+    ),
+    backendIndex: await fs.readFile(
+      path.join(projectRoot, 'apps', 'backend', 'src', 'index.ts'),
+      'utf-8'
+    ),
+    jwtMiddleware: await fs.readFile(
+      path.join(projectRoot, 'apps', 'backend', 'src', 'middleware', 'jwt.middleware.ts'),
+      'utf-8'
+    ),
+    frontendRequireCurrentUser: await fs.readFile(
+      path.join(
+        projectRoot,
+        'apps',
+        'frontend',
+        'src',
+        'server',
+        'auth',
+        'require-current-user.ts'
+      ),
+      'utf-8'
+    ),
+    frontendServerApiClient: await fs.readFile(
+      path.join(projectRoot, 'apps', 'frontend', 'src', 'server', 'http', 'server-api-client.ts'),
+      'utf-8'
+    ),
+  };
+
+  this.setData('adr011AuthSources', sources);
+});
+
+Then(
+  'backend auth routes should expose login, refresh, logout, and current-user endpoints',
+  function (this: World) {
+    const sources = this.getData<Adr011AuthSources>('adr011AuthSources');
+    expect(sources).toBeDefined();
+
+    const authRoutes = sources!.authRoutes;
+    const backendIndex = sources!.backendIndex;
+
+    expect(authRoutes).toContain("router.post('/login'");
+    expect(authRoutes).toContain("router.post('/refresh'");
+    expect(authRoutes).toContain("router.post('/logout'");
+    expect(authRoutes).toContain("router.get('/me'");
+    expect(backendIndex).toContain("import authRouter from './routes/auth.routes'");
+    expect(backendIndex).toContain("this.app.use('/api/auth', authRouter)");
+  }
+);
+
+Then(
+  'auth cookies should be HTTP-only SameSite Lax access and refresh cookies',
+  function (this: World) {
+    const sources = this.getData<Adr011AuthSources>('adr011AuthSources');
+    expect(sources).toBeDefined();
+
+    const authRoutes = sources!.authRoutes;
+
+    expect(authRoutes).toContain('httpOnly: true');
+    expect(authRoutes).toContain("sameSite: 'lax'");
+    expect(authRoutes).toContain("res.cookie('access_token'");
+    expect(authRoutes).toContain("res.cookie('refresh_token'");
+    expect(authRoutes).toContain('secure: isProd');
+  }
+);
+
+Then('refresh should validate the refresh token and issue new cookies', function (this: World) {
+  const sources = this.getData<Adr011AuthSources>('adr011AuthSources');
+  expect(sources).toBeDefined();
+
+  const authRoutes = sources!.authRoutes;
+
+  expect(authRoutes).toContain("router.post('/refresh'");
+  expect(authRoutes).toContain("getCookie(req, 'refresh_token')");
+  expect(authRoutes).toContain('jwt.validateRefreshToken(refresh)');
+  expect(authRoutes).toContain('jwt.generateTokens');
+  expect(authRoutes).toContain('setAuthCookies(res, tokens)');
+});
+
+Then('logout should clear both auth cookies', function (this: World) {
+  const sources = this.getData<Adr011AuthSources>('adr011AuthSources');
+  expect(sources).toBeDefined();
+
+  const authRoutes = sources!.authRoutes;
+
+  expect(authRoutes).toContain("router.post('/logout'");
+  expect(authRoutes).toContain("res.clearCookie('access_token'");
+  expect(authRoutes).toContain("res.clearCookie('refresh_token'");
+});
+
+Then('current-user lookup should use attached JWT user context', function (this: World) {
+  const sources = this.getData<Adr011AuthSources>('adr011AuthSources');
+  expect(sources).toBeDefined();
+
+  const authRoutes = sources!.authRoutes;
+  const backendIndex = sources!.backendIndex;
+  const jwtMiddleware = sources!.jwtMiddleware;
+
+  expect(authRoutes).toContain("router.get('/me'");
+  expect(authRoutes).toContain('req.user?.userId');
+  expect(authRoutes).toContain("res.status(401).json({ error: 'Unauthorized' })");
+  expect(jwtMiddleware).toContain("cookies.get('access_token')");
+  expect(jwtMiddleware).toContain('jwt.validateAccessToken(token)');
+  expect(jwtMiddleware).toContain('user?: TokenPayload');
+
+  const middlewareIndex = backendIndex.indexOf('this.app.use(attachUserIfPresent)');
+  const authRouteIndex = backendIndex.indexOf("this.app.use('/api/auth', authRouter)");
+  expect(middlewareIndex).toBeGreaterThanOrEqual(0);
+  expect(authRouteIndex).toBeGreaterThan(middlewareIndex);
+});
+
+Then(
+  'frontend server auth should forward cookies to backend {string}',
+  function (this: World, endpoint: string) {
+    const sources = this.getData<Adr011AuthSources>('adr011AuthSources');
+    expect(sources).toBeDefined();
+
+    const requireCurrentUser = sources!.frontendRequireCurrentUser;
+    const serverApiClient = sources!.frontendServerApiClient;
+
+    expect(requireCurrentUser).toContain("serverApiFetch('/api/auth/me')");
+    expect(requireCurrentUser).toContain("redirect('/auth/signin')");
+    expect(endpoint).toBe('/api/auth/me');
+
+    expect(serverApiClient).toContain("from 'next/headers'");
+    expect(serverApiClient).toContain('cookies()');
+    expect(serverApiClient).toContain('.getAll()');
+    expect(serverApiClient).toContain("requestHeaders.set('cookie', cookieHeader)");
+    expect(serverApiClient).toContain("cache: init.cache ?? 'no-store'");
+  }
+);
 
 // Session cookie checks
 Given('a user logs in successfully', async function (this: World) {
@@ -823,7 +1017,7 @@ When(
     const userAttrs = this.getData<Record<string, string>>('userAttributes') || {};
     let hasAccess = true;
     for (const [key, value] of Object.entries(requirements)) {
-      if (userAttrs[key] !== value) {
+      if (getRecordValue(userAttrs, key) !== value) {
         hasAccess = false;
         break;
       }
@@ -858,7 +1052,7 @@ Given('the limit is {int} requests per minute', async function (this: World, lim
   const cache = new CacheService(mockLogger);
   await cache.flush();
 
-  const rateLimiter = async (req: any, res: any, next: any) => {
+  const rateLimiter = async (req: any, res: any, next: any): Promise<void> => {
     const key = `rl:${req.ip || 'test-ip'}`;
     const count = ((await cache.get<number>(key)) || 0) + 1;
     await cache.set(key, count, Math.ceil(windowMs / 1000));
@@ -871,10 +1065,8 @@ Given('the limit is {int} requests per minute', async function (this: World, lim
     next();
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const express = (await import('express')).default;
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const supertest = require('supertest');
+  const { default: supertest } = await import('supertest');
   const app = express();
   app.get(endpoint, rateLimiter, (_req: any, res: any) => res.status(200).json({ ok: true }));
   this.request = supertest(app);
@@ -999,32 +1191,45 @@ When('I submit data with malicious input {string}', function (this: World, input
 
 Then('the input should be sanitized', function (this: World) {
   const input = this.getData<string>('maliciousInput') || '';
-  const sanitized = input
-    .replaceAll(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replaceAll(/['";]/g, '')
-    .replaceAll(/\.\.[/\\]/g, '');
+  const sanitized = stripDangerousPunctuation(stripScriptBlocks(input))
+    .replaceAll('../', '')
+    .replaceAll('..\\', '');
   expect(sanitized).not.toBe(input);
 });
 
 Then('SQL injection attempts should be blocked', function (this: World) {
   const input = this.getData<string>('maliciousInput') || '';
-  const hasSqlPattern = /('|--|;|DROP\s+TABLE|INSERT\s+INTO|SELECT\s+\*)/i.test(input);
+  const normalized = input.toUpperCase();
+  const hasSqlPattern =
+    input.includes("'") ||
+    input.includes('--') ||
+    input.includes(';') ||
+    normalized.includes('DROP TABLE') ||
+    normalized.includes('INSERT INTO') ||
+    normalized.includes('SELECT *');
+
   if (hasSqlPattern) {
-    const sanitized = input
-      .replaceAll(/DROP\s+TABLE/gi, '')
-      .replaceAll(/INSERT\s+INTO/gi, '')
-      .replaceAll(/SELECT\s+\*/gi, '')
-      .replaceAll(/['";]/g, '')
-      .replaceAll(/--/g, '');
-    expect(sanitized).not.toMatch(/DROP\s+TABLE|INSERT\s+INTO/i);
+    const sanitized = stripDangerousPunctuation(
+      removeCaseInsensitivePhrase(
+        removeCaseInsensitivePhrase(
+          removeCaseInsensitivePhrase(input, 'DROP TABLE'),
+          'INSERT INTO'
+        ),
+        'SELECT *'
+      )
+    ).replaceAll('--', '');
+    const sanitizedUpper = sanitized.toUpperCase();
+    expect(sanitizedUpper.includes('DROP TABLE') || sanitizedUpper.includes('INSERT INTO')).toBe(
+      false
+    );
   }
 });
 
 Then('XSS attempts should be blocked', function (this: World) {
   const input = this.getData<string>('maliciousInput') || '';
-  const hasXss = /<script/i.test(input);
+  const hasXss = input.toLowerCase().includes('<script');
   if (hasXss) {
-    const sanitized = input.replaceAll(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-    expect(/<script/i.test(sanitized)).toBe(false);
+    const sanitized = stripScriptBlocks(input);
+    expect(sanitized.toLowerCase().includes('<script')).toBe(false);
   }
 });

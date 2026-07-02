@@ -458,7 +458,7 @@ Consequence: lower migration risk and clearer package boundaries.
 
 ### Next priority (in order)
 
-1. **BDD base-repo scenario coverage** — see section N for full scope breakdown. Observability, file-storage, notifications, message-queue, advanced-testing, and kubernetes-devops are now complete for base scenarios. Priority order within BDD work: frontend base scenarios. Message-queue is now complete for the base slice. Websocket, security, observability, file-storage, notifications, message-queue, advanced-testing, and kubernetes-devops base slices are complete. Target: all ~162 base-repo scenarios promoted to `@ready`.
+1. **BDD base-repo scenario coverage** — see section N for full scope breakdown. Observability, file-storage, notifications, message-queue, advanced-testing, and kubernetes-devops are now complete for base scenarios. Priority order within BDD work: ADR-011 backend-only auth checkpoint is complete; continue frontend base scenarios. Message-queue is now complete for the base slice. Websocket, security, observability, file-storage, notifications, message-queue, advanced-testing, and kubernetes-devops base slices are complete. Target: all ~163 base-repo scenarios promoted to `@ready`.
 2. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — resume only after BDD coverage is complete. Adds the `moderator` persona fixture and `MODERATOR` role seed; branch has one commit ready (`cfc47f8`), then needs PR, green CI, and merge.
 3. **Automated semantic versioning (Changesets)** — conventional commits are enforced by commitlint and `conventional-changelog-conventionalcommits` is already installed; the missing piece is a version-bump + CHANGELOG automation tool. Adopt `@changesets/cli` (natural fit for pnpm workspaces — versions packages independently), add a `chore/changesets-setup` GitHub Actions workflow that opens a "Version Packages" PR on merge to master, and catch up the stale `CHANGELOG.md` entries for all 2026 phases. Gate on: contract package extraction is not a blocker, but activate before the first real publish of `@repo/types` / `@repo/contracts`.
 4. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
@@ -470,13 +470,13 @@ The dividing line: **base repo = infrastructure, conventions, and cross-cutting 
 
 The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` permanently in this repo and serve as implementation guides for teams forking the template.
 
-### Base repo responsibility (~162 scenarios)
+### Base repo responsibility (~163 scenarios)
 
 | Feature                      | Scope  | Notes                                                                              |
 | ---------------------------- | ------ | ---------------------------------------------------------------------------------- |
 | 01-foundation                | All 11 | Monorepo, TypeScript, Docker, env, ESLint, Prisma, health                          |
 | 03-backend-core              | All 19 | Express, DI (TSyringe), routing, error middleware                                  |
-| 02-security                  | ~8/16  | CORS, Helmet, rate limiting, JWT, Zod validation, HTTPS, CSP                       |
+| 02-security                  | ~9/17  | CORS, Helmet, rate limiting, JWT, ADR-011 auth contract, Zod, HTTPS, CSP           |
 | 07-api-design                | ~13/19 | REST conventions, response/error formats, OpenAPI, versioning scheme               |
 | 10-observability             | ~19/22 | Metrics, dashboards, alerts, tracing, structured logs, health, and SLO scaffolding |
 | 05-testing                   | All 12 | Vitest config, coverage thresholds, BDD tooling                                    |
@@ -487,17 +487,17 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` 
 | 08-file-storage              | 11/30  | `StorageAdapter` interface, local provider, core CRUD, signed URL, validation      |
 | 12-kubernetes-devops         | ~10/34 | Dockerfiles, Docker Compose, GitHub Actions CI, K8s manifest templates             |
 | Frontend: 01-i18n            | All 1  | Locale config                                                                      |
-| Frontend: 04-nextjs-frontend | ~10/26 | App Router, NextAuth wiring, middleware, API client layer                          |
+| Frontend: 04-nextjs-frontend | ~10/26 | App Router, ADR-011 backend-only auth wiring, middleware, API client layer         |
 | Frontend: 09-frontend-core   | ~10/22 | Tailwind, component patterns, loading/suspense                                     |
 | Frontend: 04-error-handling  | ~8/23  | Global error boundary, 4xx/5xx pages, toast notifications                          |
-| Frontend: 01-authentication  | ~3/12  | NextAuth plumbing, token refresh, session persistence                              |
+| Frontend: 01-authentication  | ~3/12  | Backend-only login plumbing, token refresh, session persistence                    |
 
 ### Adopter responsibility (~207 scenarios — `@wip` permanently in this repo)
 
 | Feature                      | Scope  | Notes                                                                              |
 | ---------------------------- | ------ | ---------------------------------------------------------------------------------- |
 | 10-observability             | ~3/22  | ELK, Sentry, and runtime profiling provider/tool choices                           |
-| 02-security                  | ~8/16  | Business RBAC/ABAC rules, permission models, lockout thresholds, audit log content |
+| 02-security                  | ~8/17  | Business RBAC/ABAC rules, permission models, lockout thresholds, audit log content |
 | 06-notifications             | ~10/15 | SendGrid/Twilio/FCM wiring, templates, attachments, bulk sends, failure UX         |
 | 08-file-storage              | ~19/30 | S3/Azure/GCP providers, CDN, API auth flows, prefix/pagination, copy/move policies |
 | 12-kubernetes-devops         | ~24/34 | Canary, blue-green, GitOps/ArgoCD, production approvals, secrets pipelines         |
@@ -516,4 +516,5 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` 
 - **Message queue complete**: 10/10 base scenarios are now `@ready`, including retry, failed-job retention, queue metrics, and readiness-health coverage.
 - **Advanced testing complete**: 8/8 base scenarios are now `@ready`, covering Pact, k6, and OWASP ZAP scaffolding.
 - **Kubernetes/DevOps complete**: 10/10 base scenarios are now `@ready`, covering app manifest templates, Docker, Compose, workflow linting, and CI test stages.
+- **Backend-only auth checkpoint complete**: `@impl_backend_only_auth_contract` validates the ADR-011 backend contract for login, refresh, logout, current-user lookup, HttpOnly/SameSite cookies, refresh-token flow, and server-gateway cookie forwarding before frontend auth scenarios are promoted.
 - **Frontend last**: Next.js architecture, error boundaries, and auth wiring are real deliverables but depend on backend base scenarios being stable first.

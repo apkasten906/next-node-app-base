@@ -193,6 +193,16 @@ Feature: Security Framework
     And secrets should never be committed to Git
     And secrets should be different per environment
 
+  @ready @security @auth-contract @backend-only @impl_backend_only_auth_contract
+  Scenario: ADR-011 backend-only authentication contract
+    Given the ADR-011 backend auth contract source is loaded
+    Then backend auth routes should expose login, refresh, logout, and current-user endpoints
+    And auth cookies should be HTTP-only SameSite Lax access and refresh cookies
+    And refresh should validate the refresh token and issue new cookies
+    And logout should clear both auth cookies
+    And current-user lookup should use attached JWT user context
+    And frontend server auth should forward cookies to backend "/api/auth/me"
+
   @security @session-management
   Scenario: Secure session management
     Given a user logs in successfully
