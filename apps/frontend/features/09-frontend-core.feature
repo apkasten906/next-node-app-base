@@ -23,7 +23,7 @@ Feature: Frontend Core Features
     Then MSW should return mocked user data
     And the response should match the handler definition
 
-  @frontend @api-client
+  @ready @frontend @api-client @impl_frontend_typed_api_client
   Scenario: Type-safe API client
     Given a type-safe API client is configured
     When I make an API request using the client
@@ -63,7 +63,7 @@ Feature: Frontend Core Features
     And it should default to NEXT_PUBLIC_WEBSOCKET_URL
     And it should support reconnection state transitions
 
-  @frontend @error-boundary @recovery
+  @ready @frontend @error-boundary @recovery @impl_frontend_error_boundary_recovery
   Scenario: Error boundary recovery
     Given an error boundary with retry functionality
     When a component errors and user clicks retry
@@ -92,7 +92,7 @@ Feature: Frontend Core Features
     When a regular user checks the same feature
     Then the feature should be disabled
 
-  @frontend @loading-states
+  @ready @frontend @loading-states @impl_frontend_loading_state
   Scenario: Loading state management
     Given a component fetches data from API
     When the API request is in progress
@@ -120,7 +120,7 @@ Feature: Frontend Core Features
     And new items should be appended to the list
     And loading indicator should be shown during fetch
 
-  @frontend @debouncing
+  @ready @frontend @debouncing @impl_frontend_debounce_hook
   Scenario: Search input debouncing
     Given a search input with 300ms debounce
     When a user types quickly
@@ -128,7 +128,7 @@ Feature: Frontend Core Features
     And only the final input value should trigger search
     And excessive API calls should be prevented
 
-  @frontend @caching @query
+  @ready @frontend @caching @query @impl_frontend_query_caching
   Scenario: TanStack Query caching
     Given TanStack Query is configured
     When I fetch data for a query
@@ -145,7 +145,7 @@ Feature: Frontend Core Features
     And data should be refetched
     And UI should update with fresh data
 
-  @frontend @offline
+  @ready @frontend @offline @impl_frontend_offline_detection
   Scenario: Offline detection and handling
     Given offline detection is enabled
     When the user goes offline
@@ -156,7 +156,7 @@ Feature: Frontend Core Features
     Then online state should be detected
     And pending requests should be retried
 
-  @frontend @accessibility @aria
+  @ready @frontend @accessibility @aria @impl_frontend_semantic_accessibility
   Scenario: ARIA labels and semantic HTML
     Given components use semantic HTML
     When I inspect a button component
@@ -173,7 +173,7 @@ Feature: Frontend Core Features
     When the modal closes
     Then focus should return to trigger element
 
-  @frontend @accessibility @keyboard
+  @ready @frontend @accessibility @keyboard @impl_frontend_keyboard_navigation
   Scenario: Keyboard navigation
     Given interactive components exist
     When I navigate using Tab key
@@ -181,7 +181,7 @@ Feature: Frontend Core Features
     And tab order should be logical
     And Enter/Space should activate elements
 
-  @frontend @forms @validation
+  @ready @frontend @forms @validation @impl_frontend_form_validation
   Scenario: Form validation
     Given a form with validation rules
     When I submit invalid data

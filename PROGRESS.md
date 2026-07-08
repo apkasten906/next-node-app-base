@@ -110,21 +110,21 @@ The backend core is implemented and running.
 
 **Goal:** Promote all ~163 base-repo scenarios to `@ready`. Adopter scenarios remain `@wip` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
 
-**Current tracked status (July 8, 2026):** backend 139/265 ready; frontend 19/122 ready; overall 158/387 ready.
+**Current tracked status (July 8, 2026):** backend 139/265 ready; frontend 28/122 ready; overall 167/387 ready.
 
 **Priority order** (highest coverage gap first):
 
-| #   | Feature                   | Base ready / Base total | Gap | Status                                                                                 |
-| --- | ------------------------- | ----------------------- | --- | -------------------------------------------------------------------------------------- |
-| 1   | 14-websocket              | 18 / 18                 | 0   | ✅ Base slice complete                                                                 |
-| 2   | 10-observability          | 19 / 19                 | 0   | ✅ Base slice complete                                                                 |
-| 3   | 08-file-storage           | 11 / 11                 | 0   | ✅ Base slice complete                                                                 |
-| 4   | 06-notifications          | 5 / 5                   | 0   | ✅ Base slice complete                                                                 |
-| 5   | 02-security               | 9 / 9                   | 0   | ✅ Base slice complete                                                                 |
-| 6   | 13-message-queue          | 10 / 10                 | 0   | ✅ Base slice complete                                                                 |
-| 7   | 11-advanced-testing       | 8 / 8                   | 0   | ✅ Base slice complete                                                                 |
-| 8   | 12-kubernetes-devops      | 10 / 10                 | 0   | ✅ Base slice complete                                                                 |
-| 9   | Frontend base (~32 total) | 19 / 32                 | 13  | 🟡 Next.js arch/auth and error-handling batches complete; remaining frontend core next |
+| #   | Feature                   | Base ready / Base total | Gap | Status                                                                                                   |
+| --- | ------------------------- | ----------------------- | --- | -------------------------------------------------------------------------------------------------------- |
+| 1   | 14-websocket              | 18 / 18                 | 0   | ✅ Base slice complete                                                                                   |
+| 2   | 10-observability          | 19 / 19                 | 0   | ✅ Base slice complete                                                                                   |
+| 3   | 08-file-storage           | 11 / 11                 | 0   | ✅ Base slice complete                                                                                   |
+| 4   | 06-notifications          | 5 / 5                   | 0   | ✅ Base slice complete                                                                                   |
+| 5   | 02-security               | 9 / 9                   | 0   | ✅ Base slice complete                                                                                   |
+| 6   | 13-message-queue          | 10 / 10                 | 0   | ✅ Base slice complete                                                                                   |
+| 7   | 11-advanced-testing       | 8 / 8                   | 0   | ✅ Base slice complete                                                                                   |
+| 8   | 12-kubernetes-devops      | 10 / 10                 | 0   | ✅ Base slice complete                                                                                   |
+| 9   | Frontend base (~32 total) | 28 / 32                 | 4   | 🟡 Next.js arch/auth, error-handling, and frontend-core batches complete; final classification/pass next |
 
 **BDD prerequisite before frontend auth scenarios:** ✅ ADR-011 backend auth contract coverage added via `@impl_backend_only_auth_contract`, with deterministic checks for `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout`, `GET /api/auth/me`, HttpOnly/SameSite cookie behavior, refresh-token flow, and frontend server-gateway cookie forwarding to `/api/auth/me`. This keeps frontend auth coverage aligned with backend-only auth instead of old NextAuth assumptions.
 
@@ -137,6 +137,7 @@ The backend core is implemented and running.
 - ✅ Frontend: 01-i18n — 1/1
 - ✅ Frontend: 04-nextjs-frontend — first base batch ready: App Router, ADR-011 backend-only auth setup/login, dashboard auth gateway, TanStack Query provider, Tailwind wiring, metadata, route handler, and middleware
 - ✅ Frontend: 04-error-handling — first base batch ready: global error boundary, 404 page, 500 error page, retry recovery, JavaScript error logging, and accessible error messages
+- ✅ Frontend: 09-frontend-core — expanded base batch ready: type-safe API client, error-boundary recovery, loading state, debounce hook, TanStack Query caching, offline detection, semantic accessibility, keyboard navigation, and form validation
 - ✅ 10-observability — 19/19 base scenarios ready; ELK, Sentry, and runtime profiling classified as adopter concerns
 - ✅ 08-file-storage — 11/11 base scenarios ready; cloud providers, authenticated file APIs, prefix/pagination/copy/move, and provider switching remain adopter guides
 - ✅ 06-notifications — 5/5 base scenarios ready; SendGrid/Twilio/FCM, templates, attachments, bulk sends, provider switching, and failure UX remain adopter guides
