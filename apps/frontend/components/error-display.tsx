@@ -1,6 +1,7 @@
 'use client';
 
 import type { JSX } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { ApiError } from '@/lib/api-client';
@@ -16,12 +17,23 @@ interface ErrorDisplayProps {
  */
 export function ErrorDisplay({ error, onRetry, onDismiss }: ErrorDisplayProps): JSX.Element {
   const { t } = useTranslation('common');
+  const errorRegionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    errorRegionRef.current?.focus();
+  }, [error]);
 
   const isApiError = 'status' in error;
   const status = isApiError ? (error as ApiError).status : 0;
 
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+    <div
+      ref={errorRegionRef}
+      className="rounded-lg border border-red-200 bg-red-50 p-4"
+      role="alert"
+      aria-live="assertive"
+      tabIndex={-1}
+    >
       <div className="flex items-start gap-3">
         <svg
           className="w-5 h-5 text-red-600 mt-0.5 shrink-0"
@@ -122,7 +134,11 @@ export function ErrorAlert({ error, onDismiss }: Omit<ErrorDisplayProps, 'onRetr
  */
 export function ErrorMessage({ message }: { message: string }): JSX.Element {
   return (
-    <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+    <p
+      className="mt-1 text-sm text-red-600 flex items-center gap-1"
+      role="alert"
+      aria-live="polite"
+    >
       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
         <path
           fillRule="evenodd"
@@ -148,7 +164,11 @@ export function ErrorFallback({
   const { t } = useTranslation('common');
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gray-50">
+    <div
+      className="flex min-h-screen flex-col items-center justify-center p-4 bg-gray-50"
+      role="alert"
+      aria-live="assertive"
+    >
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
@@ -167,7 +187,9 @@ export function ErrorFallback({
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('errors.title')}</h2>
-          <p className="text-gray-600">{t('errors.description')}</p>
+          <p className="text-gray-600">
+            Something went wrong on our end. {t('errors.description')}
+          </p>
         </div>
         <div className="bg-gray-50 border border-gray-200 rounded p-4 mb-6">
           <p className="text-sm font-mono text-gray-700 wrap-break-word">{error.message}</p>

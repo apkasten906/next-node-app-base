@@ -8,7 +8,7 @@ Feature: Error Handling and Recovery
   Background:
     Given the application is running
 
-  @boundary @critical
+  @ready @boundary @critical @impl_frontend_global_error_boundary
   Scenario: Global error boundary catches errors
     Given I am on the application
     When a component throws an unexpected error
@@ -17,7 +17,7 @@ Feature: Error Handling and Recovery
     And I should have an option to reload the page
     And I should have an option to go back to home
 
-  @404
+  @ready @404 @impl_frontend_not_found_page
   Scenario: Handle 404 - Page not found
     When I navigate to a non-existent page "/this-does-not-exist"
     Then I should see a 404 error page
@@ -40,7 +40,7 @@ Feature: Error Handling and Recovery
     And I should see a message "Please sign in to continue"
     And after signing in, I should be redirected to the original page
 
-  @500
+  @ready @500 @impl_frontend_error_page
   Scenario: Handle 500 - Server error
     Given the API returns a 500 error
     When I try to load a page
@@ -98,7 +98,7 @@ Feature: Error Handling and Recovery
     And the toast should auto-dismiss after 5 seconds
     And I should be able to manually dismiss it
 
-  @recovery
+  @ready @recovery @impl_frontend_error_recovery
   Scenario: Error recovery with action retry
     Given an API request failed
     When I see the error message
@@ -141,12 +141,12 @@ Feature: Error Handling and Recovery
     Then I should return to the form
     And my data should still be there
 
-  @javascript-error
+  @ready @javascript-error @impl_frontend_error_logging
   Scenario: Catch and report JavaScript errors
     Given I am using the application
     When a JavaScript error occurs
     Then the application should not crash
-    And the error should be sent to Sentry
+    And the error should be sent to the error logger
     And I should see a graceful error message
     And the rest of the application should continue working
 
@@ -190,7 +190,7 @@ Feature: Error Handling and Recovery
     And the error log should include user actions leading to error
     And the error log should include browser information
 
-  @accessibility
+  @ready @accessibility @impl_frontend_accessible_errors
   Scenario: Error messages are accessible
     Given I am using a screen reader
     When an error occurs
