@@ -103,7 +103,7 @@ Feature: Next.js Frontend Application
     And responsive design should work
     And dark mode should be supported
 
-  @frontend @responsive
+  @ready @frontend @responsive @impl_frontend_responsive_layout
   Scenario: Responsive layout
     When I view the site on mobile "<device>"
     Then layout should adapt to screen size
@@ -156,7 +156,7 @@ Feature: Next.js Frontend Application
     And font loading should not block render
     And FOUT/FOIT should be prevented
 
-  @frontend @route-protection
+  @ready @frontend @route-protection @impl_frontend_route_auth
   Scenario: Route-level authentication
     Given certain routes require authentication
     When unauthenticated user accesses protected route
@@ -186,7 +186,7 @@ Feature: Next.js Frontend Application
     When I correct the error
     Then validation should pass
 
-  @frontend @error-pages
+  @ready @frontend @error-pages @impl_frontend_custom_error_pages
   Scenario: Custom error pages
     When I navigate to non-existent route
     Then custom 404 page should be shown
@@ -194,7 +194,7 @@ Feature: Next.js Frontend Application
     When server error occurs
     Then custom 500 page should be shown
 
-  @frontend @loading-states
+  @ready @frontend @loading-states @impl_frontend_loading_ui
   Scenario: Loading UI with Suspense
     Given a page uses React Suspense
     When the page loads

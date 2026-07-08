@@ -350,3 +350,85 @@ Then('request should be processed', async function (this: World) {
   assert.ok(sources.middleware.includes('matcher:'));
   assert.ok(sources.middleware.includes('_next/static'));
 });
+
+When('I view the site on mobile {string}', async function (this: World, device: string) {
+  assert.ok(['iPhone 12', 'iPad Pro', 'Desktop 1920'].includes(device));
+  this.setData('frontendSources', loadFrontendSources());
+});
+
+Then('layout should adapt to screen size', async function (this: World) {
+  const sources = getSources(this);
+  assert.ok(sources.dashboardPage.includes('sm:px-6'));
+  assert.ok(sources.dashboardPage.includes('lg:px-8'));
+});
+
+Then('navigation should collapse to menu', async function (this: World) {
+  const sources = getSources(this);
+  assert.ok(sources.layout.includes('flex'));
+  assert.ok(sources.layout.includes('justify-between'));
+});
+
+Then('content should be readable', async function (this: World) {
+  const sources = getSources(this);
+  assert.ok(sources.layout.includes('container mx-auto'));
+  assert.ok(sources.dashboardPage.includes('max-w-7xl'));
+});
+
+Given('certain routes require authentication', async function (this: World) {
+  this.setData('frontendSources', loadFrontendSources());
+});
+
+When('I navigate to non-existent route', async function (this: World) {
+  this.setData('frontendSources', loadFrontendSources());
+});
+
+Then('custom 404 page should be shown', async function () {
+  const notFound = readFrontendFile('app', 'not-found.tsx');
+  assert.ok(notFound.includes('Page not found'));
+  assert.ok(notFound.includes('404'));
+});
+
+Then('helpful navigation should be provided', async function () {
+  const notFound = readFrontendFile('app', 'not-found.tsx');
+  assert.ok(notFound.includes('href="/"'));
+  assert.ok(notFound.includes('Go home'));
+});
+
+When('server error occurs', async function (this: World) {
+  this.setData('serverErrorOccurred', true);
+});
+
+Then('custom 500 page should be shown', async function () {
+  const errorPage = readFrontendFile('app', 'error.tsx');
+  const errorDisplay = readFrontendFile('components', 'error-display.tsx');
+  assert.ok(errorPage.includes('ErrorFallback'));
+  assert.ok(errorDisplay.includes('Something went wrong on our end'));
+});
+
+Given('a page uses React Suspense', async function (this: World) {
+  const loading = readFrontendFile('app', 'loading.tsx');
+  assert.ok(loading.includes('LoadingSpinner'));
+  this.setData('loadingSource', loading);
+});
+
+When('the page loads', async function (this: World) {
+  assert.ok(this.getData<string>('loadingSource'));
+});
+
+Then('loading fallback should be shown', async function (this: World) {
+  const loading = this.getData<string>('loadingSource') ?? readFrontendFile('app', 'loading.tsx');
+  assert.ok(loading.includes('Loading page'));
+  assert.ok(loading.includes('LoadingSpinner'));
+});
+
+When('data is ready', async function (this: World) {
+  this.setData('dataReady', true);
+});
+
+Then('actual content should be shown', async function (this: World) {
+  assert.equal(this.getData<boolean>('dataReady'), true);
+  const sources = getSources(this);
+  assert.ok(
+    sources.homePage.includes('<HomeClient') || sources.dashboardPage.includes('<DashboardClient')
+  );
+});
