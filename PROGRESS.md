@@ -110,21 +110,21 @@ The backend core is implemented and running.
 
 **Goal:** Promote all ~163 base-repo scenarios to `@ready`. Adopter scenarios remain `@wip` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
 
-**Current generated status (June 25, 2026):** backend 138/264 ready; frontend 4/122 ready; overall 142/386 ready.
+**Current tracked status (July 8, 2026):** backend 139/265 ready; frontend 13/122 ready; overall 152/387 ready.
 
 **Priority order** (highest coverage gap first):
 
-| #   | Feature                   | Base ready / Base total | Gap | Status                                                      |
-| --- | ------------------------- | ----------------------- | --- | ----------------------------------------------------------- |
-| 1   | 14-websocket              | 18 / 18                 | 0   | ✅ Base slice complete                                      |
-| 2   | 10-observability          | 19 / 19                 | 0   | ✅ Base slice complete                                      |
-| 3   | 08-file-storage           | 11 / 11                 | 0   | ✅ Base slice complete                                      |
-| 4   | 06-notifications          | 5 / 5                   | 0   | ✅ Base slice complete                                      |
-| 5   | 02-security               | 9 / 9                   | 0   | ✅ Base slice complete                                      |
-| 6   | 13-message-queue          | 10 / 10                 | 0   | ✅ Base slice complete                                      |
-| 7   | 11-advanced-testing       | 8 / 8                   | 0   | ✅ Base slice complete                                      |
-| 8   | 12-kubernetes-devops      | 10 / 10                 | 0   | ✅ Base slice complete                                      |
-| 9   | Frontend base (~32 total) | 4 / 32                  | 28  | 🔴 Next.js arch, error boundaries, backend-only auth wiring |
+| #   | Feature                   | Base ready / Base total | Gap | Status                                                                                  |
+| --- | ------------------------- | ----------------------- | --- | --------------------------------------------------------------------------------------- |
+| 1   | 14-websocket              | 18 / 18                 | 0   | ✅ Base slice complete                                                                  |
+| 2   | 10-observability          | 19 / 19                 | 0   | ✅ Base slice complete                                                                  |
+| 3   | 08-file-storage           | 11 / 11                 | 0   | ✅ Base slice complete                                                                  |
+| 4   | 06-notifications          | 5 / 5                   | 0   | ✅ Base slice complete                                                                  |
+| 5   | 02-security               | 9 / 9                   | 0   | ✅ Base slice complete                                                                  |
+| 6   | 13-message-queue          | 10 / 10                 | 0   | ✅ Base slice complete                                                                  |
+| 7   | 11-advanced-testing       | 8 / 8                   | 0   | ✅ Base slice complete                                                                  |
+| 8   | 12-kubernetes-devops      | 10 / 10                 | 0   | ✅ Base slice complete                                                                  |
+| 9   | Frontend base (~32 total) | 13 / 32                 | 19  | 🟡 Next.js arch/auth first batch complete; error pages and remaining frontend core next |
 
 **BDD prerequisite before frontend auth scenarios:** ✅ ADR-011 backend auth contract coverage added via `@impl_backend_only_auth_contract`, with deterministic checks for `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout`, `GET /api/auth/me`, HttpOnly/SameSite cookie behavior, refresh-token flow, and frontend server-gateway cookie forwarding to `/api/auth/me`. This keeps frontend auth coverage aligned with backend-only auth instead of old NextAuth assumptions.
 
@@ -135,6 +135,7 @@ The backend core is implemented and running.
 - ✅ 05-testing — infrastructure scenarios covered
 - ✅ 07-api-design — ~13/19 base scenarios ready
 - ✅ Frontend: 01-i18n — 1/1
+- ✅ Frontend: 04-nextjs-frontend — first base batch ready: App Router, ADR-011 backend-only auth setup/login, dashboard auth gateway, TanStack Query provider, Tailwind wiring, metadata, route handler, and middleware
 - ✅ 10-observability — 19/19 base scenarios ready; ELK, Sentry, and runtime profiling classified as adopter concerns
 - ✅ 08-file-storage — 11/11 base scenarios ready; cloud providers, authenticated file APIs, prefix/pagination/copy/move, and provider switching remain adopter guides
 - ✅ 06-notifications — 5/5 base scenarios ready; SendGrid/Twilio/FCM, templates, attachments, bulk sends, provider switching, and failure UX remain adopter guides

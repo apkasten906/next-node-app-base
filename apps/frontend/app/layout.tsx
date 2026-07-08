@@ -9,6 +9,11 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Next Node App Base',
   description: 'Production-ready monorepo with Next.js and Node.js',
+  openGraph: {
+    title: 'Next Node App Base',
+    description: 'Production-ready monorepo with Next.js and Node.js',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
