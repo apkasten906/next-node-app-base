@@ -9,7 +9,7 @@ Feature: API Design Patterns
     And API endpoints are registered
 
   @api @versioning @header
-  @ready
+  @ready @impl_api_versioning
   Scenario: Header-based API versioning
     Given API versioning is configured
     When I make a request with Accept header "application/vnd.api+json; version=1.0"
@@ -17,14 +17,14 @@ Feature: API Design Patterns
     And the response should indicate version 1.0
 
   @api @versioning @fallback
-  @ready
+  @ready @impl_api_versioning
   Scenario: Default API version fallback
     Given API versioning is configured with default version 1.0
     When I make a request without version header
     Then the request should be routed to v1.0 API (default)
 
   @api @versioning @unsupported
-  @ready
+  @ready @impl_api_versioning
   Scenario: Unsupported API version handling
     When I make a request with Accept header "application/vnd.api+json; version=99.0"
     Then the response status should be 400
@@ -104,7 +104,7 @@ Feature: API Design Patterns
     And then by createdAt descending
 
   @api @swagger
-  @ready
+  @ready @impl_openapi_docs
   Scenario: Swagger/OpenAPI documentation
     Given Swagger is configured
     When I navigate to "/api-docs"
@@ -114,7 +114,7 @@ Feature: API Design Patterns
     And I should be able to test APIs from the UI
 
   @api @swagger @schemas
-  @ready
+  @ready @impl_openapi_docs
   Scenario: OpenAPI schema definitions
     Given OpenAPI specifications are defined
     When I view the Swagger documentation
@@ -127,7 +127,7 @@ Feature: API Design Patterns
       | FileMetadata    |
 
   @api @swagger @security
-  @ready
+  @ready @impl_openapi_docs
   Scenario: Swagger security schemes
     Given security schemes are defined in Swagger
     When I view API endpoints in Swagger

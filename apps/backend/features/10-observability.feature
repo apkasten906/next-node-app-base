@@ -7,7 +7,7 @@ Feature: Observability and Monitoring
   Background:
     Given the observability repository artifacts are available
 
-  @ready @metrics @prometheus
+  @ready @metrics @prometheus @impl_prometheus_metrics
   Scenario: Prometheus metrics exposition
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
     Then the observability artifact should contain:
@@ -20,7 +20,7 @@ Feature: Observability and Monitoring
       | getMetrics() |
       | Content-Type |
 
-  @ready @metrics @custom
+  @ready @metrics @custom @impl_prometheus_metrics
   Scenario: Custom business metrics
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
     Then the observability artifact should contain:
@@ -29,7 +29,7 @@ Feature: Observability and Monitoring
       | api_errors_total         |
       | incrementCounter         |
 
-  @ready @metrics @labels
+  @ready @metrics @labels @impl_prometheus_metrics
   Scenario: Metrics with labels
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
     Then the observability artifact should contain:
@@ -38,7 +38,7 @@ Feature: Observability and Monitoring
       | route       |
       | status_code |
 
-  @ready @grafana
+  @ready @grafana @impl_grafana_dashboards
   Scenario: Grafana dashboard for metrics visualization
     When I inspect the observability artifact "kubernetes/observability/grafana/grafana-dashboards.yaml"
     Then the observability artifact should contain:
@@ -49,7 +49,7 @@ Feature: Observability and Monitoring
       | Heap Memory           |
       | CPU Usage             |
 
-  @ready @grafana @alerts
+  @ready @grafana @alerts @impl_grafana_alerts
   Scenario: Grafana alerting rules
     When I inspect the observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml"
     Then the observability artifact should contain:
@@ -65,7 +65,7 @@ Feature: Observability and Monitoring
       | warning-receiver  |
       | webhook_configs   |
 
-  @ready @tracing @jaeger
+  @ready @tracing @jaeger @impl_jaeger_tracing
   Scenario: Distributed tracing with Jaeger
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/TracingService.ts"
     Then the observability artifact should contain:
@@ -80,7 +80,7 @@ Feature: Observability and Monitoring
       | 4318         |
       | COLLECTOR_OTLP_ENABLED |
 
-  @ready @tracing @spans
+  @ready @tracing @spans @impl_jaeger_tracing
   Scenario: Trace span creation
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/TracingService.ts"
     Then the observability artifact should contain:
@@ -89,7 +89,7 @@ Feature: Observability and Monitoring
       | getNodeAutoInstrumentations |
       | traceExporter               |
 
-  @ready @tracing @context-propagation
+  @ready @tracing @context-propagation @impl_trace_context
   Scenario: Trace context propagation
     When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
     Then the observability artifact should contain:
@@ -99,7 +99,7 @@ Feature: Observability and Monitoring
       | spanId         |
       | TraceFlags.SAMPLED |
 
-  @ready @logging @structured
+  @ready @logging @structured @impl_winston_logging
   Scenario: Structured logging with Winston
     When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
     Then the observability artifact should contain:
@@ -110,7 +110,7 @@ Feature: Observability and Monitoring
       | correlationId |
       | format.json() |
 
-  @ready @logging @levels
+  @ready @logging @levels @impl_winston_logging
   Scenario: Log level filtering
     When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
     Then the observability artifact should contain:
@@ -126,7 +126,7 @@ Feature: Observability and Monitoring
     Given ELK is not the base repository log aggregation provider
     Then the scenario remains an adopter implementation guide
 
-  @ready @logging @loki
+  @ready @logging @loki @impl_loki_logs
   Scenario: Loki log aggregation
     When I inspect the observability artifact "kubernetes/observability/loki/loki-config.yaml"
     Then the observability artifact should contain:
@@ -139,7 +139,7 @@ Feature: Observability and Monitoring
       | loki              |
       | kubernetes_sd_configs |
 
-  @ready @apm
+  @ready @apm @impl_apm_tracing
   Scenario: Application Performance Monitoring
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/TracingService.ts"
     Then the observability artifact should contain:
@@ -152,7 +152,7 @@ Feature: Observability and Monitoring
       | http_request_duration_seconds |
       | db_query_duration_seconds    |
 
-  @ready @health-checks
+  @ready @health-checks @impl_readiness_check
   Scenario: Comprehensive health check endpoints
     When I inspect the observability artifact "apps/backend/src/index.ts"
     Then the observability artifact should contain:
@@ -167,7 +167,7 @@ Feature: Observability and Monitoring
       | latencyMs               |
       | status: isReady         |
 
-  @ready @uptime-monitoring
+  @ready @uptime-monitoring @impl_grafana_alerts
   Scenario: Uptime monitoring and alerting
     When I inspect the observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml"
     Then the observability artifact should contain:
@@ -190,7 +190,7 @@ Feature: Observability and Monitoring
     Given runtime profiling is not configured by the base repository
     Then the scenario remains an adopter implementation guide
 
-  @ready @database-monitoring
+  @ready @database-monitoring @impl_prometheus_metrics
   Scenario: Database query performance monitoring
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
     Then the observability artifact should contain:
@@ -203,7 +203,7 @@ Feature: Observability and Monitoring
       | marker              |
       | SlowDatabaseQueries |
 
-  @ready @cache-monitoring
+  @ready @cache-monitoring @impl_prometheus_metrics
   Scenario: Redis cache monitoring
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
     Then the observability artifact should contain:
@@ -215,7 +215,7 @@ Feature: Observability and Monitoring
       | marker            |
       | HighCacheMissRate |
 
-  @ready @custom-dashboards
+  @ready @custom-dashboards @impl_grafana_dashboards
   Scenario: Custom monitoring dashboards
     When I inspect the observability artifact "kubernetes/observability/grafana/grafana-dashboards.yaml"
     Then the observability artifact should contain:
@@ -224,7 +224,7 @@ Feature: Observability and Monitoring
       | P95 Latency by Route  |
       | CPU Usage Over Time   |
 
-  @ready @slo
+  @ready @slo @impl_slo_monitoring
   Scenario: Service Level Objectives tracking
     When I inspect the observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml"
     Then the observability artifact should contain:
@@ -240,7 +240,7 @@ Feature: Observability and Monitoring
       | Availability SLO Compliance |
       | Error Budget Remaining |
 
-  @ready @correlation-id
+  @ready @correlation-id @impl_trace_log_correlation
   Scenario: Request correlation across logs and traces
     When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
     Then the observability artifact should contain:
