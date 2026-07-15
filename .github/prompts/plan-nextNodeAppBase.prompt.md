@@ -458,8 +458,8 @@ Consequence: lower migration risk and clearer package boundaries.
 
 ### Next priority (in order)
 
-1. **BDD base-repo scenario coverage** — see section N for full scope breakdown. Observability, file-storage, notifications, message-queue, advanced-testing, and kubernetes-devops are now complete for base scenarios. Priority order within BDD work: all tracked base frontend scenarios are complete; final BDD work is classification cleanup for adopter-only guidance if needed. Message-queue is now complete for the base slice. Websocket, security, observability, file-storage, notifications, message-queue, advanced-testing, and kubernetes-devops base slices are complete. Target: all ~163 base-repo scenarios promoted to `@ready`.
-2. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — resume only after BDD coverage is complete. Adds the `moderator` persona fixture and `MODERATOR` role seed; branch has one commit ready (`cfc47f8`), then needs PR, green CI, and merge.
+1. **BDD base-repo scenario coverage** — complete for tracked base slices. Adopter-only frontend/security guidance is explicitly tagged `@wip @adopter`, so the next active branch is E2E personas moderator.
+2. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — resume now that BDD coverage and adopter classification cleanup are complete. Adds the `moderator` persona fixture and `MODERATOR` role seed; branch has one commit ready (`cfc47f8`), then needs PR, green CI, and merge.
 3. **Automated semantic versioning (Changesets)** — conventional commits are enforced by commitlint and `conventional-changelog-conventionalcommits` is already installed; the missing piece is a version-bump + CHANGELOG automation tool. Adopt `@changesets/cli` (natural fit for pnpm workspaces — versions packages independently), add a `chore/changesets-setup` GitHub Actions workflow that opens a "Version Packages" PR on merge to master, and catch up the stale `CHANGELOG.md` entries for all 2026 phases. Gate on: contract package extraction is not a blocker, but activate before the first real publish of `@repo/types` / `@repo/contracts`.
 4. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
 5. **Phase 11 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet; begin with ADR and interface contracts in `packages/types`.
@@ -468,51 +468,49 @@ Consequence: lower migration risk and clearer package boundaries.
 
 The dividing line: **base repo = infrastructure, conventions, and cross-cutting concerns the template wires up for any adopter; adopter = business domain logic, provider choices, production ops, and app-specific UX.**
 
-The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` permanently in this repo and serve as implementation guides for teams forking the template.
+The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip @adopter` permanently in this repo and serve as implementation guides for teams forking the template.
 
-### Base repo responsibility (~163 scenarios)
+### Base repo responsibility (complete)
 
-| Feature                      | Scope  | Notes                                                                              |
-| ---------------------------- | ------ | ---------------------------------------------------------------------------------- |
-| 01-foundation                | All 11 | Monorepo, TypeScript, Docker, env, ESLint, Prisma, health                          |
-| 03-backend-core              | All 19 | Express, DI (TSyringe), routing, error middleware                                  |
-| 02-security                  | ~9/17  | CORS, Helmet, rate limiting, JWT, ADR-011 auth contract, Zod, HTTPS, CSP           |
-| 07-api-design                | ~13/19 | REST conventions, response/error formats, OpenAPI, versioning scheme               |
-| 10-observability             | ~19/22 | Metrics, dashboards, alerts, tracing, structured logs, health, and SLO scaffolding |
-| 05-testing                   | All 12 | Vitest config, coverage thresholds, BDD tooling                                    |
-| 13-message-queue             | ~10/19 | BullMQ setup, worker base class, retry, DLQ pattern, health endpoint               |
-| 14-websocket                 | 18/28  | Socket.io setup, auth rejection, rooms, messaging, presence, health, frontend hook |
-| 11-advanced-testing          | ~8/23  | Pact scaffolding, k6 scaffolding, ZAP scaffolding                                  |
-| 06-notifications             | 5/15   | `NotificationService` interface, email/SMS/push base flows, retry, health check    |
-| 08-file-storage              | 11/30  | `StorageAdapter` interface, local provider, core CRUD, signed URL, validation      |
-| 12-kubernetes-devops         | ~10/34 | Dockerfiles, Docker Compose, GitHub Actions CI, K8s manifest templates             |
-| Frontend: 01-i18n            | All 1  | Locale config                                                                      |
-| Frontend: 04-nextjs-frontend | ~10/26 | App Router, ADR-011 backend-only auth wiring, middleware, API client layer         |
-| Frontend: 09-frontend-core   | ~10/22 | Tailwind, component patterns, loading/suspense                                     |
-| Frontend: 04-error-handling  | ~8/23  | Global error boundary, 4xx/5xx pages, toast notifications                          |
-| Frontend: 01-authentication  | ~3/12  | Backend-only login plumbing, token refresh, session persistence                    |
+| Feature              | Scope  | Notes                                                                              |
+| -------------------- | ------ | ---------------------------------------------------------------------------------- |
+| 01-foundation        | All 11 | Monorepo, TypeScript, Docker, env, ESLint, Prisma, health                          |
+| 03-backend-core      | All 19 | Express, DI (TSyringe), routing, error middleware                                  |
+| 02-security          | 9/9    | CORS, Helmet, rate limiting, JWT, ADR-011 auth contract, Zod, secrets, audit       |
+| 07-api-design        | ~13/19 | REST conventions, response/error formats, OpenAPI, versioning scheme               |
+| 10-observability     | ~19/22 | Metrics, dashboards, alerts, tracing, structured logs, health, and SLO scaffolding |
+| 05-testing           | All 12 | Vitest config, coverage thresholds, BDD tooling                                    |
+| 13-message-queue     | ~10/19 | BullMQ setup, worker base class, retry, DLQ pattern, health endpoint               |
+| 14-websocket         | 18/28  | Socket.io setup, auth rejection, rooms, messaging, presence, health, frontend hook |
+| 11-advanced-testing  | ~8/23  | Pact scaffolding, k6 scaffolding, ZAP scaffolding                                  |
+| 06-notifications     | 5/15   | `NotificationService` interface, email/SMS/push base flows, retry, health check    |
+| 08-file-storage      | 11/30  | `StorageAdapter` interface, local provider, core CRUD, signed URL, validation      |
+| 12-kubernetes-devops | ~10/34 | Dockerfiles, Docker Compose, GitHub Actions CI, K8s manifest templates             |
+| Frontend base        | 32/32  | i18n, Next.js, ADR-011 frontend auth wiring, error handling, core hooks, a11y      |
 
-### Adopter responsibility (~207 scenarios — `@wip` permanently in this repo)
+### Adopter responsibility (`@wip @adopter` permanently in this repo)
 
 | Feature                      | Scope  | Notes                                                                              |
 | ---------------------------- | ------ | ---------------------------------------------------------------------------------- |
 | 10-observability             | ~3/22  | ELK, Sentry, and runtime profiling provider/tool choices                           |
-| 02-security                  | ~8/17  | Business RBAC/ABAC rules, permission models, lockout thresholds, audit log content |
+| 02-security                  | 8      | Business RBAC/ABAC rules, password policies, encryption/audit details, sessions    |
 | 06-notifications             | ~10/15 | SendGrid/Twilio/FCM wiring, templates, attachments, bulk sends, failure UX         |
 | 08-file-storage              | ~19/30 | S3/Azure/GCP providers, CDN, API auth flows, prefix/pagination, copy/move policies |
 | 12-kubernetes-devops         | ~24/34 | Canary, blue-green, GitOps/ArgoCD, production approvals, secrets pipelines         |
 | 11-advanced-testing          | ~15/23 | Load scenarios with business SLOs, contract tests for custom APIs                  |
 | 13-message-queue             | ~8/18  | Domain-specific job types and event handlers                                       |
 | 14-websocket                 | ~13/28 | Business-specific events, domain room naming, custom presence logic                |
+| Frontend: 01-authentication  | All 12 | Product login UX, OAuth provider choices, mobile behavior, lockout/session UX      |
 | Frontend: 02-user-management | All 17 | Profile fields, avatars, password change, notification prefs                       |
 | Frontend: 03-api-integration | All 21 | CRUD for custom resources, search/filter/sort/pagination, CSV export               |
-| Frontend: 01-authentication  | ~9/12  | OAuth provider choices, 2FA UI, account lockout UX                                 |
-| Frontend: 04-error-handling  | ~15/23 | Concurrent edits, storage quota, browser compatibility                             |
+| Frontend: 04-nextjs-frontend | 13     | NextAuth-specific UX, product query flows, sitemap/images/fonts, role pages        |
+| Frontend: 04-error-handling  | 17     | Product 4xx/timeout/toast/bulk/upload/conflict/quota/browser behavior              |
+| Frontend: 09-frontend-core   | 10     | MSW handlers, product feature flags, optimistic/infinite UX, async validation      |
 
 ### BDD backlog priority rationale
 
 - **Observability complete**: 19/19 base scenarios are now `@ready` and validate real source/manifests. ELK, Sentry, and runtime profiling remain adopter concerns.
-- **File storage and notifications next**: interfaces and local/console providers already exist; scenarios for the base slice just need tagging.
+- **File storage and notifications complete**: interfaces and local/console providers are tagged for the base slice; provider-specific workflows remain adopter guidance.
 - **Message queue complete**: 10/10 base scenarios are now `@ready`, including retry, failed-job retention, queue metrics, and readiness-health coverage.
 - **Advanced testing complete**: 8/8 base scenarios are now `@ready`, covering Pact, k6, and OWASP ZAP scaffolding.
 - **Kubernetes/DevOps complete**: 10/10 base scenarios are now `@ready`, covering app manifest templates, Docker, Compose, workflow linting, and CI test stages.
@@ -520,5 +518,5 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip` 
 - **Frontend Next.js/auth first batch complete**: `@impl_frontend_app_router`, `@impl_frontend_backend_only_auth`, `@impl_frontend_backend_only_login`, `@impl_frontend_dashboard_auth_gateway`, `@impl_frontend_query_provider`, `@impl_frontend_tailwind`, `@impl_frontend_metadata`, `@impl_frontend_route_handlers`, and `@impl_frontend_middleware` are now `@ready`.
 - **Frontend error-handling first batch complete**: `@impl_frontend_global_error_boundary`, `@impl_frontend_not_found_page`, `@impl_frontend_error_page`, `@impl_frontend_error_recovery`, `@impl_frontend_error_logging`, and `@impl_frontend_accessible_errors` are now `@ready`.
 - **Frontend core expanded batch complete**: `@impl_frontend_typed_api_client`, `@impl_frontend_error_boundary_recovery`, `@impl_frontend_loading_state`, `@impl_frontend_debounce_hook`, `@impl_frontend_query_caching`, `@impl_frontend_offline_detection`, `@impl_frontend_semantic_accessibility`, `@impl_frontend_keyboard_navigation`, and `@impl_frontend_form_validation` are now `@ready`.
-- **Frontend base complete**: final Next.js scenarios for responsive layout, route-level authentication, custom error pages, and loading UI are now `@ready`.
-- **Frontend last**: Next.js architecture, error boundaries, and auth wiring are real deliverables but depend on backend base scenarios being stable first.
+- **Frontend base complete**: final Next.js scenarios for responsive layout, route-level authentication, custom error pages, and loading UI are now `@ready`; remaining frontend scenarios are explicitly `@adopter`.
+- **Final classification cleanup complete**: adopter-only frontend/security scenarios are tagged `@adopter` and stay `@wip`, leaving E2E personas moderator as the next branch to resume.

@@ -527,7 +527,7 @@ Then('secrets should be loaded from .env file', async function (this: World) {
 
   // Ensure a common secret key exists in .env and process.env
   expect(kv.get('JWT_SECRET')).toBeDefined();
-  expect(process.env.JWT_SECRET || kv.get('JWT_SECRET')).toBeDefined();
+  expect(process.env['JWT_SECRET'] || kv.get('JWT_SECRET')).toBeDefined();
 
   // Check .env is ignored by git
   const gitignoreExists = await fs

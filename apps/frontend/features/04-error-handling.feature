@@ -24,7 +24,7 @@ Feature: Error Handling and Recovery
     And I should see a message "Page not found"
     And I should see navigation options to go home
 
-  @403
+  @adopter @403
   Scenario: Handle 403 - Forbidden access
     Given I am signed in as a regular user
     When I try to access an admin-only page
@@ -32,7 +32,7 @@ Feature: Error Handling and Recovery
     And I should see a message "Access denied"
     And I should be offered to contact support
 
-  @401
+  @adopter @401
   Scenario: Handle 401 - Unauthorized access
     Given my session has expired
     When I try to access a protected page
@@ -49,7 +49,7 @@ Feature: Error Handling and Recovery
     And I should have an option to retry
     And the error should be reported to monitoring
 
-  @network
+  @adopter @network
   Scenario: Handle network connection loss
     Given I am browsing the application
     When my internet connection is lost
@@ -59,7 +59,7 @@ Feature: Error Handling and Recovery
     Then the offline indicator should disappear
     And data should be synchronized
 
-  @form-errors
+  @adopter @form-errors
   Scenario: Display inline form validation errors
     Given I am on a form page
     When I submit the form with invalid data
@@ -67,7 +67,7 @@ Feature: Error Handling and Recovery
     And the first invalid field should be focused
     And the form should not be submitted
 
-  @api-errors
+  @adopter @api-errors
   Scenario: Handle API validation errors
     Given I am creating a resource
     When the API returns validation errors
@@ -75,14 +75,14 @@ Feature: Error Handling and Recovery
     And I should see all errors simultaneously
     And errors should be cleared when I fix the field
 
-  @timeout
+  @adopter @timeout
   Scenario: Handle request timeout
     Given the API is slow
     When a request takes longer than the timeout
     Then I should see a timeout error
     And I should have options to retry or cancel
 
-  @retry
+  @adopter @retry
   Scenario: Automatic retry on transient errors
     Given the API returns a temporary error (503)
     When I make a request
@@ -90,7 +90,7 @@ Feature: Error Handling and Recovery
     And I should see a "Retrying..." indicator
     And it should retry up to 3 times with exponential backoff
 
-  @toast
+  @adopter @toast
   Scenario: Display error notifications as toasts
     Given I am using the application
     When an error occurs during an action
@@ -106,7 +106,7 @@ Feature: Error Handling and Recovery
     When I click "Retry"
     Then the failed action should be attempted again
 
-  @partial-failure
+  @adopter @partial-failure
   Scenario: Handle partial bulk operation failures
     Given I am deleting 10 resources in bulk
     When 3 deletions fail and 7 succeed
@@ -114,7 +114,7 @@ Feature: Error Handling and Recovery
     And I should see details of which items failed
     And I should have an option to retry failed items
 
-  @file-upload-error
+  @adopter @file-upload-error
   Scenario: Handle file upload errors
     Given I am uploading a file
     When the upload fails due to network error
@@ -122,7 +122,7 @@ Feature: Error Handling and Recovery
     And I should have an option to retry upload
     And my file selection should be preserved
 
-  @concurrent-edit
+  @adopter @concurrent-edit
   Scenario: Handle concurrent edit conflicts
     Given I am editing a resource
     And another user edits the same resource
@@ -131,7 +131,7 @@ Feature: Error Handling and Recovery
     And I should see what changed
     And I should have options to overwrite or merge
 
-  @session-expiry
+  @adopter @session-expiry
   Scenario: Handle session expiry during operation
     Given I am in the middle of filling a form
     When my session expires
@@ -150,7 +150,7 @@ Feature: Error Handling and Recovery
     And I should see a graceful error message
     And the rest of the application should continue working
 
-  @websocket-error
+  @adopter @websocket-error
   Scenario: Handle WebSocket connection errors
     Given I am on a page using WebSocket
     When the WebSocket fails to connect
@@ -158,7 +158,7 @@ Feature: Error Handling and Recovery
     And the app should fall back to polling
     And I should be notified that real-time features are limited
 
-  @quota-exceeded
+  @adopter @quota-exceeded
   Scenario: Handle storage quota exceeded
     Given I am uploading files
     When my storage quota is exceeded
@@ -166,7 +166,7 @@ Feature: Error Handling and Recovery
     And I should see my current usage
     And I should have options to upgrade or delete files
 
-  @browser-compatibility
+  @adopter @browser-compatibility
   Scenario: Handle unsupported browser features
     Given I am using an older browser
     When I access a feature requiring modern APIs
@@ -174,7 +174,7 @@ Feature: Error Handling and Recovery
     And I should be offered a download link for modern browsers
     And basic functionality should still work
 
-  @error-boundaries
+  @adopter @error-boundaries
   Scenario: Nested error boundaries isolate failures
     Given I am on a complex page with multiple components
     When one component fails
@@ -182,7 +182,7 @@ Feature: Error Handling and Recovery
     And the rest of the page should continue working
     And I should be able to interact with other components
 
-  @error-logging
+  @adopter @error-logging
   Scenario: Errors include helpful context
     Given an error occurs
     Then the error log should include user ID

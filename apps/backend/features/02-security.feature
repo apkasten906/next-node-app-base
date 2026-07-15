@@ -8,7 +8,7 @@ Feature: Security Framework
     Given the security framework is initialized
     And environment variables are configured
 
-  @security @dependency-injection
+  @adopter @security @dependency-injection
   Scenario: TSyringe dependency injection setup
     Given TSyringe is configured as the DI container
     When I resolve a service from the container
@@ -34,7 +34,7 @@ Feature: Security Framework
     Then the validation should fail
     And an expiration error should be returned
 
-  @security @password-hashing
+  @adopter @security @password-hashing
   Scenario: Password hashing with bcrypt
     Given a plain text password "<password>"
     When I hash the password using bcrypt
@@ -49,7 +49,7 @@ Feature: Security Framework
       | MyP@ssw0rd2024  |
       | C0mpl3x!tyTest  |
 
-  @security @password-strength
+  @adopter @security @password-strength
   Scenario: Password strength validation
     Given a password policy requiring minimum 8 characters
     When I validate password "<password>"
@@ -62,7 +62,7 @@ Feature: Security Framework
       | 12345678        | rejected |
       | Test!234        | accepted |
 
-  @security @encryption
+  @adopter @security @encryption
   Scenario: Data encryption with AES-256-GCM
     Given an encryption service with AES-256-GCM
     When I encrypt sensitive data "<data>"
@@ -78,7 +78,7 @@ Feature: Security Framework
       | credit card number             |
       | social security number         |
 
-  @security @rbac
+  @adopter @security @rbac
   Scenario: Role-Based Access Control (RBAC)
     Given a user with role "<role>"
     When the user attempts to access resource "<resource>"
@@ -101,7 +101,7 @@ Feature: Security Framework
     And user "user-123" should be denied to access "posts" "update" when ownerId is "someone-else"
     And audit logs for "user-123" should include both granted and denied decisions
 
-  @security @abac
+  @adopter @security @abac
   Scenario: Attribute-Based Access Control (ABAC)
     Given a user with attributes:
       | attribute  | value           |
@@ -149,7 +149,7 @@ Feature: Security Framework
       | https://trusted-domain.com| allowed  |
       | https://malicious.com     | blocked  |
 
-  @security @audit-log
+  @adopter @security @audit-log
   Scenario: Security audit logging
     Given audit logging is enabled
     When a user "<action>" on resource "<resource>"
@@ -203,7 +203,7 @@ Feature: Security Framework
     And current-user lookup should use attached JWT user context
     And frontend server auth should forward cookies to backend "/api/auth/me"
 
-  @security @session-management
+  @adopter @security @session-management
   Scenario: Secure session management
     Given a user logs in successfully
     When a session is created

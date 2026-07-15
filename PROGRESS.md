@@ -106,11 +106,11 @@ The backend core is implemented and running.
 
 ## Current Focus / Next Steps
 
-### Current Objective: BDD Base-Repo Scenario Coverage
+### Current Objective: BDD Base-Repo Scenario Coverage Complete
 
-**Goal:** Promote all ~163 base-repo scenarios to `@ready`. Adopter scenarios remain `@wip` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
+**Goal:** Promote all base-repo scenarios to `@ready`. Adopter scenarios remain `@wip @adopter` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
 
-**Current tracked status (July 8, 2026):** backend 139/265 ready; frontend 32/122 ready; overall 171/387 ready.
+**Current tracked status (July 8, 2026):** backend 139/265 ready; frontend 32/122 ready; overall 171/387 ready. Frontend/security adopter-only scenarios are explicitly classified with `@adopter`.
 
 **Priority order** (highest coverage gap first):
 
@@ -139,6 +139,7 @@ The backend core is implemented and running.
 - ✅ Frontend: 04-error-handling — first base batch ready: global error boundary, 404 page, 500 error page, retry recovery, JavaScript error logging, and accessible error messages
 - ✅ Frontend: 09-frontend-core — expanded base batch ready: type-safe API client, error-boundary recovery, loading state, debounce hook, TanStack Query caching, offline detection, semantic accessibility, keyboard navigation, and form validation
 - ✅ Frontend: 04-nextjs-frontend — final base batch ready: responsive layout, route-level authentication, custom error pages, and loading UI
+- ✅ BDD classification cleanup — adopter-only frontend/security scenarios are tagged `@adopter` and remain `@wip` guidance
 - ✅ 10-observability — 19/19 base scenarios ready; ELK, Sentry, and runtime profiling classified as adopter concerns
 - ✅ 08-file-storage — 11/11 base scenarios ready; cloud providers, authenticated file APIs, prefix/pagination/copy/move, and provider switching remain adopter guides
 - ✅ 06-notifications — 5/5 base scenarios ready; SendGrid/Twilio/FCM, templates, attachments, bulk sends, provider switching, and failure UX remain adopter guides
@@ -146,9 +147,9 @@ The backend core is implemented and running.
 - ✅ 11-advanced-testing — 8/8 base scenarios ready; visual regression, accessibility, mutation, chaos, monkey, property-based, approval, factory, distributed, and flaky-test workflows remain adopter guides
 - ✅ 12-kubernetes-devops — 10/10 base scenarios ready; ingress, HPA/VPA, rollback, stateful workloads, production deployment strategies, GitOps, vault, notifications, service mesh, operators, backup, and cost optimization remain adopter guides
 
-### Up Next (after BDD coverage)
+### Up Next
 
-- [ ] E2E personas moderator (`chore/e2e-personas-moderator`) — resume after BDD coverage is complete; `moderator` persona + `MODERATOR` role branch has one commit ready and then needs PR, green CI, and merge
+- [ ] E2E personas moderator (`chore/e2e-personas-moderator`) — resume now that BDD base coverage and adopter classification cleanup are complete; `moderator` persona + `MODERATOR` role branch has one commit ready and then needs PR, green CI, and merge
 - [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `fasciculum-instrumentorum` fork proves reuse
 - [ ] Phase 11 Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks; begin with ADR and interface contracts
 

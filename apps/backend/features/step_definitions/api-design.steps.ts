@@ -40,7 +40,7 @@ Then('the response should indicate version 1.0', function (this: World) {
   expect(this.response?.headers['api-version']).toBe('1.0');
 });
 
-Then('the request should be routed to v1.0 API (default)', function (this: World) {
+Then(/^the request should be routed to v1\.0 API \(default\)$/, function (this: World) {
   expect(this.response?.headers['api-version']).toBe('1.0');
 });
 
@@ -70,7 +70,7 @@ Then('API endpoints should be documented', async function (this: World) {
   expect(Object.keys(res?.body.paths as object).length).toBeGreaterThan(0);
 });
 
-Then('request/response schemas should be defined', async function (this: World) {
+Then(/^request\/response schemas should be defined$/, async function (this: World) {
   const res = await this.request?.get('/api-docs.json');
   expect(res?.body?.components).toHaveProperty('schemas');
   expect(Object.keys(res?.body.components.schemas as object).length).toBeGreaterThan(0);

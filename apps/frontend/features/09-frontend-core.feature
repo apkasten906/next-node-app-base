@@ -8,7 +8,7 @@ Feature: Frontend Core Features
     Given the Next.js application is running
     And frontend is configured
 
-  @frontend @msw
+  @adopter @frontend @msw
   Scenario: Mock Service Worker for API mocking
     Given MSW is configured for development
     When I make an API request in development mode
@@ -16,7 +16,7 @@ Feature: Frontend Core Features
     And a mocked response should be returned
     And no actual backend request should be made
 
-  @frontend @msw @handlers
+  @adopter @frontend @msw @handlers
   Scenario: MSW request handlers
     Given MSW handlers are defined for "/api/users"
     When I GET "/api/users" in the browser
@@ -71,7 +71,7 @@ Feature: Frontend Core Features
     And the component should be re-rendered
     And the error state should be cleared
 
-  @frontend @feature-flags
+  @adopter @frontend @feature-flags
   Scenario: Feature flag system
     Given feature flags are configured
     When I check if feature "<feature>" is enabled
@@ -84,7 +84,7 @@ Feature: Frontend Core Features
       | experimentalUI    | false   |
       | betaFeatures      | false   |
 
-  @frontend @feature-flags @user-targeting
+  @adopter @frontend @feature-flags @user-targeting
   Scenario: User-targeted feature flags
     Given feature flags support user targeting
     When a user with role "beta-tester" checks feature "betaFeatures"
@@ -101,7 +101,7 @@ Feature: Frontend Core Features
     Then the loading state should be removed
     And data should be displayed
 
-  @frontend @optimistic-updates
+  @adopter @frontend @optimistic-updates
   Scenario: Optimistic UI updates
     Given optimistic updates are configured
     When a user performs an action that updates server data
@@ -112,7 +112,7 @@ Feature: Frontend Core Features
     When server rejects the update
     Then UI should rollback to previous state
 
-  @frontend @infinite-scroll
+  @adopter @frontend @infinite-scroll
   Scenario: Infinite scroll pagination
     Given a list component with infinite scroll
     When the user scrolls to the bottom
@@ -137,7 +137,7 @@ Feature: Frontend Core Features
     Then cached data should be returned immediately
     And background refetch should occur
 
-  @frontend @caching @invalidation
+  @adopter @frontend @caching @invalidation
   Scenario: Query cache invalidation
     Given cached query data exists
     When data is mutated on the server
@@ -164,7 +164,7 @@ Feature: Frontend Core Features
     And role should be properly defined
     And keyboard navigation should work
 
-  @frontend @accessibility @focus-management
+  @adopter @frontend @accessibility @focus-management
   Scenario: Focus management for modals
     Given a modal dialog component
     When the modal opens
@@ -191,7 +191,7 @@ Feature: Frontend Core Features
     Then validation should pass
     And form should submit successfully
 
-  @frontend @forms @async-validation
+  @adopter @frontend @forms @async-validation
   Scenario: Async form validation
     Given a form with async validation (e.g., email uniqueness)
     When I enter an email address
@@ -199,7 +199,7 @@ Feature: Frontend Core Features
     And validation status should be indicated
     And user should wait for validation result
 
-  @frontend @toast-notifications
+  @adopter @frontend @toast-notifications
   Scenario: Toast notification system
     Given a toast notification system is configured
     When a user action succeeds

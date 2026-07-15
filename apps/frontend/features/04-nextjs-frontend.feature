@@ -33,7 +33,7 @@ Feature: Next.js Frontend Application
     And the auth API should post to "/api/auth/login" with credentials included
     And successful sign-in should navigate to the dashboard
 
-  @frontend @nextauth @session
+  @adopter @frontend @nextauth @session
   Scenario: Session persistence
     Given I am logged in
     When I refresh the page
@@ -43,7 +43,7 @@ Feature: Next.js Frontend Application
     Then I should be logged out
     And I should be redirected to login
 
-  @frontend @nextauth @logout
+  @adopter @frontend @nextauth @logout
   Scenario: User logout
     Given I am logged in
     When I click logout button
@@ -67,7 +67,7 @@ Feature: Next.js Frontend Application
     Then QueryClient should be configured
     And query devtools should be available in development
 
-  @frontend @tanstack-query @fetching
+  @adopter @frontend @tanstack-query @fetching
   Scenario: Data fetching with TanStack Query
     Given I am on a page that fetches user data
     When the page loads
@@ -76,7 +76,7 @@ Feature: Next.js Frontend Application
     Then data should be displayed
     And data should be cached
 
-  @frontend @tanstack-query @mutations
+  @adopter @frontend @tanstack-query @mutations
   Scenario: Data mutations with TanStack Query
     Given I am on a form page
     When I submit the form
@@ -87,7 +87,7 @@ Feature: Next.js Frontend Application
     And cache should be invalidated
     And data should be refetched
 
-  @frontend @tanstack-query @error
+  @adopter @frontend @tanstack-query @error
   Scenario: Query error handling
     Given API returns an error
     When query executes
@@ -116,7 +116,7 @@ Feature: Next.js Frontend Application
       | iPad Pro     |
       | Desktop 1920 |
 
-  @frontend @dark-mode
+  @adopter @frontend @dark-mode
   Scenario: Dark mode toggle
     Given the application supports dark mode
     When I toggle dark mode
@@ -133,14 +133,14 @@ Feature: Next.js Frontend Application
     And meta description should be present
     And Open Graph tags should be present
 
-  @frontend @seo @sitemap
+  @adopter @frontend @seo @sitemap
   Scenario: Sitemap generation
     When I access "/sitemap.xml"
     Then a valid XML sitemap should be returned
     And all public pages should be listed
     And lastmod dates should be included
 
-  @frontend @image-optimization
+  @adopter @frontend @image-optimization
   Scenario: Next.js Image optimization
     Given images use next/image component
     When images load
@@ -148,7 +148,7 @@ Feature: Next.js Frontend Application
     And lazy loading should be enabled
     And responsive sizes should be served
 
-  @frontend @font-optimization
+  @adopter @frontend @font-optimization
   Scenario: Font optimization with next/font
     Given custom fonts are configured with next/font
     When page loads
@@ -164,7 +164,7 @@ Feature: Next.js Frontend Application
     When authenticated user accesses protected route
     Then route should be accessible
 
-  @frontend @role-authorization
+  @adopter @frontend @role-authorization
   Scenario: Role-based page access
     Given I am logged in as role "<role>"
     When I try to access "<page>"
@@ -177,7 +177,7 @@ Feature: Next.js Frontend Application
       | moderator | /moderation    | allowed |
       | user      | /moderation    | denied  |
 
-  @frontend @client-validation
+  @adopter @frontend @client-validation
   Scenario: Client-side form validation
     Given I am on a registration form
     When I submit with invalid email
@@ -202,7 +202,7 @@ Feature: Next.js Frontend Application
     When data is ready
     Then actual content should be shown
 
-  @frontend @streaming
+  @adopter @frontend @streaming
   Scenario: Streaming SSR for faster page loads
     Given page uses streaming SSR
     When I navigate to the page
@@ -225,7 +225,7 @@ Feature: Next.js Frontend Application
     And headers should be modified
     And request should be processed
 
-  @frontend @internationalization
+  @adopter @frontend @internationalization
   Scenario: Internationalization with next-i18next
     Given i18n is configured for languages ["en", "es", "fr"]
     When I switch language to "es"
