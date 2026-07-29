@@ -74,11 +74,25 @@ export class App {
     return process.env['DISABLE_WEBSOCKETS'] !== 'true';
   }
 
+  private readinessCheckTimeoutMs(): number {
+    const configured = Number(process.env['READINESS_CHECK_TIMEOUT_MS']);
+    return Number.isFinite(configured) && configured > 0 ? configured : 2_000;
+  }
+
   private async checkDependency(check: () => Promise<boolean>): Promise<DependencyHealth> {
     const startedAt = performance.now();
+    const timeoutMs = this.readinessCheckTimeoutMs();
+    let timeout: NodeJS.Timeout | undefined;
 
     try {
-      const healthy = await check();
+      const healthy = await Promise.race([
+        check(),
+        new Promise<never>((_resolve, reject) => {
+          timeout = setTimeout(() => {
+            reject(new Error(`Health check timed out after ${timeoutMs}ms`));
+          }, timeoutMs);
+        }),
+      ]);
       return {
         status: healthy ? 'healthy' : 'unhealthy',
         latencyMs: Math.round((performance.now() - startedAt) * 100) / 100,
@@ -89,7 +103,25 @@ export class App {
         latencyMs: Math.round((performance.now() - startedAt) * 100) / 100,
         details: { error: error instanceof Error ? error.message : String(error) },
       };
+    } finally {
+      if (timeout) clearTimeout(timeout);
     }
+  }
+
+  private async checkWebsocketDependency(): Promise<DependencyHealth> {
+    if (!this.websocketsEnabled()) return this.disabledDependency();
+    if (!this.websocket) {
+      return { status: 'unhealthy', latencyMs: 0, details: { reason: 'not initialized' } };
+    }
+
+    let details: Record<string, unknown> | undefined;
+    const result = await this.checkDependency(async () => {
+      const health = await this.websocket!.getHealth();
+      details = { ...health };
+      return health.status === 'healthy';
+    });
+    if (details) result.details = details;
+    return result;
   }
 
   private disabledDependency(): DependencyHealth {
@@ -225,34 +257,16 @@ export class App {
     this.app.get('/ready', async (_req: Request, res: Response) => {
       try {
         const storage = container.resolve(StorageService);
-        const [databaseCheck, cacheCheck, storageCheck] = await Promise.all([
-          this.checkDependency(() => this.database.healthCheck()),
-          this.checkDependency(() => this.cache.healthCheck()),
-          this.checkDependency(() => storage.healthCheck()),
-        ]);
-
-        const queueCheck = this.queuesEnabled()
-          ? await this.checkDependency(() => container.resolve(QueueService).healthCheck())
-          : this.disabledDependency();
-
-        let websocketCheck = this.disabledDependency();
-        if (this.websocketsEnabled()) {
-          if (this.websocket) {
-            const startedAt = performance.now();
-            const websocketHealth = await this.websocket.getHealth();
-            websocketCheck = {
-              status: websocketHealth.status === 'healthy' ? 'healthy' : 'unhealthy',
-              latencyMs: Math.round((performance.now() - startedAt) * 100) / 100,
-              details: { ...websocketHealth },
-            };
-          } else {
-            websocketCheck = {
-              status: 'unhealthy',
-              latencyMs: 0,
-              details: { reason: 'not initialized' },
-            };
-          }
-        }
+        const [databaseCheck, cacheCheck, storageCheck, queueCheck, websocketCheck] =
+          await Promise.all([
+            this.checkDependency(() => this.database.healthCheck()),
+            this.checkDependency(() => this.cache.healthCheck()),
+            this.checkDependency(() => storage.healthCheck()),
+            this.queuesEnabled()
+              ? this.checkDependency(() => container.resolve(QueueService).healthCheck())
+              : Promise.resolve(this.disabledDependency()),
+            this.checkWebsocketDependency(),
+          ]);
 
         const checks = {
           database: databaseCheck,
