@@ -9,6 +9,7 @@ export interface CustomWorld extends CucumberWorld {
   response?: request.Response;
   testData?: Record<string, any>;
   error?: Error;
+  addCleanup(callback: () => void | Promise<void>): void;
 }
 
 export class World extends CucumberWorld implements CustomWorld {
@@ -17,6 +18,7 @@ export class World extends CucumberWorld implements CustomWorld {
   response?: request.Response;
   testData: Record<string, any> = {};
   error?: Error;
+  private cleanupCallbacks: Array<() => void | Promise<void>> = [];
 
   constructor(options: IWorldOptions) {
     super(options);
@@ -34,11 +36,22 @@ export class World extends CucumberWorld implements CustomWorld {
    * Cleanup after scenario
    */
   async cleanup(): Promise<void> {
-    if (this.app) {
-      await this.app.shutdown();
+    try {
+      if (this.app) {
+        await this.app.shutdown();
+      }
+    } finally {
+      for (const callback of this.cleanupCallbacks.reverse()) {
+        await callback();
+      }
+      this.cleanupCallbacks = [];
+      this.testData = {};
+      this.error = undefined;
     }
-    this.testData = {};
-    this.error = undefined;
+  }
+
+  addCleanup(callback: () => void | Promise<void>): void {
+    this.cleanupCallbacks.push(callback);
   }
 
   /**

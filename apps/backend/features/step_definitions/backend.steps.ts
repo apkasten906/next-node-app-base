@@ -1,5 +1,9 @@
 import { Given, Then, When } from '@cucumber/cucumber';
 import crypto from 'node:crypto';
+
+import { CacheService } from '../../src/services/cache.service';
+import { DatabaseService } from '../../src/services/database.service';
+import { LoggerService } from '../../src/services/logger.service';
 import { expect } from '../support/assertions';
 import { World } from '../support/world';
 
@@ -192,22 +196,6 @@ Then('the log should include structured metadata', async function (this: World) 
   expect(lastLog).toHaveProperty('message');
   expect(lastLog).toHaveProperty('level');
   expect(lastLog).toHaveProperty('timestamp');
-});
-
-// Error Handling
-When('an unhandled error occurs', async function (this: World) {
-  this.setData('error', new Error('Test error'));
-});
-
-Then('it should be caught by error middleware', async function (this: World) {
-  const error = this.getData('error');
-  expect(error).toBeDefined();
-});
-
-Then('a {int} error response should be returned', async function (this: World, statusCode: number) {
-  this.setData('errorStatusCode', statusCode);
-  const code = this.getData<number>('errorStatusCode');
-  expect(code).toBe(statusCode);
 });
 
 // Health Checks
@@ -548,24 +536,19 @@ When('I make an API request', async function (this: World) {
 });
 
 Then('a correlation ID should be generated', async function (this: World) {
-  const id =
-    this.response?.headers['x-correlation-id'] ?? this.response?.headers['x-request-id'];
+  const id = this.response?.headers['x-correlation-id'] ?? this.response?.headers['x-request-id'];
   expect(id).toBeDefined();
 });
 
 Then('the correlation ID should be included in response headers', async function (this: World) {
-  const id =
-    this.response?.headers['x-correlation-id'] ?? this.response?.headers['x-request-id'];
+  const id = this.response?.headers['x-correlation-id'] ?? this.response?.headers['x-request-id'];
   expect(id).toBeDefined();
 });
 
-Then(
-  'all logs for this request should include the correlation ID',
-  async function (this: World) {
-    // Verified structurally: correlation-ID middleware attaches ID to all log context
-    expect(this.app).toBeDefined();
-  }
-);
+Then('all logs for this request should include the correlation ID', async function (this: World) {
+  // Verified structurally: correlation-ID middleware attaches ID to all log context
+  expect(this.app).toBeDefined();
+});
 
 // Global error handling
 Given('global error handler is configured', async function (this: World) {
@@ -573,25 +556,38 @@ Given('global error handler is configured', async function (this: World) {
 });
 
 When('an unhandled error occurs in a route', async function (this: World) {
-  this.setData('simulatedError', new Error('Unhandled route error'));
-  this.setData('simulatedStatus', 500);
+  const logger = this.getContainer().resolve(LoggerService);
+  const originalError = logger.error.bind(logger);
+  const capturedErrors: Array<{ message: string; error?: Error }> = [];
+  logger.error = (message: string, error?: Error): void => {
+    capturedErrors.push({ message, error });
+  };
+
+  this.addCleanup(() => {
+    logger.error = originalError;
+  });
+  this.setData('capturedErrors', capturedErrors);
+  this.response = await this.request?.get('/api/e2e/test-error');
 });
 
 Then('the error should be caught by the error handler', async function (this: World) {
-  expect(this.getData('simulatedError')).toBeInstanceOf(Error);
+  expect(this.response?.body).toHaveProperty('error', 'Internal Server Error');
+  expect(this.response?.body).toHaveProperty('message');
 });
 
 Then('a 500 status code should be returned', async function (this: World) {
-  expect(this.getData<number>('simulatedStatus')).toBe(500);
+  expect(this.response?.status).toBe(500);
 });
 
 Then('error details should be logged', async function (this: World) {
-  expect(this.getData('simulatedError')).toBeDefined();
+  const capturedErrors = this.getData<Array<{ message: string; error?: Error }>>('capturedErrors');
+  expect(capturedErrors).toHaveLength(1);
+  expect(capturedErrors?.[0]?.message).toBe('Unhandled error');
+  expect(capturedErrors?.[0]?.error).toBeInstanceOf(Error);
 });
 
 Then('in production, stack traces should be hidden', async function (this: World) {
-  // Verified by express error handler configuration; stacks omitted when NODE_ENV=production
-  expect(process.env['NODE_ENV']).toBeDefined();
+  expect(this.response?.body).not.toHaveProperty('stack');
 });
 
 // Health / Readiness
@@ -601,40 +597,56 @@ Given('the application is running', async function (this: World) {
 });
 
 Given('database is connected', async function (this: World) {
-  this.setData('databaseConnected', true);
+  const database = this.getContainer().resolve(DatabaseService);
+  const originalHealthCheck = database.healthCheck;
+  this.addCleanup(() => {
+    database.healthCheck = originalHealthCheck;
+  });
+  database.healthCheck = async (): Promise<boolean> => true;
 });
 
 Given('database is disconnected', async function (this: World) {
-  this.setData('databaseConnected', false);
+  const database = this.getContainer().resolve(DatabaseService);
+  const originalHealthCheck = database.healthCheck;
+  this.addCleanup(() => {
+    database.healthCheck = originalHealthCheck;
+  });
+  database.healthCheck = async (): Promise<boolean> => false;
 });
 
 Given('Redis is connected', async function (this: World) {
-  this.setData('redisConnected', true);
+  const cache = this.getContainer().resolve(CacheService);
+  const originalHealthCheck = cache.healthCheck;
+  this.addCleanup(() => {
+    cache.healthCheck = originalHealthCheck;
+  });
+  cache.healthCheck = async (): Promise<boolean> => true;
 });
 
-Then(
-  'the response should indicate {string} status',
-  async function (this: World, status: string) {
-    const body = this.response?.body;
-    const actual = body?.status ?? body?.state;
-    expect(actual).toBe(status);
-  }
-);
+Then('the response should indicate {string} status', async function (this: World, status: string) {
+  const body = this.response?.body;
+  const actual = body?.status ?? body?.state;
+  expect(actual).toBe(status);
+});
 
 Then('database health should be {string}', async function (this: World, expected: string) {
   const body = this.response?.body;
-  const db = body?.database ?? body?.checks?.database;
-  if (db !== undefined) {
-    expect(String(db)).toBe(expected);
-  }
+  expect(body).toHaveProperty('database');
+  expect(body).toHaveProperty('checks');
+  expect(body.checks).toHaveProperty('database');
+  expect(body.checks.database).toHaveProperty('status');
+  expect(body.database).toBe(expected === 'true');
+  expect(body.checks.database.status).toBe(expected === 'true' ? 'healthy' : 'unhealthy');
 });
 
 Then('cache health should be {string}', async function (this: World, expected: string) {
   const body = this.response?.body;
-  const cache = body?.cache ?? body?.redis ?? body?.checks?.cache;
-  if (cache !== undefined) {
-    expect(String(cache)).toBe(expected);
-  }
+  expect(body).toHaveProperty('cache');
+  expect(body).toHaveProperty('checks');
+  expect(body.checks).toHaveProperty('cache');
+  expect(body.checks.cache).toHaveProperty('status');
+  expect(body.cache).toBe(expected === 'true');
+  expect(body.checks.cache.status).toBe(expected === 'true' ? 'healthy' : 'unhealthy');
 });
 
 // Compression middleware
@@ -643,16 +655,16 @@ Given('compression middleware is enabled', async function (this: World) {
 });
 
 When('I request a large JSON response', async function (this: World) {
-  this.response = await this.request?.get('/health').set('Accept-Encoding', 'gzip, deflate');
+  this.response = await this.request?.get('/api/e2e/large-response').set('Accept-Encoding', 'gzip');
 });
 
 // 'the response should be compressed' is defined in api-design.steps.ts — no duplicate here.
 
 Then(
   'the Content-Encoding header should be {string}',
-  async function (this: World, _encoding: string) {
-    // Supertest auto-decompresses; verify request completed successfully
-    expect(this.response?.status).toBeDefined();
+  async function (this: World, encoding: string) {
+    expect(this.response?.status).toBe(200);
+    expect(this.response?.headers['content-encoding']).toBe(encoding);
   }
 );
 
@@ -671,11 +683,13 @@ When('I make a preflight OPTIONS request', async function (this: World) {
 // 'CORS headers should be present' is defined in api-design.steps.ts — no duplicate here.
 
 Then('allowed methods should be specified', async function (this: World) {
-  expect(this.response?.status).toBeDefined();
+  expect(this.response?.status).toBe(204);
+  expect(this.response?.headers['access-control-allow-methods']).toContain('GET');
 });
 
 Then('credentials should be allowed for trusted origins', async function (this: World) {
-  expect(this.app).toBeDefined();
+  expect(this.response?.headers['access-control-allow-origin']).toBe('http://localhost:3000');
+  expect(this.response?.headers['access-control-allow-credentials']).toBe('true');
 });
 
 // Database transactions (mocked)
