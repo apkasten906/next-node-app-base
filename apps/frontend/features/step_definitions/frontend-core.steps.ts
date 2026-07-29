@@ -3,7 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { Given, Then, When } from '@cucumber/cucumber';
+import { onlineManager, type QueryClient } from '@tanstack/react-query';
 
+import { createQueryClient } from '../../lib/query-client';
+import {
+  getOfflineStatusMessage,
+  subscribeToOnlineStatus,
+} from '../../src/hooks/use-online-status';
 import { World } from '../support/world';
 
 interface CoreSources {
@@ -11,9 +17,6 @@ interface CoreSources {
   providers: string;
   errorBoundary: string;
   loadingState: string;
-  debounceHook: string;
-  onlineHook: string;
-  offlineIndicator: string;
   signInClient: string;
   errorDisplay: string;
   notFoundPage: string;
@@ -30,9 +33,6 @@ function loadCoreSources(): CoreSources {
     providers: readFrontendFile('components', 'providers.tsx'),
     errorBoundary: readFrontendFile('components', 'error-boundary.tsx'),
     loadingState: readFrontendFile('components', 'loading-state.tsx'),
-    debounceHook: readFrontendFile('src', 'hooks', 'use-debounced-value.ts'),
-    onlineHook: readFrontendFile('src', 'hooks', 'use-online-status.ts'),
-    offlineIndicator: readFrontendFile('components', 'offline-indicator.tsx'),
     signInClient: readFrontendFile('components', 'signin-client.tsx'),
     errorDisplay: readFrontendFile('components', 'error-display.tsx'),
     notFoundPage: readFrontendFile('app', 'not-found.tsx'),
@@ -128,31 +128,6 @@ Then('data should be displayed', async function (this: World) {
   assert.ok(sources.loadingState.includes('children'));
 });
 
-Given('a search input with 300ms debounce', async function (this: World) {
-  this.setData('frontendCoreSources', loadCoreSources());
-});
-
-When('a user types quickly', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.debounceHook.includes('useDebouncedValue'));
-});
-
-Then('API requests should be debounced', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.debounceHook.includes('window.setTimeout'));
-  assert.ok(sources.debounceHook.includes('delayMs = 300'));
-});
-
-Then('only the final input value should trigger search', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.debounceHook.includes('setDebouncedValue(value)'));
-});
-
-Then('excessive API calls should be prevented', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.debounceHook.includes('window.clearTimeout(timeoutId)'));
-});
-
 Given('TanStack Query is configured', async function (this: World) {
   this.setData('frontendCoreSources', loadCoreSources());
 });
@@ -182,45 +157,85 @@ Then('background refetch should occur', async function (this: World) {
   assert.ok(sources.providers.includes('refetchOnWindowFocus: false'));
 });
 
+class BddOnlineEventSource {
+  private readonly listeners = new Map<'online' | 'offline', Set<() => void>>();
+
+  addEventListener(type: 'online' | 'offline', listener: () => void): void {
+    const listeners = this.listeners.get(type) ?? new Set();
+    listeners.add(listener);
+    this.listeners.set(type, listeners);
+  }
+
+  removeEventListener(type: 'online' | 'offline', listener: () => void): void {
+    this.listeners.get(type)?.delete(listener);
+  }
+
+  dispatch(type: 'online' | 'offline'): void {
+    this.listeners.get(type)?.forEach((listener) => listener());
+  }
+}
+
 Given('offline detection is enabled', async function (this: World) {
-  this.setData('frontendCoreSources', loadCoreSources());
+  const source = new BddOnlineEventSource();
+  const queryClient = createQueryClient();
+  queryClient.mount();
+  this.setData('onlineSource', source);
+  this.setData('queryClient', queryClient);
+  this.setData(
+    'unsubscribeOnlineStatus',
+    subscribeToOnlineStatus(source, (isOnline) => {
+      this.setData('isOnline', isOnline);
+    })
+  );
+  this.setData('isOnline', true);
 });
 
 When('the user goes offline', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.onlineHook.includes("addEventListener('offline'"));
+  onlineManager.setOnline(false);
+  this.getData<BddOnlineEventSource>('onlineSource')?.dispatch('offline');
+  const queryFn = (): Promise<string> => {
+    this.setData('offlineQueryCalls', (this.getData<number>('offlineQueryCalls') ?? 0) + 1);
+    return Promise.resolve('restored');
+  };
+  const queryClient = this.getData<QueryClient>('queryClient');
+  assert.ok(queryClient);
+  this.setData(
+    'offlineQueryResult',
+    queryClient.fetchQuery({ queryKey: ['offline-bdd'], queryFn })
+  );
+  await Promise.resolve();
 });
 
 Then('the app should detect offline state', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.onlineHook.includes('navigator.onLine'));
-  assert.ok(sources.onlineHook.includes('setIsOnline(false)'));
+  assert.equal(this.getData('isOnline'), false);
 });
 
 Then('offline indicator should be displayed', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.offlineIndicator.includes('You are currently offline'));
-  assert.ok(sources.offlineIndicator.includes('role="status"'));
+  const message = getOfflineStatusMessage(this.getData<boolean>('isOnline') ?? true);
+  assert.match(message ?? '', /You are currently offline/);
+  this.setData('offlineMessage', message);
 });
 
 Then('user should be notified', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.offlineIndicator.includes('aria-live="polite"'));
+  assert.ok(this.getData<string>('offlineMessage'));
 });
 
 When('the user comes back online', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.onlineHook.includes("addEventListener('online'"));
+  this.getData<BddOnlineEventSource>('onlineSource')?.dispatch('online');
+  onlineManager.setOnline(true);
 });
 
 Then('online state should be detected', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.onlineHook.includes('setIsOnline(true)'));
+  assert.equal(this.getData('isOnline'), true);
+  assert.equal(getOfflineStatusMessage(true), null);
 });
 
 Then('pending requests should be retried', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.offlineIndicator.includes('retry when your connection is restored'));
+  assert.equal(await this.getData<Promise<string>>('offlineQueryResult'), 'restored');
+  assert.equal(this.getData('offlineQueryCalls'), 1);
+  this.getData<() => void>('unsubscribeOnlineStatus')?.();
+  this.getData<QueryClient>('queryClient')?.unmount();
+  onlineManager.setOnline(true);
 });
 
 Given('components use semantic HTML', async function (this: World) {

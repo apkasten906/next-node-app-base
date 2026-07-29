@@ -2,12 +2,17 @@
 
 import type { JSX } from 'react';
 
-import { useOnlineStatus } from '@/src/hooks/use-online-status';
+import { getOfflineStatusMessage, useOnlineStatus } from '@/src/hooks/use-online-status';
 
 export function OfflineIndicator(): JSX.Element | null {
   const isOnline = useOnlineStatus();
 
-  if (isOnline) {
+  return <OfflineStatus isOnline={isOnline} />;
+}
+
+export function OfflineStatus({ isOnline }: { isOnline: boolean }): JSX.Element | null {
+  const message = getOfflineStatusMessage(isOnline);
+  if (!message) {
     return null;
   }
 
@@ -17,7 +22,7 @@ export function OfflineIndicator(): JSX.Element | null {
       aria-live="polite"
       className="border-b border-yellow-200 bg-yellow-50 px-4 py-2 text-sm text-yellow-900"
     >
-      You are currently offline. Some actions will retry when your connection is restored.
+      {message}
     </div>
   );
 }

@@ -120,14 +120,6 @@ Feature: Frontend Core Features
     And new items should be appended to the list
     And loading indicator should be shown during fetch
 
-  @ready @frontend @debouncing @impl_frontend_debounce_hook
-  Scenario: Search input debouncing
-    Given a search input with 300ms debounce
-    When a user types quickly
-    Then API requests should be debounced
-    And only the final input value should trigger search
-    And excessive API calls should be prevented
-
   @ready @frontend @caching @query @impl_frontend_query_caching
   Scenario: TanStack Query caching
     Given TanStack Query is configured

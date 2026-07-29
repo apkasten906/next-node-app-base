@@ -1,3 +1,7 @@
+// Cucumber runs through ts-node rather than Next's compiler. Override the
+// application ESM/JSX settings so step definitions can import production code.
+process.env.TS_NODE_COMPILER_OPTIONS = JSON.stringify({ module: 'CommonJS', jsx: 'react-jsx' });
+
 const common = {
   require: ['features/support/**/*.ts', 'features/step_definitions/**/*.ts'],
   requireModule: ['ts-node/register'],

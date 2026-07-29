@@ -2,7 +2,7 @@
 . "$(dirname "$0")/_/husky.sh"
 
 echo "Running pre-commit: lint-staged"
-pnpm -s lint-staged || {
+pnpm -s exec lint-staged || {
   echo "lint-staged failed";
   exit 1;
 }

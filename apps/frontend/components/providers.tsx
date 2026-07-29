@@ -1,23 +1,15 @@
 'use client';
 
 import '@/i18n'; // Initialize i18n
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { JSX, ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 
+import { createQueryClient } from '@/lib/query-client';
+
 export function Providers({ children }: { children: ReactNode }): JSX.Element {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60 * 1000, // 1 minute
-            refetchOnWindowFocus: false,
-          },
-        },
-      })
-  );
+  const [queryClient] = useState(createQueryClient);
 
   // Initialize i18n locale from cookie
   useEffect(() => {
