@@ -6,22 +6,43 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildDefaultPersonas,
+  e2eSeedPersonaSchema,
   loadPersonasFromJsonFile,
   normalizeSeedPersonas,
 } from '../src/routes/e2e.routes';
 
 describe('backend E2E persona helpers', () => {
-  it('buildDefaultPersonas returns user and admin by default', () => {
+  it('buildDefaultPersonas returns user, admin, and moderator by default', () => {
     const defs = buildDefaultPersonas();
     expect(Array.isArray(defs)).toBe(true);
     expect(defs.find((d) => d.key === 'user')).toBeTruthy();
     expect(defs.find((d) => d.key === 'admin')).toBeTruthy();
+    expect(defs.find((d) => d.key === 'moderator')).toEqual({
+      key: 'moderator',
+      email: 'moderator@example.com',
+      name: 'Moderator User',
+      role: 'MODERATOR',
+      password: 'Moderator123!',
+    });
   });
 
   it('normalizeSeedPersonas returns defaults when input is empty', () => {
     const normalized = normalizeSeedPersonas(undefined);
     expect(Array.isArray(normalized)).toBe(true);
-    expect(normalized.length).toBeGreaterThanOrEqual(2);
+    expect(normalized.length).toBeGreaterThanOrEqual(3);
+    expect(normalized.some((persona) => persona.role === 'MODERATOR')).toBe(true);
+  });
+
+  it('accepts MODERATOR as a seed persona role', () => {
+    const result = e2eSeedPersonaSchema.safeParse({
+      key: 'content-moderator',
+      email: 'content-moderator@example.com',
+      name: 'Content Moderator',
+      role: 'MODERATOR',
+      password: 'Moderator123!',
+    });
+
+    expect(result.success).toBe(true);
   });
 
   it('normalizeSeedPersonas deduplicates by key and email and generates key when missing', () => {
@@ -29,7 +50,7 @@ describe('backend E2E persona helpers', () => {
       key?: string;
       email: string;
       name: string;
-      role: 'USER' | 'ADMIN';
+      role: 'USER' | 'ADMIN' | 'MODERATOR';
       password: string;
     }[];
     const raw: RawPersona = [

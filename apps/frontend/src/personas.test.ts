@@ -14,6 +14,16 @@ describe('E2E Personas - unit tests', () => {
     expect(persona.password.length).toBeGreaterThanOrEqual(8);
   });
 
+  it('provides the moderator persona with the MODERATOR role', () => {
+    expect(getPersona('moderator')).toEqual({
+      key: 'moderator',
+      email: 'moderator@example.com',
+      name: 'Moderator User',
+      role: 'MODERATOR',
+      password: 'Moderator123!',
+    });
+  });
+
   it('getDefaultSeedPayload returns object with personas array containing key and email', () => {
     const payload = getDefaultSeedPayload();
     expect(payload).toHaveProperty('personas');
@@ -24,5 +34,6 @@ describe('E2E Personas - unit tests', () => {
     expect(first).toHaveProperty('email');
     expect(typeof first.email).toBe('string');
     expect(first.email).toContain('@');
+    expect(payload.personas).toContainEqual(getPersona('moderator'));
   });
 });
