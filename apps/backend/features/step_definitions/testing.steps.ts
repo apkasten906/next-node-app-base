@@ -23,6 +23,88 @@ async function readJson<T>(filePath: string): Promise<T> {
   return JSON.parse(content) as T;
 }
 
+interface ModeratorPersonaContractSources {
+  backendSeedRoute: string;
+  backendAuthRoute: string;
+  frontendPersonas: string;
+}
+
+Given('the moderator E2E persona contract sources are loaded', async function (this: World) {
+  const repoRoot = getRepoRoot(process.cwd());
+  const [backendSeedRoute, backendAuthRoute, frontendPersonas] = await Promise.all([
+    fs.readFile(
+      path.resolve(repoRoot, 'apps', 'backend', 'src', 'routes', 'e2e.routes.ts'),
+      'utf8'
+    ),
+    fs.readFile(
+      path.resolve(repoRoot, 'apps', 'backend', 'src', 'routes', 'auth.routes.ts'),
+      'utf8'
+    ),
+    fs.readFile(
+      path.resolve(repoRoot, 'apps', 'frontend', 'e2e', 'fixtures', 'personas.ts'),
+      'utf8'
+    ),
+  ]);
+
+  this.setData('moderatorPersonaContractSources', {
+    backendSeedRoute,
+    backendAuthRoute,
+    frontendPersonas,
+  } satisfies ModeratorPersonaContractSources);
+});
+
+Then(
+  'backend default seed personas should include moderator@example.com with role MODERATOR',
+  function (this: World) {
+    const sources = this.getData<ModeratorPersonaContractSources>(
+      'moderatorPersonaContractSources'
+    );
+    expect(sources).toBeDefined();
+    expect(sources!.backendSeedRoute).toContain("key: 'moderator'");
+    expect(sources!.backendSeedRoute).toContain("email: 'moderator@example.com'");
+    expect(sources!.backendSeedRoute).toContain("role: 'MODERATOR'");
+    expect(sources!.backendSeedRoute).toContain("z.enum(['USER', 'ADMIN', 'MODERATOR'])");
+  }
+);
+
+Then('the seed endpoint should idempotently upsert the moderator persona', function (this: World) {
+  const sources = this.getData<ModeratorPersonaContractSources>('moderatorPersonaContractSources');
+  expect(sources).toBeDefined();
+  expect(sources!.backendSeedRoute).toContain("router.post('/seed'");
+  expect(sources!.backendSeedRoute).toContain('const personas = normalizeSeedPersonas');
+  expect(sources!.backendSeedRoute).toContain('await db.user.upsert({');
+  expect(sources!.backendSeedRoute).toContain('where: { email: persona.email }');
+  expect(sources!.backendSeedRoute).toContain('role: persona.role');
+});
+
+Then(
+  'the frontend default seed payload should include the same moderator persona',
+  function (this: World) {
+    const sources = this.getData<ModeratorPersonaContractSources>(
+      'moderatorPersonaContractSources'
+    );
+    expect(sources).toBeDefined();
+    expect(sources!.frontendPersonas).toContain('moderator: {');
+    expect(sources!.frontendPersonas).toContain("email: 'moderator@example.com'");
+    expect(sources!.frontendPersonas).toContain("role: 'MODERATOR'");
+    expect(sources!.frontendPersonas).toContain('export function getDefaultSeedPayload()');
+  }
+);
+
+Then(
+  'development fallback login should authenticate the moderator with role MODERATOR',
+  function (this: World) {
+    const sources = this.getData<ModeratorPersonaContractSources>(
+      'moderatorPersonaContractSources'
+    );
+    expect(sources).toBeDefined();
+    expect(sources!.backendAuthRoute).toContain("'moderator@example.com'");
+    expect(sources!.backendAuthRoute).toContain("role: 'MODERATOR'");
+    expect(sources!.backendAuthRoute).toContain('const tokens = jwt.generateTokens');
+    expect(sources!.backendAuthRoute).toContain('authenticated: true');
+  }
+);
+
 Given('testing frameworks are installed and configured', async function (this: World) {
   const repoRoot = getRepoRoot(process.cwd());
 
