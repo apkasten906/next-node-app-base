@@ -2,6 +2,7 @@ import { World as CucumberWorld, IWorldOptions, setWorldConstructor } from '@cuc
 import request from 'supertest';
 import { container } from 'tsyringe';
 import { App } from '../../src/index';
+import { enforceCleanupErrors } from './cleanup-policy';
 
 export interface CustomWorld extends CucumberWorld {
   app?: App;
@@ -36,18 +37,26 @@ export class World extends CucumberWorld implements CustomWorld {
    * Cleanup after scenario
    */
   async cleanup(): Promise<void> {
+    const cleanupErrors: unknown[] = [];
+
     try {
-      if (this.app) {
-        await this.app.shutdown();
-      }
-    } finally {
-      for (const callback of this.cleanupCallbacks.reverse()) {
-        await callback();
-      }
-      this.cleanupCallbacks = [];
-      this.testData = {};
-      this.error = undefined;
+      if (this.app) await this.app.shutdown();
+    } catch (error) {
+      cleanupErrors.push(error);
     }
+
+    for (const callback of this.cleanupCallbacks.reverse()) {
+      try {
+        await callback();
+      } catch (error) {
+        cleanupErrors.push(error);
+      }
+    }
+
+    this.cleanupCallbacks = [];
+    this.testData = {};
+    this.error = undefined;
+    enforceCleanupErrors(cleanupErrors, false, () => undefined);
   }
 
   addCleanup(callback: () => void | Promise<void>): void {

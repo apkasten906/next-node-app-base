@@ -1,4 +1,12 @@
-import { After, AfterAll, Before, BeforeAll, ITestCaseHookParameter, Status, setDefaultTimeout } from '@cucumber/cucumber';
+import {
+  After,
+  AfterAll,
+  Before,
+  BeforeAll,
+  ITestCaseHookParameter,
+  Status,
+  setDefaultTimeout,
+} from '@cucumber/cucumber';
 import * as promClient from 'prom-client';
 
 // Import the test-specific container bootstrap so all non-observability
@@ -6,6 +14,7 @@ import * as promClient from 'prom-client';
 // Observability services are registered per-scenario below.
 import { container } from '../../src/container-test';
 import { MetricsService } from '../../src/infrastructure/observability';
+import { enforceCleanupErrors } from './cleanup-policy';
 import { World } from './world';
 
 // Set the default timeout at module scope so it applies to every hook and step
@@ -39,36 +48,34 @@ Before(async function (this: World, { pickle }: ITestCaseHookParameter) {
 });
 
 After({ timeout: 30_000 }, async function (this: World, { result, pickle }) {
-  // Log scenario result
-  if (result?.status === Status.FAILED) {
+  const scenarioFailed = result?.status === Status.FAILED;
+  if (scenarioFailed) {
     console.error(`❌ Scenario failed: ${pickle.name}`);
-    if (this.error) {
-      console.error('Error:', this.error.message);
-    }
-  } else {
-    console.log(`✅ Scenario passed: ${pickle.name}`);
+    if (this.error) console.error('Error:', this.error.message);
   }
 
-  // Cleanup after each scenario (if method exists).
-  // Errors are swallowed so that infrastructure teardown issues (e.g. OTel
-  // exporter flushing when the collector is not running) do not mark an
-  // otherwise-passing scenario as failed.
-  if (typeof this.cleanup === 'function') {
-    try {
-      await this.cleanup();
-    } catch (err) {
-      console.warn('Scenario cleanup error (ignored):', (err as Error).message);
-    }
+  const cleanupErrors: unknown[] = [];
+
+  try {
+    await this.cleanup();
+  } catch (error) {
+    cleanupErrors.push(error);
   }
 
-  // Defensive teardown: `prom-client@15` default metrics don't run on an interval,
-  // but we keep the method for compatibility with older implementations/tests.
+  // prom-client@15 default metrics do not use an interval, but retain this
+  // compatibility cleanup and treat failures like every other teardown error.
   try {
     if (container.isRegistered('MetricsService')) {
       const metricsService = container.resolve<MetricsService>('MetricsService');
       metricsService.stopDefaultMetricsCollection();
     }
   } catch (error) {
-    console.warn('MetricsService teardown failed (ignored):', (error as Error).message);
+    cleanupErrors.push(error);
   }
+
+  enforceCleanupErrors(cleanupErrors, scenarioFailed, (error) => {
+    console.error(`Additional teardown error for failed scenario "${pickle.name}":`, error);
+  });
+
+  if (!scenarioFailed) console.log(`✅ Scenario passed: ${pickle.name}`);
 });
