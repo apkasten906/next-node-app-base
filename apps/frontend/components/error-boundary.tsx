@@ -120,6 +120,14 @@ export function RootErrorBoundary({ children }: { children: ReactNode }): JSX.El
               >
                 Reload Page
               </button>
+              <button
+                onClick={() => {
+                  window.location.href = '/';
+                }}
+                className="flex-1 px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700 transition-colors"
+              >
+                Go Home
+              </button>
             </div>
           </div>
         </div>

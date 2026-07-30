@@ -8,33 +8,32 @@ Feature: Next.js Frontend Application
     Given the Next.js application is running on port 3000
     And the backend API is running on port 3001
 
-  @frontend @nextjs @app-router
+  @ready @frontend @nextjs @app-router @impl_frontend_app_router
   Scenario: Next.js App Router architecture
-    Given Next.js 16 App Router is configured
-    When I navigate to a route
-    Then the correct page component should render
-    And React Server Components should be used
+    Given Next.js App Router is configured
+    When I inspect the route entries
+    Then route entry files should render page components
+    And server route entries should remain server components
     And client components should be marked with "use client"
 
-  @frontend @nextauth @setup
-  Scenario: NextAuth authentication setup
-    Given NextAuth is configured with OAuth providers
-    When I view the application
-    Then authentication should be available
-    And session management should work
-    And CSRF protection should be enabled
+  @ready @frontend @auth @backend-only @impl_frontend_backend_only_auth
+  Scenario: Backend-only authentication setup
+    Given ADR-011 backend-only auth is configured in the frontend
+    When I inspect the frontend auth boundary
+    Then NextAuth and Prisma should not run in the frontend runtime
+    And login should delegate to the backend auth API
+    And server-rendered auth checks should call the backend current-user endpoint
 
-  @frontend @nextauth @login
-  Scenario: User login with NextAuth
-    Given I am on the login page
-    When I click "Sign in with Google"
-    Then I should be redirected to Google OAuth
-    When I authenticate successfully
-    Then I should be redirected back to the app
-    And I should be logged in
-    And session should be created
+  @ready @frontend @auth @login @backend-only @impl_frontend_backend_only_login
+  Scenario: User login with backend-only auth
+    Given the sign-in client uses the auth hook
+    When I inspect the sign-in flow
+    Then the form should submit email and password credentials
+    And the hook should call the auth application service
+    And the auth API should post to "/api/auth/login" with credentials included
+    And successful sign-in should navigate to the dashboard
 
-  @frontend @nextauth @session
+  @adopter @frontend @nextauth @session
   Scenario: Session persistence
     Given I am logged in
     When I refresh the page
@@ -44,7 +43,7 @@ Feature: Next.js Frontend Application
     Then I should be logged out
     And I should be redirected to login
 
-  @frontend @nextauth @logout
+  @adopter @frontend @nextauth @logout
   Scenario: User logout
     Given I am logged in
     When I click logout button
@@ -52,24 +51,23 @@ Feature: Next.js Frontend Application
     And I should be logged out
     And I should be redirected to home page
 
-  @frontend @dashboard
+  @ready @frontend @dashboard @auth @impl_frontend_dashboard_auth_gateway
   Scenario: Protected dashboard access
-    Given I am not logged in
-    When I try to access "/dashboard"
-    Then I should be redirected to login page
-    Given I am logged in
-    When I access "/dashboard"
-    Then I should see the dashboard
+    Given the dashboard page requires the current user
+    When unauthenticated user accesses protected route
+    Then user should be redirected to login
+    When authenticated user accesses protected route
+    Then route should be accessible
     And user information should be displayed
 
-  @frontend @tanstack-query @setup
+  @ready @frontend @tanstack-query @setup @impl_frontend_query_provider
   Scenario: TanStack Query configuration
     Given TanStack Query is set up
     When the application loads
     Then QueryClient should be configured
     And query devtools should be available in development
 
-  @frontend @tanstack-query @fetching
+  @adopter @frontend @tanstack-query @fetching
   Scenario: Data fetching with TanStack Query
     Given I am on a page that fetches user data
     When the page loads
@@ -78,7 +76,7 @@ Feature: Next.js Frontend Application
     Then data should be displayed
     And data should be cached
 
-  @frontend @tanstack-query @mutations
+  @adopter @frontend @tanstack-query @mutations
   Scenario: Data mutations with TanStack Query
     Given I am on a form page
     When I submit the form
@@ -89,7 +87,7 @@ Feature: Next.js Frontend Application
     And cache should be invalidated
     And data should be refetched
 
-  @frontend @tanstack-query @error
+  @adopter @frontend @tanstack-query @error
   Scenario: Query error handling
     Given API returns an error
     When query executes
@@ -97,7 +95,7 @@ Feature: Next.js Frontend Application
     And error message should be displayed
     And retry button should be available
 
-  @frontend @tailwind
+  @ready @frontend @tailwind @impl_frontend_tailwind
   Scenario: Tailwind CSS styling
     Given Tailwind CSS 4 is configured
     When I inspect components
@@ -105,7 +103,7 @@ Feature: Next.js Frontend Application
     And responsive design should work
     And dark mode should be supported
 
-  @frontend @responsive
+  @ready @frontend @responsive @impl_frontend_responsive_layout
   Scenario: Responsive layout
     When I view the site on mobile "<device>"
     Then layout should adapt to screen size
@@ -118,7 +116,7 @@ Feature: Next.js Frontend Application
       | iPad Pro     |
       | Desktop 1920 |
 
-  @frontend @dark-mode
+  @adopter @frontend @dark-mode
   Scenario: Dark mode toggle
     Given the application supports dark mode
     When I toggle dark mode
@@ -127,7 +125,7 @@ Feature: Next.js Frontend Application
     When I reload the page
     Then dark mode preference should persist
 
-  @frontend @seo @metadata
+  @ready @frontend @seo @metadata @impl_frontend_metadata
   Scenario: SEO metadata configuration
     Given SEO metadata is configured
     When I view page source
@@ -135,14 +133,14 @@ Feature: Next.js Frontend Application
     And meta description should be present
     And Open Graph tags should be present
 
-  @frontend @seo @sitemap
+  @adopter @frontend @seo @sitemap
   Scenario: Sitemap generation
     When I access "/sitemap.xml"
     Then a valid XML sitemap should be returned
     And all public pages should be listed
     And lastmod dates should be included
 
-  @frontend @image-optimization
+  @adopter @frontend @image-optimization
   Scenario: Next.js Image optimization
     Given images use next/image component
     When images load
@@ -150,7 +148,7 @@ Feature: Next.js Frontend Application
     And lazy loading should be enabled
     And responsive sizes should be served
 
-  @frontend @font-optimization
+  @adopter @frontend @font-optimization
   Scenario: Font optimization with next/font
     Given custom fonts are configured with next/font
     When page loads
@@ -158,7 +156,7 @@ Feature: Next.js Frontend Application
     And font loading should not block render
     And FOUT/FOIT should be prevented
 
-  @frontend @route-protection
+  @ready @frontend @route-protection @impl_frontend_route_auth
   Scenario: Route-level authentication
     Given certain routes require authentication
     When unauthenticated user accesses protected route
@@ -166,7 +164,7 @@ Feature: Next.js Frontend Application
     When authenticated user accesses protected route
     Then route should be accessible
 
-  @frontend @role-authorization
+  @adopter @frontend @role-authorization
   Scenario: Role-based page access
     Given I am logged in as role "<role>"
     When I try to access "<page>"
@@ -179,7 +177,7 @@ Feature: Next.js Frontend Application
       | moderator | /moderation    | allowed |
       | user      | /moderation    | denied  |
 
-  @frontend @client-validation
+  @adopter @frontend @client-validation
   Scenario: Client-side form validation
     Given I am on a registration form
     When I submit with invalid email
@@ -188,7 +186,7 @@ Feature: Next.js Frontend Application
     When I correct the error
     Then validation should pass
 
-  @frontend @error-pages
+  @ready @frontend @error-pages @impl_frontend_custom_error_pages
   Scenario: Custom error pages
     When I navigate to non-existent route
     Then custom 404 page should be shown
@@ -196,7 +194,7 @@ Feature: Next.js Frontend Application
     When server error occurs
     Then custom 500 page should be shown
 
-  @frontend @loading-states
+  @ready @frontend @loading-states @impl_frontend_loading_ui
   Scenario: Loading UI with Suspense
     Given a page uses React Suspense
     When the page loads
@@ -204,7 +202,7 @@ Feature: Next.js Frontend Application
     When data is ready
     Then actual content should be shown
 
-  @frontend @streaming
+  @adopter @frontend @streaming
   Scenario: Streaming SSR for faster page loads
     Given page uses streaming SSR
     When I navigate to the page
@@ -212,14 +210,14 @@ Feature: Next.js Frontend Application
     And content should stream progressively
     And time to first byte should be minimal
 
-  @frontend @api-routes
-  Scenario: Next.js API routes (if using Route Handlers)
-    When I call GET "/api/example"
+  @ready @frontend @api-routes @impl_frontend_route_handlers
+  Scenario: Next.js API routes with Route Handlers
+    When I inspect GET "/api/health"
     Then the API route should respond
     And response should be JSON
     And status code should be 200
 
-  @frontend @middleware
+  @ready @frontend @middleware @impl_frontend_middleware
   Scenario: Next.js middleware for request handling
     Given middleware is configured
     When I make a request
@@ -227,7 +225,7 @@ Feature: Next.js Frontend Application
     And headers should be modified
     And request should be processed
 
-  @frontend @internationalization
+  @adopter @frontend @internationalization
   Scenario: Internationalization with next-i18next
     Given i18n is configured for languages ["en", "es", "fr"]
     When I switch language to "es"

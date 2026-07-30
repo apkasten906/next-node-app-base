@@ -23,7 +23,7 @@ Feature: Advanced Testing Strategies
     And business stakeholders can read scenarios
     And scenarios stay in sync with implementation
 
-  @testing @security @owasp-zap
+  @ready @testing @security @owasp-zap @impl_advanced_testing_scaffold
   Scenario: OWASP ZAP security scanning
     Given OWASP ZAP is configured
     When I run a security scan against the application
@@ -43,7 +43,7 @@ Feature: Advanced Testing Strategies
     And severity levels should be assigned
     And remediation suggestions should be provided
 
-  @testing @load @k6
+  @ready @testing @load @k6 @impl_advanced_testing_scaffold
   Scenario: Load testing with k6
     Given k6 load test scripts are defined
     When I run load tests with 100 virtual users
@@ -52,7 +52,7 @@ Feature: Advanced Testing Strategies
     And error rates should be tracked
     And throughput should be calculated
 
-  @testing @load @ramp-up
+  @ready @testing @load @ramp-up @impl_advanced_testing_scaffold
   Scenario: Gradual load ramp-up
     Given a k6 script with ramping stages
     When I run the load test
@@ -64,7 +64,7 @@ Feature: Advanced Testing Strategies
       | 2m       | 0     |
     And system behavior should be observed at each stage
 
-  @testing @load @thresholds
+  @ready @testing @load @thresholds @impl_advanced_testing_scaffold
   Scenario: k6 performance thresholds
     Given performance thresholds are defined
     When load tests run
@@ -73,7 +73,7 @@ Feature: Advanced Testing Strategies
     And error rate should be < 1%
     And successful requests should be > 95%
 
-  @testing @contract @pact
+  @ready @testing @contract @pact @impl_advanced_testing_scaffold
   Scenario: Consumer-driven contract testing with Pact
     Given Pact contracts are defined
     When consumer tests run
@@ -82,7 +82,7 @@ Feature: Advanced Testing Strategies
     Then provider should verify contracts
     And compatibility should be ensured
 
-  @testing @contract @breaking-changes
+  @ready @testing @contract @breaking-changes @impl_advanced_testing_scaffold
   Scenario: Contract breaking change detection
     Given a Pact contract exists between consumer and provider
     When provider changes API in incompatible way

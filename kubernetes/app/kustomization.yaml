@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: next-node-app
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.example.yaml
+  - backend-deployment.yaml
+  - backend-service.yaml
+  - frontend-deployment.yaml
+  - frontend-service.yaml
+images:
+  - name: ghcr.io/example/next-node-app-base/backend
+    newName: ghcr.io/OWNER/REPO/backend
+    newTag: latest
+  - name: ghcr.io/example/next-node-app-base/frontend
+    newName: ghcr.io/OWNER/REPO/frontend
+    newTag: latest

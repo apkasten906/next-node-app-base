@@ -1,0 +1,50 @@
+{
+  "consumer": {
+    "name": "next-node-app-base-frontend"
+  },
+  "provider": {
+    "name": "next-node-app-base-backend"
+  },
+  "interactions": [
+    {
+      "description": "a request for backend health",
+      "request": {
+        "method": "GET",
+        "path": "/health"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "service": "backend",
+          "status": "ok"
+        },
+        "matchingRules": {
+          "body": {
+            "$.timestamp": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.uptime": {
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  }
+}

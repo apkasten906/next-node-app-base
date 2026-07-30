@@ -1,4 +1,4 @@
-@e2e @authentication
+@e2e @authentication @adopter
 @wip
 Feature: User Authentication
   As a user

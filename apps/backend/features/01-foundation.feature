@@ -7,7 +7,7 @@ Feature: Project Foundation and Governance
     Given the project is initialized with Turborepo
     And pnpm workspaces are configured
 
-  @ready @foundation @monorepo @impl_monorepo_foundation
+  @ready @no-server @foundation @monorepo @impl_monorepo_foundation
   Scenario: Turborepo monorepo structure
     Given I am in the project root directory
     When I check the project structure
@@ -17,21 +17,21 @@ Feature: Project Foundation and Governance
     And I should see "turbo.json" configuration file
     And I should see "pnpm-workspace.yaml" configuration file
 
-  @wip @foundation @linting
+  @ready @no-server @foundation @linting @impl_eslint_config
   Scenario: ESLint configuration across workspaces
     Given ESLint is configured for the monorepo
     When I run ESLint on all packages
     Then all TypeScript files should pass linting rules
     And shared ESLint configuration should be used
 
-  @ready @foundation @formatting @impl_code_formatting_prettier
+  @ready @no-server @foundation @formatting @impl_code_formatting_prettier
   Scenario: Prettier code formatting
     Given Prettier is configured
     When I check code formatting
     Then all files should follow Prettier rules
     And formatting should be consistent across all packages
 
-  @ready @foundation @git-hooks @impl_husky_commitlint_hooks
+  @ready @no-server @foundation @git-hooks @impl_husky_commitlint_hooks
   Scenario: Husky Git hooks for commit validation
     Given Husky is installed and configured
     When I make a Git commit
@@ -39,7 +39,7 @@ Feature: Project Foundation and Governance
     And pre-commit hooks should run formatting checks
     And commit-msg hook should validate commit message format
 
-  @wip @foundation @commitlint
+  @ready @no-server @foundation @commitlint @impl_commitlint_config
   Scenario: Conventional commits enforcement
     Given commitlint is configured
     When I attempt to commit with message "<message>"
@@ -53,7 +53,7 @@ Feature: Project Foundation and Governance
       | invalid commit message           | rejected |
       | WIP: work in progress            | rejected |
 
-  @wip @foundation @typescript
+  @ready @no-server @foundation @typescript @impl_typescript_strict
   Scenario: Strict TypeScript configuration
     Given TypeScript is configured in strict mode
     When I compile TypeScript code
@@ -61,7 +61,7 @@ Feature: Project Foundation and Governance
     And strict null checks should be enabled
     And no implicit any should be allowed
 
-  @ready @foundation @dependencies @impl_pnpm_dependency_management
+  @ready @no-server @foundation @dependencies @impl_pnpm_dependency_management
   Scenario: Dependency management with pnpm
     Given pnpm is used as the package manager
     When I install dependencies
@@ -69,21 +69,21 @@ Feature: Project Foundation and Governance
     And peer dependencies should be satisfied
     And there should be no duplicate packages
 
-  @wip @foundation @dependabot @workflows
+  @ready @no-server @foundation @dependabot @workflows @impl_dependabot_config
   Scenario: Automated dependency updates (Dependabot) are configured
     Given Dependabot configuration exists at ".github/dependabot.yml"
     When Dependabot opens an update pull request
     Then the pull request should be labeled correctly
     And CI should run automatically
 
-  @wip @foundation @governance @workflows
+  @ready @no-server @foundation @governance @workflows @impl_workflow_governance
   Scenario: Workflow changes require lightweight review
     Given CODEOWNERS is configured for ".github/workflows/**" and ".github/dependabot.yml"
     When a pull request changes workflow files
     Then a human review should be required before merge
     And workflow permissions changes should be reviewed explicitly
 
-  @wip @foundation @governance @dependabot
+  @ready @no-server @foundation @governance @dependabot @impl_action_bump_policy
   Scenario: Action-bump review playbook and optional auto-merge policy exists
     Given a review playbook exists for GitHub Actions dependency bumps
     When a Dependabot PR updates a GitHub Action
@@ -91,7 +91,7 @@ Feature: Project Foundation and Governance
     And reviewers should confirm permissions did not broaden unexpectedly
     And auto-merge should be enabled only when policy and CI requirements are met
 
-  @ready @foundation @scripts @impl_unified_workspace_scripts
+  @ready @no-server @foundation @scripts @impl_unified_workspace_scripts
   Scenario: Unified npm scripts across workspaces
     Given package.json scripts are defined
     When I run "pnpm build"

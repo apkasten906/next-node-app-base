@@ -8,7 +8,7 @@ Feature: Kubernetes and DevOps Infrastructure
     Given Kubernetes cluster is available
     And DevOps tools are configured
 
-  @k8s @deployment
+  @ready @k8s @deployment @impl_k8s_app_manifests
   Scenario: Kubernetes deployment manifest
     Given a Kubernetes deployment manifest exists
     When I apply the deployment
@@ -16,7 +16,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And desired replica count should be met
     And containers should be running
 
-  @k8s @service
+  @ready @k8s @service @impl_k8s_app_manifests
   Scenario: Kubernetes service for load balancing
     Given a Kubernetes service is defined
     When the service is created
@@ -32,7 +32,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And TLS termination should work
     And HTTP to HTTPS redirect should work
 
-  @k8s @configmap
+  @ready @k8s @configmap @impl_k8s_app_manifests
   Scenario: ConfigMap for configuration management
     Given a ConfigMap with application config
     When pods are deployed
@@ -65,7 +65,7 @@ Feature: Kubernetes and DevOps Infrastructure
     Then VPA should recommend resource limits
     And pods should be updated with new limits
 
-  @k8s @resource-limits
+  @ready @k8s @resource-limits @impl_k8s_app_manifests
   Scenario: Resource requests and limits
     Given pods have resource limits defined
     Then each pod should have:
@@ -75,7 +75,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And pods should not exceed limits
     And resource requests should be guaranteed
 
-  @k8s @health-probes
+  @ready @k8s @health-probes @impl_k8s_app_manifests
   Scenario: Liveness and readiness probes
     Given health probes are configured
     When a pod starts
@@ -173,7 +173,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And backend service should build from the backend Dockerfile
     And frontend service should build from the frontend Dockerfile
 
-  @cicd @test-stage
+  @ready @cicd @test-stage @impl_ci_test_stage
   Scenario: CI pipeline test stage
     Given CI pipeline has test stage
     When tests run in CI

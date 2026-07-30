@@ -24,7 +24,7 @@ Feature: WebSocket Real-Time Communication
     And I should receive a connection confirmation
     And my connection should be tracked in server
 
-  @websocket @connection
+  @ready @websocket @connection @auth @impl_websocket_auth_rejection
   Scenario: Client connection rejected without token
     Given I do not have an authentication token
     When I attempt to connect to WebSocket server
@@ -32,7 +32,7 @@ Feature: WebSocket Real-Time Communication
     And I should receive an authentication error
     And connection count should not increase
 
-  @websocket @connection
+  @ready @websocket @connection @impl_websocket_disconnect_tracking
   Scenario: Client disconnects gracefully
     Given I am connected to WebSocket server
     When I disconnect from the server
@@ -40,7 +40,7 @@ Feature: WebSocket Real-Time Communication
     And any rooms I joined should be cleaned up
     And disconnect event should be logged
 
-  @websocket @rooms
+  @ready @websocket @rooms @impl_websocket_rooms
   Scenario: Client joins a room
     Given I am connected to WebSocket server
     When I request to join room "project-123"
@@ -49,7 +49,7 @@ Feature: WebSocket Real-Time Communication
     And the room should be added to my connection info
     And room member count should increase
 
-  @websocket @rooms
+  @ready @websocket @rooms @impl_websocket_rooms
   Scenario: Client leaves a room
     Given I am connected to WebSocket server
     And I have joined room "project-123"
@@ -59,7 +59,7 @@ Feature: WebSocket Real-Time Communication
     And the room should be removed from my connection info
     And room member count should decrease
 
-  @websocket @rooms
+  @ready @websocket @rooms @impl_websocket_room_info
   Scenario: Get room information
     Given multiple clients are connected to WebSocket server
     And 5 clients have joined room "team-chat"
@@ -68,7 +68,7 @@ Feature: WebSocket Real-Time Communication
     And member count should be 5
     And room name should be "team-chat"
 
-  @websocket @messaging
+  @ready @websocket @messaging @impl_websocket_room_messages
   Scenario: Send message to room
     Given I am connected to WebSocket server
     And I have joined room "project-123"
@@ -87,7 +87,7 @@ Feature: WebSocket Real-Time Communication
     And the message should include sender information
     And other clients should not receive the message
 
-  @websocket @typing
+  @ready @websocket @typing @impl_websocket_typing
   Scenario: Broadcast typing indicator
     Given I am connected to WebSocket server
     And I have joined room "chat-room"
@@ -96,7 +96,7 @@ Feature: WebSocket Real-Time Communication
     And the event should include my user ID
     And the event should include the room ID
 
-  @websocket @typing
+  @ready @websocket @typing @impl_websocket_typing
   Scenario: Stop typing indicator
     Given I am connected to WebSocket server
     And I have joined room "chat-room"
@@ -105,7 +105,7 @@ Feature: WebSocket Real-Time Communication
     Then other room members should receive typing-stop event
     And my typing indicator should be cleared
 
-  @websocket @presence
+  @ready @websocket @presence @impl_websocket_presence
   Scenario: Update user presence status
     Given I am connected to WebSocket server
     When I update my presence to "away"
@@ -113,7 +113,7 @@ Feature: WebSocket Real-Time Communication
     And my status should change to "away"
     And the update should include timestamp
 
-  @websocket @presence
+  @ready @websocket @presence @impl_websocket_presence_statuses
   Scenario: Presence statuses
     Given I am connected to WebSocket server
     Then I can set presence to "online"
@@ -121,7 +121,7 @@ Feature: WebSocket Real-Time Communication
     And I can set presence to "busy"
     And I can set presence to "offline"
 
-  @websocket @broadcasting
+  @ready @websocket @broadcasting @impl_websocket_broadcast
   Scenario: Broadcast to all connected clients
     Given multiple clients are connected to WebSocket server
     When server broadcasts a system announcement
@@ -129,7 +129,7 @@ Feature: WebSocket Real-Time Communication
     And the message should be marked as broadcast
     And the message should include system sender
 
-  @websocket @broadcasting
+  @ready @websocket @broadcasting @impl_websocket_broadcast_room
   Scenario: Broadcast to specific room only
     Given I am connected to WebSocket server
     And room "team-a" has 5 clients
@@ -165,7 +165,7 @@ Feature: WebSocket Real-Time Communication
     And excessive events should be rejected
     And rate limit warning should be issued
 
-  @websocket @health
+  @ready @websocket @health @impl_websocket_health
   Scenario: WebSocket health check
     Given WebSocket server is running
     When health check is requested
@@ -174,7 +174,7 @@ Feature: WebSocket Real-Time Communication
     And uptime should be reported
     And Redis adapter status should be included
 
-  @websocket @health
+  @ready @websocket @health @metrics @impl_websocket_metrics
   Scenario: WebSocket metrics
     Given WebSocket server is running
     And multiple clients are connected
@@ -224,7 +224,7 @@ Feature: WebSocket Real-Time Communication
     Then WebSocket health should be included
     And both HTTP and WebSocket should be operational
 
-  @websocket @shutdown
+  @ready @websocket @shutdown @impl_websocket_shutdown
   Scenario: Graceful shutdown
     Given WebSocket server is running
     And multiple clients are connected
@@ -234,7 +234,7 @@ Feature: WebSocket Real-Time Communication
     And Redis connections should close properly
     And no data should be lost
 
-  @websocket @frontend
+  @ready @websocket @frontend @impl_frontend_websocket_hook
   Scenario: React hook manages connection state
     Given I use useWebSocket hook in frontend
     When component mounts
@@ -243,7 +243,7 @@ Feature: WebSocket Real-Time Communication
     When component unmounts
     Then WebSocket should disconnect cleanly
 
-  @websocket @frontend
+  @ready @websocket @frontend @impl_frontend_websocket_reconnect
   Scenario: Auto-reconnection after disconnect
     Given I am connected via useWebSocket hook
     When connection is lost unexpectedly

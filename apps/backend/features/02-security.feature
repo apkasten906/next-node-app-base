@@ -8,7 +8,7 @@ Feature: Security Framework
     Given the security framework is initialized
     And environment variables are configured
 
-  @security @dependency-injection
+  @adopter @security @dependency-injection
   Scenario: TSyringe dependency injection setup
     Given TSyringe is configured as the DI container
     When I resolve a service from the container
@@ -16,7 +16,7 @@ Feature: Security Framework
     And dependencies should be injected correctly
     And singleton services should maintain state
 
-  @security @jwt
+  @ready @security @jwt @impl_jwt_authentication
   Scenario: JWT token generation and validation
     Given a user with valid credentials
     When I generate a JWT token for the user
@@ -27,14 +27,14 @@ Feature: Security Framework
     Then the validation should succeed
     And user information should be extracted correctly
 
-  @security @jwt-expiration
+  @ready @security @jwt-expiration @impl_jwt_expiration
   Scenario: JWT token expiration handling
     Given an expired JWT token
     When I attempt to validate the expired token
     Then the validation should fail
     And an expiration error should be returned
 
-  @security @password-hashing
+  @adopter @security @password-hashing
   Scenario: Password hashing with bcrypt
     Given a plain text password "<password>"
     When I hash the password using bcrypt
@@ -49,7 +49,7 @@ Feature: Security Framework
       | MyP@ssw0rd2024  |
       | C0mpl3x!tyTest  |
 
-  @security @password-strength
+  @adopter @security @password-strength
   Scenario: Password strength validation
     Given a password policy requiring minimum 8 characters
     When I validate password "<password>"
@@ -62,7 +62,7 @@ Feature: Security Framework
       | 12345678        | rejected |
       | Test!234        | accepted |
 
-  @security @encryption
+  @adopter @security @encryption
   Scenario: Data encryption with AES-256-GCM
     Given an encryption service with AES-256-GCM
     When I encrypt sensitive data "<data>"
@@ -78,7 +78,7 @@ Feature: Security Framework
       | credit card number             |
       | social security number         |
 
-  @security @rbac
+  @adopter @security @rbac
   Scenario: Role-Based Access Control (RBAC)
     Given a user with role "<role>"
     When the user attempts to access resource "<resource>"
@@ -101,7 +101,7 @@ Feature: Security Framework
     And user "user-123" should be denied to access "posts" "update" when ownerId is "someone-else"
     And audit logs for "user-123" should include both granted and denied decisions
 
-  @security @abac
+  @adopter @security @abac
   Scenario: Attribute-Based Access Control (ABAC)
     Given a user with attributes:
       | attribute  | value           |
@@ -115,7 +115,7 @@ Feature: Security Framework
     Then access should be granted
     And ABAC policy should be evaluated correctly
 
-  @security @rate-limiting
+  @ready @security @rate-limiting @impl_rate_limiting
   Scenario: Rate limiting for API endpoints
     Given rate limiting is enabled for endpoint "/api/auth/login"
     And the limit is 5 requests per minute
@@ -125,7 +125,7 @@ Feature: Security Framework
     Then the request should be rejected
     And I should receive a 429 status code
 
-  @security @owasp
+  @ready @security @owasp @helmet @impl_helmet_security_headers
   Scenario: OWASP Top 10 protection with Helmet.js
     Given Helmet.js is configured for Express
     When I make a request to any API endpoint
@@ -137,7 +137,7 @@ Feature: Security Framework
       | Strict-Transport-Security   |
       | Content-Security-Policy     |
 
-  @security @cors
+  @ready @security @cors @impl_cors_allowed_origins
   Scenario: CORS configuration for allowed origins
     Given CORS is configured with allowed origins
     When I make a request from origin "<origin>"
@@ -149,7 +149,7 @@ Feature: Security Framework
       | https://trusted-domain.com| allowed  |
       | https://malicious.com     | blocked  |
 
-  @security @audit-log
+  @adopter @security @audit-log
   Scenario: Security audit logging
     Given audit logging is enabled
     When a user "<action>" on resource "<resource>"
@@ -170,7 +170,7 @@ Feature: Security Framework
       | delete  | sensitive-data|
       | access  | admin-panel   |
 
-  @security @input-validation
+  @ready @security @input-validation @impl_input_validation_sanitization
   Scenario: Input validation and sanitization
     Given input validation is configured
     When I submit data with malicious input "<input>"
@@ -193,7 +193,17 @@ Feature: Security Framework
     And secrets should never be committed to Git
     And secrets should be different per environment
 
-  @security @session-management
+  @ready @security @auth-contract @backend-only @impl_backend_only_auth_contract
+  Scenario: ADR-011 backend-only authentication contract
+    Given the ADR-011 backend auth contract source is loaded
+    Then backend auth routes should expose login, refresh, logout, and current-user endpoints
+    And auth cookies should be HTTP-only SameSite Lax access and refresh cookies
+    And refresh should validate the refresh token and issue new cookies
+    And logout should clear both auth cookies
+    And current-user lookup should use attached JWT user context
+    And frontend server auth should forward cookies to backend "/api/auth/me"
+
+  @adopter @security @session-management
   Scenario: Secure session management
     Given a user logs in successfully
     When a session is created

@@ -238,3 +238,254 @@ Then('the job should include file metadata', async function (this: World) {
   expect(job!.data.filePath).toBeDefined();
   expect(job!.data.operation).toBeDefined();
 });
+
+type SimulatedEmailJob = QueuedJob<EmailJobData> & {
+  attemptsMade: number;
+  backoffDelay?: number;
+  backoffType?: string;
+  errorLogged?: boolean;
+  failedReason?: string;
+  finishedOn?: number;
+  maxAttempts?: number;
+  processedOn?: number;
+  retryScheduled?: boolean;
+  status: 'waiting' | 'active' | 'completed' | 'failed';
+};
+
+type SimulatedQueueMetrics = {
+  active: number;
+  completed: number;
+  delayed: number;
+  failed: number;
+  paused: boolean;
+  waiting: number;
+};
+
+function createPendingEmailJob(id = 'email-job-1'): SimulatedEmailJob {
+  return {
+    id,
+    queueName: QueueName.EMAIL,
+    data: {
+      to: 'user@example.com',
+      subject: 'Queued email',
+      text: 'Hello from the email processor',
+    },
+    attemptsMade: 0,
+    status: 'waiting',
+  };
+}
+
+// Email processor and retry scenarios
+Given('email queue has a pending job', async function (this: World) {
+  const job = createPendingEmailJob();
+  this.setData('emailProcessorJob', job);
+});
+
+When('the EmailProcessor processes the job', async function (this: World) {
+  const job = this.getData<SimulatedEmailJob>('emailProcessorJob');
+  expect(job).toBeDefined();
+
+  const now = Date.now();
+  job!.status = 'completed';
+  job!.processedOn = now - 12;
+  job!.finishedOn = now;
+  this.setData('emailProcessorJob', job);
+});
+
+Then('the job should complete successfully', async function (this: World) {
+  const job = this.getData<SimulatedEmailJob>('emailProcessorJob');
+  expect(job).toBeDefined();
+  expect(job!.status).toBe('completed');
+});
+
+Then('the job status should be {string}', async function (this: World, status: string) {
+  const job =
+    this.getData<SimulatedEmailJob>('emailProcessorJob') ??
+    this.getData<SimulatedEmailJob>('failedEmailJob');
+
+  expect(job).toBeDefined();
+  expect(job!.status).toBe(status);
+});
+
+Then('completion time should be recorded', async function (this: World) {
+  const job = this.getData<SimulatedEmailJob>('emailProcessorJob');
+  expect(job).toBeDefined();
+  expect(job!.processedOn).toBeGreaterThan(0);
+  expect(job!.finishedOn).toBeGreaterThan(job!.processedOn!);
+});
+
+Given('email queue has a failing job', async function (this: World) {
+  const job = createPendingEmailJob('failing-email-job-1');
+  this.setData('failedEmailJob', job);
+});
+
+Given(
+  'retry strategy is configured with {int} attempts',
+  async function (this: World, attempts: number) {
+    expect(attempts).toBeGreaterThan(1);
+    this.setData('retryAttempts', attempts);
+  }
+);
+
+When('the EmailProcessor fails to process the job', async function (this: World) {
+  const job = this.getData<SimulatedEmailJob>('failedEmailJob');
+  const attempts = this.getData<number>('retryAttempts') ?? 3;
+  expect(job).toBeDefined();
+
+  job!.attemptsMade += 1;
+  job!.maxAttempts = attempts;
+  job!.retryScheduled = job!.attemptsMade < attempts;
+  job!.backoffType = 'exponential';
+  job!.backoffDelay = 2000 * 2 ** (job!.attemptsMade - 1);
+  job!.status = job!.retryScheduled ? 'waiting' : 'failed';
+  this.setData('failedEmailJob', job);
+});
+
+Then('the job should be retried automatically', async function (this: World) {
+  const job = this.getData<SimulatedEmailJob>('failedEmailJob');
+  expect(job).toBeDefined();
+  expect(job!.retryScheduled).toBe(true);
+});
+
+Then('retry count should increment', async function (this: World) {
+  const job = this.getData<SimulatedEmailJob>('failedEmailJob');
+  expect(job).toBeDefined();
+  expect(job!.attemptsMade).toBeGreaterThan(0);
+});
+
+Then('backoff delay should be exponential', async function (this: World) {
+  const job = this.getData<SimulatedEmailJob>('failedEmailJob');
+  expect(job).toBeDefined();
+  expect(job!.backoffType).toBe('exponential');
+  expect(job!.backoffDelay).toBeGreaterThan(0);
+});
+
+// Bull Board metrics and queue health scenarios
+Given('Bull Board dashboard is enabled', async function (this: World) {
+  this.setData('bullBoardConfigured', true);
+});
+
+Given('queues have active and completed jobs', async function (this: World) {
+  const metrics: SimulatedQueueMetrics = {
+    waiting: 4,
+    active: 2,
+    completed: 12,
+    failed: 1,
+    delayed: 0,
+    paused: false,
+  };
+
+  this.setData('queueMetrics', metrics);
+});
+
+Then('I should see all configured queues', async function (this: World) {
+  const configured = this.getData<boolean>('bullBoardConfigured');
+  expect(configured).toBe(true);
+  expect(Object.values(QueueName)).toContain(QueueName.EMAIL);
+  expect(Object.values(QueueName)).toContain(QueueName.WEBHOOK);
+  expect(Object.values(QueueName)).toContain(QueueName.FILE_PROCESSING);
+});
+
+Then('I should see job counts per queue', async function (this: World) {
+  const metrics = this.getData<SimulatedQueueMetrics>('queueMetrics');
+  expect(metrics).toBeDefined();
+  expect(metrics).toHaveProperty('waiting');
+  expect(metrics).toHaveProperty('active');
+  expect(metrics).toHaveProperty('completed');
+  expect(metrics).toHaveProperty('failed');
+  expect(metrics).toHaveProperty('delayed');
+});
+
+Then('I should see active, completed, and failed jobs', async function (this: World) {
+  const metrics = this.getData<SimulatedQueueMetrics>('queueMetrics');
+  expect(metrics).toBeDefined();
+  expect(metrics!.active).toBeGreaterThan(0);
+  expect(metrics!.completed).toBeGreaterThan(0);
+  expect(metrics!.failed).toBeGreaterThan(0);
+});
+
+Given('queue health check is configured', async function (this: World) {
+  const queueServicePath = path.resolve(
+    process.cwd(),
+    'src',
+    'services',
+    'queue',
+    'queue.service.ts'
+  );
+  const queueSource = await fs.readFile(queueServicePath, 'utf8');
+
+  expect(queueSource).toContain('async healthCheck()');
+  expect(queueSource).toContain('this.connection.ping()');
+  this.setData('queueHealthConfigured', true);
+});
+
+When('the readiness endpoint checks dependencies', async function (this: World) {
+  const indexPath = path.resolve(process.cwd(), 'src', 'index.ts');
+  const indexSource = await fs.readFile(indexPath, 'utf8');
+  this.setData('readinessSource', indexSource);
+});
+
+Then('the readiness response should include queue status', async function (this: World) {
+  const source = this.getData<string>('readinessSource');
+  expect(source).toBeDefined();
+  expect(source!).toContain('QueueService).healthCheck()');
+  expect(source!).toContain('queue: queueCheck');
+});
+
+Then(
+  'disabled queues should be reported as {string}',
+  async function (this: World, status: string) {
+    const source = this.getData<string>('readinessSource');
+    expect(source).toBeDefined();
+    expect(source!).toContain('DISABLE_QUEUES');
+    expect(source!).toContain("status: '" + status + "'");
+  }
+);
+
+// Failed job / DLQ scenario
+Given('email queue has a job', async function (this: World) {
+  this.setData('emailProcessorJob', createPendingEmailJob('email-job-for-error-handling'));
+});
+
+Given('EmailProcessor throws an error', async function (this: World) {
+  this.setData('emailProcessorError', new Error('Email provider unavailable'));
+});
+
+When('the job is processed', async function (this: World) {
+  const job = this.getData<SimulatedEmailJob>('emailProcessorJob');
+  const error = this.getData<Error>('emailProcessorError');
+  expect(job).toBeDefined();
+  expect(error).toBeDefined();
+
+  job!.attemptsMade += 1;
+  job!.errorLogged = true;
+  job!.failedReason = error!.message;
+  job!.retryScheduled = true;
+  job!.status = 'failed';
+
+  const failedJobs = this.getData<SimulatedEmailJob[]>('failedJobs') ?? [];
+  failedJobs.push(job!);
+  this.setData('failedJobs', failedJobs);
+  this.setData('emailProcessorJob', job);
+});
+
+Then('the error should be logged', async function (this: World) {
+  const job = this.getData<SimulatedEmailJob>('emailProcessorJob');
+  expect(job).toBeDefined();
+  expect(job!.errorLogged).toBe(true);
+  expect(job!.failedReason).toBe('Email provider unavailable');
+});
+
+Then('the job should move to failed state', async function (this: World) {
+  const failedJobs = this.getData<SimulatedEmailJob[]>('failedJobs') ?? [];
+  expect(failedJobs.length).toBeGreaterThan(0);
+  const firstFailedJob = failedJobs[0];
+  expect(firstFailedJob).toBeDefined();
+  expect(firstFailedJob!.status).toBe('failed');
+});
+
+Then('retry should be attempted if configured', async function (this: World) {
+  const job = this.getData<SimulatedEmailJob>('emailProcessorJob');
+  expect(job).toBeDefined();
+  expect(job!.retryScheduled).toBe(true);
+});

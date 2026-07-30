@@ -233,4 +233,22 @@ router.post('/seed', async (req: Request, res: Response): Promise<void> => {
   res.status(200).json({ ok: true, seeded });
 });
 
+router.get('/test-error', (_req: Request, res: Response): void => {
+  if (isProduction()) {
+    res.status(404).json({ error: 'Not Found' });
+    return;
+  }
+
+  throw new Error('Intentional E2E route error');
+});
+
+router.get('/large-response', (_req: Request, res: Response): void => {
+  if (isProduction()) {
+    res.status(404).json({ error: 'Not Found' });
+    return;
+  }
+
+  res.status(200).json({ data: 'x'.repeat(4096) });
+});
+
 export default router;

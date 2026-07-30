@@ -1,4 +1,4 @@
-@e2e @api-integration
+@e2e @api-integration @adopter
 @wip
 Feature: API Integration and Data Management
   As an authenticated user

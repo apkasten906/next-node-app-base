@@ -1,4 +1,4 @@
-import { Given, Then, When } from '@cucumber/cucumber';
+import { DataTable, Given, Then, When } from '@cucumber/cucumber';
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -17,7 +17,7 @@ async function readFileOrFail(filePath: string): Promise<string> {
   return content;
 }
 
-function assertMultiStageDockerfile(dockerfile: string, stageNames: string[]) {
+function assertMultiStageDockerfile(dockerfile: string, stageNames: string[]): void {
   for (const stageName of stageNames) {
     expect(dockerfile).toContain(` AS ${stageName}`);
   }
@@ -126,4 +126,276 @@ Then('frontend service should build from the frontend Dockerfile', async functio
 
   expect(compose).toContain('dockerfile: apps/frontend/Dockerfile');
   expect(compose).toContain('target: runner');
+});
+
+type AppManifestSources = {
+  backendDeployment: string;
+  backendService: string;
+  configmap: string;
+  frontendDeployment: string;
+  frontendService: string;
+  kustomization: string;
+};
+
+async function loadAppManifestSources(repoRoot: string): Promise<AppManifestSources> {
+  const appDir = path.resolve(repoRoot, 'kubernetes', 'app');
+  const [
+    backendDeployment,
+    backendService,
+    configmap,
+    frontendDeployment,
+    frontendService,
+    kustomization,
+  ] = await Promise.all([
+    readFileOrFail(path.resolve(appDir, 'backend-deployment.yaml')),
+    readFileOrFail(path.resolve(appDir, 'backend-service.yaml')),
+    readFileOrFail(path.resolve(appDir, 'configmap.yaml')),
+    readFileOrFail(path.resolve(appDir, 'frontend-deployment.yaml')),
+    readFileOrFail(path.resolve(appDir, 'frontend-service.yaml')),
+    readFileOrFail(path.resolve(appDir, 'kustomization.yaml')),
+  ]);
+
+  return {
+    backendDeployment,
+    backendService,
+    configmap,
+    frontendDeployment,
+    frontendService,
+    kustomization,
+  };
+}
+
+function deploymentSources(world: World): string[] {
+  const backendDeployment = world.getData<string>('backendDeploymentManifest');
+  const frontendDeployment = world.getData<string>('frontendDeploymentManifest');
+  expect(backendDeployment).toBeDefined();
+  expect(frontendDeployment).toBeDefined();
+  return [backendDeployment!, frontendDeployment!];
+}
+
+function serviceSources(world: World): string[] {
+  const backendService = world.getData<string>('backendServiceManifest');
+  const frontendService = world.getData<string>('frontendServiceManifest');
+  expect(backendService).toBeDefined();
+  expect(frontendService).toBeDefined();
+  return [backendService!, frontendService!];
+}
+
+function assertContainsAll(source: string, expectedValues: string[]): void {
+  for (const expectedValue of expectedValues) {
+    expect(source).toContain(expectedValue);
+  }
+}
+
+// Application Kubernetes manifest scenarios
+Given('a Kubernetes deployment manifest exists', async function (this: World) {
+  const repoRoot = getRepoRoot(process.cwd());
+  const manifests = await loadAppManifestSources(repoRoot);
+
+  expect(manifests.backendDeployment).toContain('kind: Deployment');
+  expect(manifests.frontendDeployment).toContain('kind: Deployment');
+  expect(manifests.kustomization).toContain('backend-deployment.yaml');
+  expect(manifests.kustomization).toContain('frontend-deployment.yaml');
+
+  this.setData('backendDeploymentManifest', manifests.backendDeployment);
+  this.setData('frontendDeploymentManifest', manifests.frontendDeployment);
+});
+
+When('I apply the deployment', async function (this: World) {
+  // Deterministic @ready: validate templates rather than requiring kubectl.
+  this.setData('deploymentApplied', true);
+});
+
+Then('pods should be created', async function (this: World) {
+  for (const deployment of deploymentSources(this)) {
+    assertContainsAll(deployment, ['spec:', 'template:', 'containers:', 'image:']);
+  }
+});
+
+Then('desired replica count should be met', async function (this: World) {
+  for (const deployment of deploymentSources(this)) {
+    expect(deployment).toMatch(/replicas:\s*2/);
+  }
+});
+
+Then('containers should be running', async function (this: World) {
+  const [backendDeployment, frontendDeployment] = deploymentSources(this);
+
+  assertContainsAll(backendDeployment!, ['name: backend', 'containerPort: 3001']);
+  assertContainsAll(frontendDeployment!, ['name: frontend', 'containerPort: 3000']);
+});
+
+Given('a Kubernetes service is defined', async function (this: World) {
+  const repoRoot = getRepoRoot(process.cwd());
+  const manifests = await loadAppManifestSources(repoRoot);
+
+  expect(manifests.backendService).toContain('kind: Service');
+  expect(manifests.frontendService).toContain('kind: Service');
+  expect(manifests.kustomization).toContain('backend-service.yaml');
+  expect(manifests.kustomization).toContain('frontend-service.yaml');
+
+  this.setData('backendServiceManifest', manifests.backendService);
+  this.setData('frontendServiceManifest', manifests.frontendService);
+});
+
+When('the service is created', async function (this: World) {
+  this.setData('serviceCreated', true);
+});
+
+Then('a cluster IP should be assigned', async function (this: World) {
+  for (const service of serviceSources(this)) {
+    expect(service).toContain('type: ClusterIP');
+  }
+});
+
+Then('traffic should be load-balanced across pods', async function (this: World) {
+  for (const service of serviceSources(this)) {
+    assertContainsAll(service, ['selector:', 'app.kubernetes.io/name:', 'targetPort: http']);
+  }
+});
+
+Then('service discovery should work', async function (this: World) {
+  const [backendService, frontendService] = serviceSources(this);
+  expect(backendService).toContain('name: backend');
+  expect(frontendService).toContain('name: frontend');
+});
+
+Given('a ConfigMap with application config', async function (this: World) {
+  const repoRoot = getRepoRoot(process.cwd());
+  const manifests = await loadAppManifestSources(repoRoot);
+
+  expect(manifests.configmap).toContain('kind: ConfigMap');
+  expect(manifests.configmap).toContain('NEXT_PUBLIC_API_URL');
+  expect(manifests.configmap).toContain('API_URL_INTERNAL');
+
+  this.setData('appConfigMapManifest', manifests.configmap);
+  this.setData('backendDeploymentManifest', manifests.backendDeployment);
+  this.setData('frontendDeploymentManifest', manifests.frontendDeployment);
+});
+
+When('pods are deployed', async function (this: World) {
+  this.setData('podsDeployed', true);
+});
+
+Then('configuration should be injected as env vars', async function (this: World) {
+  for (const deployment of deploymentSources(this)) {
+    assertContainsAll(deployment, ['envFrom:', 'configMapRef:', 'name: next-node-app-config']);
+  }
+});
+
+Then('pods should use the configuration', async function (this: World) {
+  const configmap = this.getData<string>('appConfigMapManifest');
+  expect(configmap).toBeDefined();
+  assertContainsAll(configmap!, ['NODE_ENV:', 'PORT:', 'CORS_ORIGIN:']);
+});
+
+When('ConfigMap is updated', async function (this: World) {
+  this.setData('configMapUpdated', true);
+});
+
+Then('pods should be restarted with new config', async function (this: World) {
+  for (const deployment of deploymentSources(this)) {
+    expect(deployment).toContain('strategy:');
+    expect(deployment).toContain('type: RollingUpdate');
+  }
+});
+
+Given('pods have resource limits defined', async function (this: World) {
+  const repoRoot = getRepoRoot(process.cwd());
+  const manifests = await loadAppManifestSources(repoRoot);
+
+  this.setData('backendDeploymentManifest', manifests.backendDeployment);
+  this.setData('frontendDeploymentManifest', manifests.frontendDeployment);
+});
+
+Then('each pod should have:', async function (this: World, table: DataTable) {
+  const rows = table.hashes();
+
+  for (const deployment of deploymentSources(this)) {
+    expect(deployment).toContain('resources:');
+    for (const row of rows) {
+      expect(row['resource']).toBeDefined();
+      expect(row['request']).toBeDefined();
+      expect(row['limit']).toBeDefined();
+      expect(deployment).toContain(`${row['resource']}: ${row['request']}`);
+      expect(deployment).toContain(`${row['resource']}: ${row['limit']}`);
+    }
+  }
+});
+
+Then('pods should not exceed limits', async function (this: World) {
+  for (const deployment of deploymentSources(this)) {
+    assertContainsAll(deployment, ['limits:', 'cpu: 500m', 'memory: 512Mi']);
+  }
+});
+
+Then('resource requests should be guaranteed', async function (this: World) {
+  for (const deployment of deploymentSources(this)) {
+    assertContainsAll(deployment, ['requests:', 'cpu: 100m', 'memory: 128Mi']);
+  }
+});
+
+Given('health probes are configured', async function (this: World) {
+  const repoRoot = getRepoRoot(process.cwd());
+  const manifests = await loadAppManifestSources(repoRoot);
+
+  this.setData('backendDeploymentManifest', manifests.backendDeployment);
+  this.setData('frontendDeploymentManifest', manifests.frontendDeployment);
+});
+
+When('a pod starts', async function (this: World) {
+  this.setData('podStarted', true);
+});
+
+Then('readiness probe should prevent traffic until ready', async function (this: World) {
+  const [backendDeployment, frontendDeployment] = deploymentSources(this);
+
+  assertContainsAll(backendDeployment!, ['readinessProbe:', 'path: /ready']);
+  assertContainsAll(frontendDeployment!, ['readinessProbe:', 'path: /api/health']);
+});
+
+When('a pod becomes unhealthy', async function (this: World) {
+  this.setData('podUnhealthy', true);
+});
+
+Then('liveness probe should restart the pod', async function (this: World) {
+  for (const deployment of deploymentSources(this)) {
+    assertContainsAll(deployment, ['livenessProbe:', 'failureThreshold:', 'periodSeconds:']);
+  }
+});
+
+// CI test-stage scenario
+Given('CI pipeline has test stage', async function (this: World) {
+  const repoRoot = getRepoRoot(process.cwd());
+  const workflow = await readFileOrFail(
+    path.resolve(repoRoot, '.github', 'workflows', 'backend-tests.yml')
+  );
+  this.setData('backendTestsWorkflow', workflow);
+});
+
+When('tests run in CI', async function (this: World) {
+  const workflow = this.getData<string>('backendTestsWorkflow');
+  expect(workflow).toBeDefined();
+  this.setData('ciTestsRun', true);
+});
+
+Then('unit tests should execute', async function (this: World) {
+  const workflow = this.getData<string>('backendTestsWorkflow');
+  expect(workflow).toContain('test:unit');
+});
+
+Then('integration tests should execute', async function (this: World) {
+  const workflow = this.getData<string>('backendTestsWorkflow');
+  expect(workflow).toContain('test:integration');
+});
+
+Then('coverage report should be generated', async function (this: World) {
+  const workflow = this.getData<string>('backendTestsWorkflow');
+  expect(workflow).toContain('test:coverage');
+});
+
+Then('test results should be published', async function (this: World) {
+  const workflow = this.getData<string>('backendTestsWorkflow');
+  expect(workflow).toContain('actions/upload-artifact');
+  expect(workflow).toContain('backend-coverage');
 });

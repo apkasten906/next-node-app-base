@@ -214,6 +214,8 @@ This repository uses Husky to run local Git hooks that help keep the codebase he
 
 If a hook fails locally, fix the reported issues and re-run the hook commands manually (or re-commit). CI will run the same checks and will block merges on failures.
 
+If VS Code source-control sync or Git working-tree scans are slow, see [Git and VS Code Sync Performance](docs/GIT_SYNC_TROUBLESHOOTING.md).
+
 ### Documentation
 
 - Update README.md if you change functionality

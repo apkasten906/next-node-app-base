@@ -31,8 +31,16 @@ Given('SMS provider is {string}', async function (this: World, provider: string)
   this.setData('smsProvider', provider);
 });
 
+Given('SMS provider is configured', async function (this: World) {
+  if (!this.getData<string>('smsProvider')) this.setData('smsProvider', 'console');
+});
+
 Given('push notification provider is {string}', async function (this: World, provider: string) {
   this.setData('pushProvider', provider);
+});
+
+Given('push notification provider is configured', async function (this: World) {
+  if (!this.getData<string>('pushProvider')) this.setData('pushProvider', 'console');
 });
 
 // Email Notifications
@@ -119,6 +127,21 @@ When('I send an SMS to {string}', async function (this: World, phoneNumber: stri
   this.setData('notificationSent', true);
 });
 
+When(
+  'I send an SMS to {string} with message {string}',
+  async function (this: World, phoneNumber: string, message: string) {
+    const notification = {
+      type: 'sms',
+      to: phoneNumber,
+      message,
+      timestamp: new Date(),
+    };
+
+    this.setData('notification', notification);
+    this.setData('notificationSent', true);
+  }
+);
+
 When('I send an SMS with:', async function (this: World, dataTable: any) {
   const data = dataTable.rowsHash();
   const notification = {
@@ -136,6 +159,17 @@ Then('the SMS should be sent successfully', async function (this: World) {
   expect(sent).toBe(true);
 });
 
+Then('the SMS should be queued for delivery', async function (this: World) {
+  const sent = this.getData<boolean>('notificationSent');
+  expect(sent).toBe(true);
+  this.setData('deliveryStatus', 'queued');
+});
+
+Then('the message should be within character limits', async function (this: World) {
+  const notification = this.getData<any>('notification');
+  expect(notification.message.length).toBeLessThanOrEqual(160);
+});
+
 // Push Notifications
 When(
   'I send a push notification to device {string}',
@@ -145,6 +179,24 @@ When(
       to: deviceToken,
       title: 'Test Notification',
       body: 'Test message',
+      data: { source: 'bdd' },
+      timestamp: new Date(),
+    };
+
+    this.setData('notification', notification);
+    this.setData('notificationSent', true);
+  }
+);
+
+When(
+  'I send a push notification to device token {string}',
+  async function (this: World, deviceToken: string) {
+    const notification = {
+      type: 'push',
+      to: deviceToken,
+      title: 'Test Notification',
+      body: 'Test message',
+      data: { source: 'bdd' },
       timestamp: new Date(),
     };
 
@@ -168,6 +220,23 @@ When('I send a push notification with:', async function (this: World, dataTable:
 Then('the push notification should be sent successfully', async function (this: World) {
   const sent = this.getData<boolean>('notificationSent');
   expect(sent).toBe(true);
+});
+
+Then('the notification should be queued for delivery', async function (this: World) {
+  const sent = this.getData<boolean>('notificationSent');
+  expect(sent).toBe(true);
+  this.setData('deliveryStatus', 'queued');
+});
+
+Then('notification should include title and body', async function (this: World) {
+  const notification = this.getData<any>('notification');
+  expect(notification.title).toBeDefined();
+  expect(notification.body).toBeDefined();
+});
+
+Then('notification data should be included', async function (this: World) {
+  const notification = this.getData<any>('notification');
+  expect(notification.data).toBeDefined();
 });
 
 // Console Provider

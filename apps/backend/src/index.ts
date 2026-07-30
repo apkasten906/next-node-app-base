@@ -36,7 +36,14 @@ import { initializeQueues } from './services/queue/queue-init';
 import { QueueService } from './services/queue/queue.service';
 import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
 import { registerStorageProvider } from './services/storage/storage-provider.factory';
+import { StorageService } from './services/storage/storage.service';
 import { WebSocketService } from './services/websocket/websocket.service';
+
+interface DependencyHealth {
+  status: 'healthy' | 'unhealthy' | 'disabled';
+  latencyMs: number;
+  details?: Record<string, unknown>;
+}
 
 function readDirEntriesSafe(dir: string): fs.Dirent[] {
   try {
@@ -65,6 +72,60 @@ export class App {
 
   private websocketsEnabled(): boolean {
     return process.env['DISABLE_WEBSOCKETS'] !== 'true';
+  }
+
+  private readinessCheckTimeoutMs(): number {
+    const configured = Number(process.env['READINESS_CHECK_TIMEOUT_MS']);
+    return Number.isFinite(configured) && configured > 0 ? configured : 2_000;
+  }
+
+  private async checkDependency(check: () => Promise<boolean>): Promise<DependencyHealth> {
+    const startedAt = performance.now();
+    const timeoutMs = this.readinessCheckTimeoutMs();
+    let timeout: NodeJS.Timeout | undefined;
+
+    try {
+      const healthy = await Promise.race([
+        check(),
+        new Promise<never>((_resolve, reject) => {
+          timeout = setTimeout(() => {
+            reject(new Error(`Health check timed out after ${timeoutMs}ms`));
+          }, timeoutMs);
+        }),
+      ]);
+      return {
+        status: healthy ? 'healthy' : 'unhealthy',
+        latencyMs: Math.round((performance.now() - startedAt) * 100) / 100,
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        latencyMs: Math.round((performance.now() - startedAt) * 100) / 100,
+        details: { error: error instanceof Error ? error.message : String(error) },
+      };
+    } finally {
+      if (timeout) clearTimeout(timeout);
+    }
+  }
+
+  private async checkWebsocketDependency(): Promise<DependencyHealth> {
+    if (!this.websocketsEnabled()) return this.disabledDependency();
+    if (!this.websocket) {
+      return { status: 'unhealthy', latencyMs: 0, details: { reason: 'not initialized' } };
+    }
+
+    let details: Record<string, unknown> | undefined;
+    const result = await this.checkDependency(async () => {
+      const health = await this.websocket!.getHealth();
+      details = { ...health };
+      return health.status === 'healthy';
+    });
+    if (details) result.details = details;
+    return result;
+  }
+
+  private disabledDependency(): DependencyHealth {
+    return { status: 'disabled', latencyMs: 0 };
   }
 
   constructor() {
@@ -182,8 +243,10 @@ export class App {
     // Health check endpoint
     this.app.get('/health', async (_req: Request, res: Response) => {
       const health = {
+        service: 'backend',
+        version: process.env['npm_package_version'] || '1.0.0',
         uptime: process.uptime(),
-        timestamp: Date.now(),
+        timestamp: new Date().toISOString(),
         status: 'ok',
       };
 
@@ -193,18 +256,40 @@ export class App {
     // Readiness check endpoint
     this.app.get('/ready', async (_req: Request, res: Response) => {
       try {
-        const dbHealth = await this.database.healthCheck();
-        const cacheHealth = await this.cache.healthCheck();
-        const wsHealth = this.websocket ? await this.websocket.getHealth() : null;
+        const storage = container.resolve(StorageService);
+        const [databaseCheck, cacheCheck, storageCheck, queueCheck, websocketCheck] =
+          await Promise.all([
+            this.checkDependency(() => this.database.healthCheck()),
+            this.checkDependency(() => this.cache.healthCheck()),
+            this.checkDependency(() => storage.healthCheck()),
+            this.queuesEnabled()
+              ? this.checkDependency(() => container.resolve(QueueService).healthCheck())
+              : Promise.resolve(this.disabledDependency()),
+            this.checkWebsocketDependency(),
+          ]);
+
+        const checks = {
+          database: databaseCheck,
+          cache: cacheCheck,
+          storage: storageCheck,
+          queue: queueCheck,
+          websocket: websocketCheck,
+        };
+        const isReady = Object.values(checks).every(
+          (check) => check.status === 'healthy' || check.status === 'disabled'
+        );
 
         const ready = {
-          database: dbHealth,
-          cache: cacheHealth,
-          websocket: wsHealth,
-          status: dbHealth && cacheHealth ? 'ready' : 'not ready',
+          // Preserve the original boolean fields for existing clients.
+          database: databaseCheck.status === 'healthy',
+          cache: cacheCheck.status === 'healthy',
+          websocket: websocketCheck.status === 'disabled' ? null : websocketCheck.details,
+          status: isReady ? 'ready' : 'not ready',
+          timestamp: new Date().toISOString(),
+          checks,
         };
 
-        const statusCode = dbHealth && cacheHealth ? 200 : 503;
+        const statusCode = isReady ? 200 : 503;
         res.status(statusCode).json(ready);
       } catch (error) {
         this.logger.error('Readiness check failed', error as Error);
@@ -213,6 +298,8 @@ export class App {
           cache: false,
           websocket: null,
           status: 'not ready',
+          timestamp: new Date().toISOString(),
+          checks: {},
         });
       }
     });

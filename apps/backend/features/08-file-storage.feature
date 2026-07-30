@@ -8,7 +8,8 @@ Feature: File Storage Abstraction
     Given storage service is configured
     And environment variables specify the provider
 
-  @storage @local
+  @storage @local @impl_storage_local_provider
+  @ready
   Scenario: Local filesystem storage
     Given STORAGE_PROVIDER is set to "local"
     When I upload a file to local storage
@@ -43,7 +44,8 @@ Feature: File Storage Abstraction
     And object name should be generated
     And file metadata should include GCS URL
 
-  @storage @upload @single
+  @storage @upload @single @impl_storage_upload_single
+  @ready
   Scenario: Upload a single file
     When I upload a file with:
       | field       | value              |
@@ -61,21 +63,24 @@ Feature: File Storage Abstraction
       | url          |
       | uploadedAt   |
 
-  @storage @upload @multiple
+  @storage @upload @multiple @impl_storage_upload_multiple
+  @ready
   Scenario: Upload multiple files
     When I upload 3 files simultaneously
     Then all files should be stored successfully
     And metadata for all files should be returned
     And each file should have unique path
 
-  @storage @download
+  @storage @download @impl_storage_download
+  @ready
   Scenario: Download a file
     Given a file "documents/report.pdf" exists in storage
     When I download the file
     Then the file content should be returned as Buffer
     And the content should match the original file
 
-  @storage @signed-url
+  @storage @signed-url @impl_storage_signed_url
+  @ready
   Scenario: Generate signed URL for temporary access
     Given a file exists in storage
     When I request a signed URL with expiration 3600 seconds
@@ -83,7 +88,8 @@ Feature: File Storage Abstraction
     And the URL should be valid for 1 hour
     And the URL should allow file access without authentication
 
-  @storage @delete
+  @storage @delete @impl_storage_delete
+  @ready
   Scenario: Delete a file
     Given a file "temp/old-file.txt" exists in storage
     When I delete the file
@@ -97,14 +103,16 @@ Feature: File Storage Abstraction
     Then all files should be removed
     And deletion results should indicate success for each file
 
-  @storage @exists
+  @storage @exists @impl_storage_exists
+  @ready
   Scenario: Check if file exists
     When I check if "documents/report.pdf" exists
     Then existence check should return true
     When I check if "documents/nonexistent.pdf" exists
     Then existence check should return false
 
-  @storage @list
+  @storage @list @impl_storage_list
+  @ready
   Scenario: List files in a folder
     Given 10 files exist in "images/" folder
     When I list files in "images/" folder
@@ -152,7 +160,8 @@ Feature: File Storage Abstraction
     And the file should no longer exist at old path
     And metadata for the moved file should be returned
 
-  @storage @validation @file-type
+  @storage @validation @file-type @impl_storage_mime_validation
+  @ready
   Scenario: File type validation
     Given allowed MIME types are configured
     When I upload a file with MIME type "<mimeType>"
@@ -165,7 +174,8 @@ Feature: File Storage Abstraction
       | application/x-sh    | rejected |
       | text/html           | rejected |
 
-  @storage @validation @file-size
+  @storage @validation @file-size @impl_storage_size_validation
+  @ready
   Scenario: File size validation
     Given maximum file size is 5MB
     When I upload a file of size "<size>"

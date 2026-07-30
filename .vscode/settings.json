@@ -1,7 +1,4 @@
 {
-  "remote.extensionKind": {
-    "openai.chatgpt": ["ui"]
-  },
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
@@ -56,6 +53,7 @@
   "playwright.showBrowser": true,
   "playwright.showTrace": false,
   "testing.automaticallyOpenPeekView": "never",
+  "python.terminal.activateEnvironment": false,
   "playwright.env": {
     "REUSE_EXISTING_SERVER": "true"
   },
@@ -111,6 +109,7 @@
     "eamodio",
     "errorlens",
     "esbenp",
+    "fasciculum",
     "fieldsets",
     "Filebeat",
     "FLUSHALL",
@@ -122,6 +121,7 @@
     "htpasswd",
     "ingressgateway",
     "initdb",
+    "instrumentorum",
     "isready",
     "istiod",
     "Kiali",
@@ -145,6 +145,7 @@
     "promtool",
     "quicktime",
     "rabbitmq",
+    "reorganised",
     "requirepass",
     "rollouts",
     "runbooks",
@@ -154,6 +155,7 @@
     "sonarsource",
     "statefulset",
     "Subresource",
+    "syncable",
     "tsyringe",
     "Turborepo",
     "usernamehw",
