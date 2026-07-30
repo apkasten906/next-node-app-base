@@ -55,7 +55,7 @@ Given('Swagger is configured', function (this: World) {
 });
 
 When('I navigate to {string}', async function (this: World, path: string) {
-  const res = await this.request?.get(path);
+  const res = await this.request?.get(path).redirects(1);
   this.response = res;
 });
 
@@ -121,7 +121,7 @@ Then('protected endpoints should show lock icon', function (this: World) {
 });
 
 Then('I should be able to authenticate via Swagger UI', async function (this: World) {
-  const res = await this.request?.get('/api-docs');
+  const res = await this.request?.get('/api-docs').redirects(1);
   expect(res?.status).toBe(200);
 });
 

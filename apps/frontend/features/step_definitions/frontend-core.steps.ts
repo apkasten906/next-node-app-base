@@ -129,32 +129,49 @@ Then('data should be displayed', async function (this: World) {
 });
 
 Given('TanStack Query is configured', async function (this: World) {
-  this.setData('frontendCoreSources', loadCoreSources());
+  this.setData('queryClient', createQueryClient());
+  this.setData('queryCalls', 0);
 });
 
 When('I fetch data for a query', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.providers.includes('QueryClientProvider'));
+  const queryClient = this.getData<QueryClient>('queryClient');
+  assert.ok(queryClient);
+  const result = await queryClient.fetchQuery({
+    queryKey: ['bdd-cache'],
+    queryFn: async () => {
+      this.setData('queryCalls', (this.getData<number>('queryCalls') ?? 0) + 1);
+      return 'cached-value';
+    },
+  });
+  this.setData('queryResult', result);
 });
 
 Then('the data should be cached', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.providers.includes('staleTime: 60 * 1000'));
+  const queryClient = this.getData<QueryClient>('queryClient');
+  assert.equal(queryClient?.getQueryData(['bdd-cache']), 'cached-value');
 });
 
 When('I request the same data again', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.providers.includes('new QueryClient'));
+  const queryClient = this.getData<QueryClient>('queryClient');
+  assert.ok(queryClient);
+  const result = await queryClient.fetchQuery({
+    queryKey: ['bdd-cache'],
+    queryFn: async () => {
+      this.setData('queryCalls', (this.getData<number>('queryCalls') ?? 0) + 1);
+      return 'unexpected-refetch';
+    },
+  });
+  this.setData('queryResult', result);
 });
 
 Then('cached data should be returned immediately', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.providers.includes('staleTime'));
+  assert.equal(this.getData('queryResult'), 'cached-value');
+  assert.equal(this.getData('queryCalls'), 1);
 });
 
-Then('background refetch should occur', async function (this: World) {
-  const sources = getSources(this);
-  assert.ok(sources.providers.includes('refetchOnWindowFocus: false'));
+Then('window-focus refetch should be disabled', async function (this: World) {
+  const queryClient = this.getData<QueryClient>('queryClient');
+  assert.equal(queryClient?.getDefaultOptions().queries?.refetchOnWindowFocus, false);
 });
 
 class BddOnlineEventSource {

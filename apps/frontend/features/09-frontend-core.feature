@@ -127,7 +127,7 @@ Feature: Frontend Core Features
     Then the data should be cached
     When I request the same data again
     Then cached data should be returned immediately
-    And background refetch should occur
+    And window-focus refetch should be disabled
 
   @adopter @frontend @caching @invalidation
   Scenario: Query cache invalidation

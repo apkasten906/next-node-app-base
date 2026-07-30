@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import { Given, Then, When } from '@cucumber/cucumber';
 
+import { createQueryClient } from '../../lib/query-client';
 import { World } from '../support/world';
 
 interface FrontendSources {
@@ -233,6 +234,7 @@ Then('user information should be displayed', async function (this: World) {
 
 Given('TanStack Query is set up', async function (this: World) {
   this.setData('frontendSources', loadFrontendSources());
+  this.setData('queryClient', createQueryClient());
 });
 
 When('the application loads', async function (this: World) {
@@ -241,10 +243,12 @@ When('the application loads', async function (this: World) {
 });
 
 Then('QueryClient should be configured', async function (this: World) {
+  const queryClient = this.getData<ReturnType<typeof createQueryClient>>('queryClient');
   const sources = getSources(this);
-  assert.ok(sources.providers.includes('new QueryClient'));
+  assert.ok(queryClient);
   assert.ok(sources.providers.includes('QueryClientProvider'));
-  assert.ok(sources.providers.includes('defaultOptions'));
+  assert.equal(queryClient.getDefaultOptions().queries?.staleTime, 60_000);
+  assert.equal(queryClient.getDefaultOptions().queries?.refetchOnReconnect, true);
 });
 
 Then('query devtools should be available in development', async function (this: World) {
