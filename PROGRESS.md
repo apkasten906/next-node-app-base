@@ -104,6 +104,15 @@ The backend core is implemented and running.
 - ✅ Orphaned `node_modules/turbo-windows-64` directory removed (was causing ghost v1.13.4 resolution)
 - ✅ ADR-003 and `CONTRIBUTING.md` updated with corepack hash discipline
 
+### ✅ Chore: E2E Moderator Persona
+
+**Completed:** PR [#64](https://github.com/apkasten906/next-node-app-base/pull/64) merged to master (July 31, 2026; merge commit `cda412f`)
+
+- ✅ Added deterministic `moderator` fixtures and `MODERATOR` seed/login support across backend and frontend
+- ✅ Added backend and frontend unit coverage for defaults, validation, normalization, and seed payloads
+- ✅ Added `@ready @impl_e2e_moderator_persona` BDD contract coverage for seed upserts, fixture parity, and fallback authentication
+- ✅ Passed ADR, BDD governance, lint, backend, and cross-platform E2E CI checks
+
 ## Current Focus / Next Steps
 
 ### Current Objective: BDD Base-Repo Scenario Coverage Complete
@@ -149,7 +158,7 @@ The backend core is implemented and running.
 
 ### Up Next
 
-- [ ] E2E personas moderator (`chore/e2e-personas-moderator`) — implementation, unit coverage, and `@ready` BDD contract coverage are complete in draft PR [#64](https://github.com/apkasten906/next-node-app-base/pull/64). All required CI checks are green; the PR now awaits review and merge.
+- [x] Automated semantic versioning (Changesets) — added `@changesets/cli`, version-only package scripts/config, an immutable-action-pinned Version Packages PR workflow, publishing guidance, and current 2026 `CHANGELOG.md` entries
 - [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `fasciculum-instrumentorum` fork proves reuse
 - [ ] Phase 11 Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks; begin with ADR and interface contracts
 

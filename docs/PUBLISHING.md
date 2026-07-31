@@ -258,19 +258,19 @@ Set `"private": true` in `package.json`. The publish script automatically skips 
 
 ## Versioning
 
-### Manual Version Bumps
+### Add a Changeset
 
 ```bash
-# In the package directory
-cd packages/types
-pnpm version patch  # 1.0.0 → 1.0.1
-pnpm version minor  # 1.0.0 → 1.1.0
-pnpm version major  # 1.0.0 → 2.0.0
+pnpm changeset
 ```
 
-### Automated Versioning (TODO)
+Select the affected workspace packages, choose the semantic version bump, and describe the user-visible change. Pull requests that only change documentation, tests, CI, or repository maintenance do not need a changeset.
 
-Future enhancement: Integrate [changesets](https://github.com/changesets/changesets) or [semantic-release](https://github.com/semantic-release/semantic-release) for automated versioning based on conventional commits.
+### Automated Version Pull Requests
+
+On every push to `master`, `.github/workflows/version-packages.yml` uses the committed changeset files to open or update a `chore(release): version packages` pull request. That pull request updates package versions and package-level changelogs independently.
+
+The workflow versions private packages so the repository can prepare `@repo/types` and future packages such as `@repo/contracts` before they become publishable. It does not publish packages or create tags. Publishing remains an explicit operation through the existing Publish Packages workflow after a package is marked `"private": false` and reviewed.
 
 ## Service Mesh Integration
 

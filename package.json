@@ -49,10 +49,14 @@
     "prisma:upgrade": "cd apps/backend && pnpm add -D prisma@7.1.0 && pnpm add @prisma/client@7.1.0 @prisma/adapter-pg@7.1.0",
     "prepare": "node -e \"if (process.env.HUSKY === '0' || process.env.CI) process.exit(0); require('child_process').execSync('husky install', { stdio: 'inherit' });\"",
     "ci:backend-tests": "node ./scripts/run-backend-tests-ci.js",
+    "changeset": "changeset",
+    "changeset:status": "changeset status",
+    "version:packages": "changeset version",
     "publish:packages": "node ./scripts/publish-packages.js",
     "publish:dry-run": "DRY_RUN=true node ./scripts/publish-packages.js"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.1",
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
     "@prisma/config": "^7.1.0",

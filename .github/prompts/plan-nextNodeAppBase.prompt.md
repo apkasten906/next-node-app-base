@@ -456,13 +456,18 @@ Consequence: lower migration risk and clearer package boundaries.
   - Orphaned `node_modules/turbo-windows-64` directory (root cause of v1.13.4 ghost resolution) removed.
   - ADR-003 and `CONTRIBUTING.md` updated to document corepack hash discipline.
 
+- ✅ `chore/e2e-personas-moderator` merged to master as PR [#64](https://github.com/apkasten906/next-node-app-base/pull/64) (July 31, 2026; merge commit `cda412f`).
+  - Deterministic `moderator` fixtures and `MODERATOR` seed/login support added across backend and frontend.
+  - Unit coverage validates defaults, role validation, normalization, and frontend seed payloads.
+  - `@ready @impl_e2e_moderator_persona` BDD coverage validates seed upserts, fixture parity, and fallback authentication.
+  - ADR, BDD governance, lint, backend, and cross-platform E2E CI checks passed.
+
 ### Next priority (in order)
 
-1. **BDD base-repo scenario coverage** — complete for tracked base slices. Adopter-only frontend/security guidance is explicitly tagged `@wip @adopter`. Current governance totals are backend 140/266 ready, frontend 31/121 ready, and 171/387 overall.
-2. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — implementation, unit tests, and `@ready @impl_e2e_moderator_persona` BDD contract coverage are complete in draft PR [#64](https://github.com/apkasten906/next-node-app-base/pull/64). All required CI checks are green; the PR now awaits review and merge.
-3. **Automated semantic versioning (Changesets)** — conventional commits are enforced by commitlint and `conventional-changelog-conventionalcommits` is already installed; the missing piece is a version-bump + CHANGELOG automation tool. Adopt `@changesets/cli` (natural fit for pnpm workspaces — versions packages independently), add a `chore/changesets-setup` GitHub Actions workflow that opens a "Version Packages" PR on merge to master, and catch up the stale `CHANGELOG.md` entries for all 2026 phases. Gate on: contract package extraction is not a blocker, but activate before the first real publish of `@repo/types` / `@repo/contracts`.
-4. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
-5. **Phase 11 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet; begin with ADR and interface contracts in `packages/types`.
+- ✅ **Automated semantic versioning (Changesets)** — `@changesets/cli`, private-package versioning config, an immutable-action-pinned Version Packages PR workflow, current 2026 changelog entries, and publishing guidance are complete. Publishing remains explicitly gated by the existing Publish Packages workflow.
+
+1. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
+2. **Phase 11 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet; begin with ADR and interface contracts in `packages/types`.
 
 ## N. BDD Scenario Scope: Base Repo vs Adopter
 
@@ -519,4 +524,4 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip @
 - **Frontend error-handling first batch complete**: `@impl_frontend_global_error_boundary`, `@impl_frontend_not_found_page`, `@impl_frontend_error_page`, `@impl_frontend_error_recovery`, `@impl_frontend_error_logging`, and `@impl_frontend_accessible_errors` are now `@ready`.
 - **Frontend core expanded batch complete**: `@impl_frontend_typed_api_client`, `@impl_frontend_error_boundary_recovery`, `@impl_frontend_loading_state`, `@impl_frontend_debounce_hook`, `@impl_frontend_query_caching`, `@impl_frontend_offline_detection`, `@impl_frontend_semantic_accessibility`, `@impl_frontend_keyboard_navigation`, and `@impl_frontend_form_validation` are now `@ready`.
 - **Frontend base complete**: final Next.js scenarios for responsive layout, route-level authentication, custom error pages, and loading UI are now `@ready`; remaining frontend scenarios are explicitly `@adopter`.
-- **Final classification cleanup complete**: adopter-only frontend/security scenarios are tagged `@adopter` and stay `@wip`. E2E personas moderator implementation and BDD coverage are complete in PR #64 with green CI, awaiting review and merge.
+- **Final classification cleanup complete**: adopter-only frontend/security scenarios are tagged `@adopter` and stay `@wip`. E2E personas moderator implementation and BDD coverage merged in PR #64 with green CI.
