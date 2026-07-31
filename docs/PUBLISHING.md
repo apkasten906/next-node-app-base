@@ -420,7 +420,7 @@ turbo run build --filter=@apkasten906/types
 ## Future Enhancements
 
 - [x] **GitHub Actions workflow for automated publishing** - IMPLEMENTED (`.github/workflows/publish.yml`)
-- [ ] Automated versioning with changesets or semantic-release
+- [x] **Changesets versioning** - Version Packages PR automation is implemented
 - [ ] Provenance attestation for published packages
 - [ ] NPM package signing
 - [ ] Pre-publish validation hooks

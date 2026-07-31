@@ -117,7 +117,7 @@ The backend core is implemented and running.
 
 ### Current Objective: BDD Base-Repo Scenario Coverage Complete
 
-**Goal:** Promote all base-repo scenarios to `@ready`. Adopter scenarios remain `@wip @adopter` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
+**Goal:** Promote all base-repo scenarios to `@ready`. Adopter scenarios remain `@wip @adopter` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
 
 **Current tracked status (July 31, 2026):** backend 140/266 ready; frontend 31/121 ready; overall 171/387 ready. Frontend/security adopter-only scenarios are explicitly classified with `@adopter`. The new backend-ready scenario covers the deterministic moderator E2E persona contract.
 

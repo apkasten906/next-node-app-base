@@ -36,8 +36,9 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 4. **Add tests** for your changes
 5. **Ensure all tests pass** (`pnpm test`)
 6. **Update documentation** if needed
-7. **Commit your changes** using conventional commits
-8. **Push to your fork** and submit a pull request
+7. **Add a changeset** with `pnpm changeset` when changing a workspace package's public behavior
+8. **Commit your changes** using conventional commits
+9. **Push to your fork** and submit a pull request
 
 ### GitHub Actions: SHA-Pinned Actions
 
@@ -79,7 +80,7 @@ Review guidance for CI/workflow changes: `docs/Planning/WORKFLOW_CHANGE_REVIEW_P
 Our CI workflows are expected to match the repository toolchain declared in the root `package.json`:
 
 - Node: follow `engines.node` (currently `>=25.0.0`)
-- pnpm: follow `packageManager` version (currently `pnpm@11.1.3`; the actual field in `package.json` also includes a corepack-generated SHA-512 integrity hash)
+- pnpm: follow the exact `packageManager` version in the root `package.json` (currently `pnpm@11.8.0`)
 
 When updating `.github/workflows/*.yml`, keep these in sync to avoid “works locally, fails in CI” drift.
 
@@ -289,7 +290,7 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 Feel free to reach out:
 
-- Create a [GitHub Discussion](https://github.com/your-org/next-node-app-base/discussions)
+- Create a [GitHub Discussion](https://github.com/apkasten906/next-node-app-base/discussions)
 - Email us at <contribute@example.com>
 - Join our Slack workspace (TBD)
 

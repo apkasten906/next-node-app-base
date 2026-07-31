@@ -1,5 +1,7 @@
 # E2E Testing Status Report
 
+> Historical snapshot from February 2026. For current commands and coverage status, see [README.md](README.md), [PROGRESS.md](PROGRESS.md), and [apps/frontend/docs/E2E_TESTING.md](apps/frontend/docs/E2E_TESTING.md).
+
 ## Summary
 
 Playwright E2E testing is configured to run end-to-end against both apps, with automatic startup via Playwright `webServer`.
