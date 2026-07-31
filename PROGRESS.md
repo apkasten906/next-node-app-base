@@ -110,7 +110,7 @@ The backend core is implemented and running.
 
 **Goal:** Promote all base-repo scenarios to `@ready`. Adopter scenarios remain `@wip @adopter` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](/.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
 
-**Current tracked status (July 8, 2026):** backend 139/265 ready; frontend 32/122 ready; overall 171/387 ready. Frontend/security adopter-only scenarios are explicitly classified with `@adopter`.
+**Current tracked status (July 31, 2026):** backend 140/266 ready; frontend 31/121 ready; overall 171/387 ready. Frontend/security adopter-only scenarios are explicitly classified with `@adopter`. The new backend-ready scenario covers the deterministic moderator E2E persona contract.
 
 **Priority order** (highest coverage gap first):
 
@@ -149,7 +149,7 @@ The backend core is implemented and running.
 
 ### Up Next
 
-- [ ] E2E personas moderator (`chore/e2e-personas-moderator`) — resume now that BDD base coverage and adopter classification cleanup are complete; `moderator` persona + `MODERATOR` role branch has one commit ready and then needs PR, green CI, and merge
+- [ ] E2E personas moderator (`chore/e2e-personas-moderator`) — implementation, unit coverage, and `@ready` BDD contract coverage are complete in draft PR [#64](https://github.com/apkasten906/next-node-app-base/pull/64). All required CI checks are green; the PR now awaits review and merge.
 - [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `fasciculum-instrumentorum` fork proves reuse
 - [ ] Phase 11 Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks; begin with ADR and interface contracts
 

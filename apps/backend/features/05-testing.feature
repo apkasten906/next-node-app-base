@@ -55,6 +55,14 @@ Feature: Testing Infrastructure
     And E2E tests should not rely on manual database setup
     And the seeded state should be consistent across runs
 
+  @ready @no-server @testing @e2e @seeding @moderator @impl_e2e_moderator_persona
+  Scenario: Deterministic moderator E2E persona contract
+    Given the moderator E2E persona contract sources are loaded
+    Then backend default seed personas should include moderator@example.com with role MODERATOR
+    And the seed endpoint should idempotently upsert the moderator persona
+    And the frontend default seed payload should include the same moderator persona
+    And development fallback login should authenticate the moderator with role MODERATOR
+
   @testing @coverage
   Scenario: Code coverage thresholds
     Given coverage thresholds are configured
