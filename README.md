@@ -117,7 +117,7 @@ BDD status:
 - @wip @adopter: guidance for applications created from this template
 - @manual: behavior requiring manual verification
 
-See [BDD documentation](docs/BDD.md), [testing documentation](docs/TESTING.md), and the [E2E guide](apps/frontend/docs/E2E_TESTING.md).
+The [BDD implementer coverage reference](docs/BDD.md#implementer-coverage-reference) explains how to browse every scenario and isolate the `@wip @adopter` implementation backlog in the admin-only BDD dashboard. See also the [testing documentation](docs/TESTING.md) and [E2E guide](apps/frontend/docs/E2E_TESTING.md).
 
 ## Versioning and Publishing
 
