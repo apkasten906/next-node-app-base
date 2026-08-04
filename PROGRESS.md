@@ -158,7 +158,7 @@ The backend core is implemented and running.
 
 ### Up Next
 
-- [x] Automated semantic versioning (Changesets) — added `@changesets/cli`, version-only package scripts/config, an immutable-action-pinned Version Packages PR workflow, publishing guidance, and current 2026 `CHANGELOG.md` entries
+- [x] Review-driven semantic versioning (Changesets) — added `@changesets/cli`, version-only package scripts/config, a manually triggered and immutable-action-pinned Version Packages PR workflow, publishing guidance, and current 2026 `CHANGELOG.md` entries
 - [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `fasciculum-instrumentorum` fork proves reuse
 - [ ] Phase 11 Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks; begin with ADR and interface contracts
 

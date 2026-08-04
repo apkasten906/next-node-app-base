@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - BDD governance enforcement, implementation audits, and complete base-repository scenario coverage
 - Prometheus, Grafana, Jaeger, Loki, Promtail, and Alertmanager observability infrastructure
 - OpenTelemetry tracing, structured trace/log correlation, dashboards, alerts, and observability network policies
-- Automated Changesets version pull requests for workspace package versioning and changelogs
+- Manually triggered Changesets version pull requests for workspace package versioning and changelogs
 
 ### Fixed
 

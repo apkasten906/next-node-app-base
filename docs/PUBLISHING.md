@@ -266,11 +266,11 @@ pnpm changeset
 
 Select the affected workspace packages, choose the semantic version bump, and describe the user-visible change. Pull requests that only change documentation, tests, CI, or repository maintenance do not need a changeset.
 
-### Automated Version Pull Requests
+### Manually Triggered Version Pull Requests
 
-On every push to `master`, `.github/workflows/version-packages.yml` uses the committed changeset files to open or update a `chore(release): version packages` pull request. That pull request updates package versions and package-level changelogs independently.
+When a release is ready to prepare, manually run `.github/workflows/version-packages.yml` from the GitHub Actions tab. It uses the changeset files accumulated on `master` to open or update a `chore(release): version packages` pull request. That pull request updates package versions and package-level changelogs independently.
 
-The workflow versions private packages so the repository can prepare `@repo/types` and future packages such as `@repo/contracts` before they become publishable. It does not publish packages or create tags. Publishing remains an explicit operation through the existing Publish Packages workflow after a package is marked `"private": false` and reviewed.
+The workflow does not run on ordinary pushes. It versions private packages so the repository can prepare `@repo/types` and future packages such as `@repo/contracts` before they become publishable. It does not publish packages or create tags. Publishing remains an explicit operation through the existing Publish Packages workflow after a package is marked `"private": false` and reviewed.
 
 ## Service Mesh Integration
 

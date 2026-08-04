@@ -124,7 +124,7 @@ The [BDD implementer coverage reference](docs/BDD.md#implementer-coverage-refere
 Changesets manages package versions independently:
 
 1. Run pnpm changeset in a pull request that changes a workspace package's public behavior.
-2. After that changeset reaches master, the Version Packages workflow opens or updates a release PR.
+2. When preparing a release, manually run the Version Packages workflow to open or update the release PR from changesets accumulated on master.
 3. Merge the release PR to update package versions and changelogs.
 4. Publish explicitly through the Publish Packages workflow after the intended package is marked publishable.
 

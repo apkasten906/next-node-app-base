@@ -464,7 +464,7 @@ Consequence: lower migration risk and clearer package boundaries.
 
 ### Next priority (in order)
 
-- ✅ **Automated semantic versioning (Changesets)** — `@changesets/cli`, private-package versioning config, an immutable-action-pinned Version Packages PR workflow, current 2026 changelog entries, and publishing guidance are complete. Publishing remains explicitly gated by the existing Publish Packages workflow.
+- ✅ **Review-driven semantic versioning (Changesets)** — `@changesets/cli`, private-package versioning config, a manually triggered and immutable-action-pinned Version Packages PR workflow, current 2026 changelog entries, and publishing guidance are complete. Version preparation and publishing remain explicit operator actions.
 
 1. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
 2. **Phase 11 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet; begin with ADR and interface contracts in `packages/types`.

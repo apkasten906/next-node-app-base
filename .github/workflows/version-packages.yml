@@ -1,8 +1,6 @@
 name: Version Packages
 
 on:
-  push:
-    branches: [master]
   workflow_dispatch:
 
 permissions:
