@@ -1,5 +1,7 @@
 # E2E Testing Implementation Summary
 
+> Historical implementation snapshot. Counts and planned scenarios below describe the initial E2E rollout and are not the current coverage source of truth. See [PROGRESS.md](PROGRESS.md) and [apps/frontend/docs/E2E_TESTING.md](apps/frontend/docs/E2E_TESTING.md) for maintained status and guidance.
+
 ## Completion Status: ✅ COMPLETE
 
 Implementation of comprehensive E2E testing infrastructure using Playwright following the plan's Enhanced CI/CD (WSJF 4.38) priority.

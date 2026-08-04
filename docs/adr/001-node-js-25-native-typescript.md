@@ -190,7 +190,7 @@ This decision will be reviewed after:
 - [Node.js 25 Release Notes](https://nodejs.org/en/blog/release/v25.0.0)
 - [Node.js TypeScript Support Documentation](https://nodejs.org/docs/latest/api/typescript.html)
 - [Project Setup Documentation](../../SETUP.md)
-- [Development Environment](.devcontainer/devcontainer.json)
+- [Development Environment](../../.devcontainer/devcontainer.json)
 
 ## References
 

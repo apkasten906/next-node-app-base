@@ -258,19 +258,19 @@ Set `"private": true` in `package.json`. The publish script automatically skips 
 
 ## Versioning
 
-### Manual Version Bumps
+### Add a Changeset
 
 ```bash
-# In the package directory
-cd packages/types
-pnpm version patch  # 1.0.0 → 1.0.1
-pnpm version minor  # 1.0.0 → 1.1.0
-pnpm version major  # 1.0.0 → 2.0.0
+pnpm changeset
 ```
 
-### Automated Versioning (TODO)
+Select the affected workspace packages, choose the semantic version bump, and describe the user-visible change. Pull requests that only change documentation, tests, CI, or repository maintenance do not need a changeset.
 
-Future enhancement: Integrate [changesets](https://github.com/changesets/changesets) or [semantic-release](https://github.com/semantic-release/semantic-release) for automated versioning based on conventional commits.
+### Manually Triggered Version Pull Requests
+
+When a release is ready to prepare, manually run `.github/workflows/version-packages.yml` from the GitHub Actions tab. It uses the changeset files accumulated on `master` to open or update a `chore(release): version packages` pull request. That pull request updates package versions and package-level changelogs independently.
+
+The workflow does not run on ordinary pushes. It versions private packages so the repository can prepare `@repo/types` and future packages such as `@repo/contracts` before they become publishable. It does not publish packages or create tags. Publishing remains an explicit operation through the existing Publish Packages workflow after a package is marked `"private": false` and reviewed.
 
 ## Service Mesh Integration
 
@@ -420,7 +420,7 @@ turbo run build --filter=@apkasten906/types
 ## Future Enhancements
 
 - [x] **GitHub Actions workflow for automated publishing** - IMPLEMENTED (`.github/workflows/publish.yml`)
-- [ ] Automated versioning with changesets or semantic-release
+- [x] **Changesets versioning** - Version Packages PR automation is implemented
 - [ ] Provenance attestation for published packages
 - [ ] NPM package signing
 - [ ] Pre-publish validation hooks

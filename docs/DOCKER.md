@@ -374,7 +374,7 @@ USER nodejs
 ### 2. Minimal Base Images
 
 - Using Alpine Linux (5MB base)
-- Node.js 20 Alpine images
+- Node.js 25 Alpine images
 - No unnecessary packages
 
 ### 3. Multi-Stage Builds

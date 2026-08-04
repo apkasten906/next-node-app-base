@@ -5,7 +5,7 @@ This repo is a working Next.js + Node.js monorepo (frontend + backend), with Doc
 ## Prerequisites
 
 - Node.js 25+
-- pnpm 8+
+- pnpm 11, using the version declared in the root package.json
 - Docker + Docker Compose
 
 ## Option A: Docker Compose (fastest)
@@ -41,11 +41,7 @@ docker compose up -d postgres redis
 - Copy `apps/backend/.env.example` to `apps/backend/.env` (or export env vars another way).
 - Copy `apps/frontend/.env.local.example` to `apps/frontend/.env.local` and ensure it contains at least:
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=dev-nextauth-secret-change-in-production
-```
+Use the documented defaults in the example files and replace all production secrets before deployment.
 
 4. Run migrations and start dev:
 
@@ -69,7 +65,7 @@ pnpm typecheck
 ## Frontend build verification
 
 - Build command: `pnpm -w -C apps/frontend run build`
- - Status: Verified locally (originally on branch `chore/ci-dry-workflows`, merged in PR #29) — the Next.js production build completes successfully.
+- Status: The Next.js production build is enforced by CI.
 - Windows caveat: On Windows the build may require Developer Mode to allow creation of filesystem symlinks. If Developer Mode is not enabled you can see `EPERM` errors during linking. Some setups may also emit a "IO error: provided value is too long when setting link name" warning for certain symlinked files; the build artifacts are still produced. Workarounds:
   - Enable Windows Developer Mode (recommended for native Windows development).
   - Use WSL2 or a Linux/macOS CI runner to avoid Windows symlink/long-path issues.
