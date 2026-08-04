@@ -119,6 +119,8 @@ BDD status:
 
 The [BDD implementer coverage reference](docs/BDD.md#implementer-coverage-reference) explains how to browse every scenario and isolate the `@wip @adopter` implementation backlog in the admin-only BDD dashboard. See also the [testing documentation](docs/TESTING.md) and [E2E guide](apps/frontend/docs/E2E_TESTING.md).
 
+The next governance update will separate responsibility (`@template` / `@adopter`) from execution status and make dashboard totals scope-aware.
+
 ## Versioning and Publishing
 
 Changesets manages package versions independently:
@@ -129,6 +131,8 @@ Changesets manages package versions independently:
 4. Publish explicitly through the Publish Packages workflow after the intended package is marked publishable.
 
 Repository/template releases are separate Git tags and GitHub releases. Repository-only documentation, CI, and tooling changes do not require artificial package changesets. See [Publishing Packages](docs/PUBLISHING.md).
+
+The current distribution goal is repository cloning and GitHub's **Use this template** flow, not package publication. The next template milestone tag and GitHub release will be created manually after the planned BDD responsibility-taxonomy change is merged.
 
 ## Documentation
 

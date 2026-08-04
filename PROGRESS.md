@@ -115,11 +115,13 @@ The backend core is implemented and running.
 
 ## Current Focus / Next Steps
 
-### Current Objective: BDD Base-Repo Scenario Coverage Complete
+### Current Objective: Responsibility-Aware BDD Governance
 
-**Goal:** Promote all base-repo scenarios to `@ready`. Adopter scenarios remain `@wip @adopter` permanently — they are implementation guides for teams forking the template, not coverage obligations here. See [plan prompt](.github/prompts/plan-nextNodeAppBase.prompt.md) section N for the full base-vs-adopter scope tables.
+**Goal:** Separate scenario execution status from coverage responsibility. Every scenario will have one effective status (`@ready`, `@wip`, `@manual`, or `@skip`) and one effective responsibility tag (`@template` or `@adopter`). See [plan prompt](.github/prompts/plan-nextNodeAppBase.prompt.md) section N.
 
-**Current tracked status (July 31, 2026):** backend 140/266 ready; frontend 31/121 ready; overall 171/387 ready. Frontend/security adopter-only scenarios are explicitly classified with `@adopter`. The new backend-ready scenario covers the deterministic moderator E2E persona contract.
+**Pre-migration baseline (July 31, 2026):** backend 140/266 ready; frontend 31/121 ready; overall 171/387 ready. The current 216 WIP count mixes genuine template backlog with adopter guidance and must not be interpreted as unfinished template coverage.
+
+**Decision recorded August 4, 2026:** retain status and responsibility as independent dimensions. Use `@template` rather than `@native` for unambiguous ownership. Update governance, reports, dashboard filters/totals, Cucumber profiles, feature tags, tests, and documentation together. Default dashboard reporting should show template scope; provide an adopter-backlog preset.
 
 **Priority order** (highest coverage gap first):
 
@@ -159,6 +161,8 @@ The backend core is implemented and running.
 ### Up Next
 
 - [x] Review-driven semantic versioning (Changesets) — added `@changesets/cli`, version-only package scripts/config, a manually triggered and immutable-action-pinned Version Packages PR workflow, publishing guidance, and current 2026 `CHANGELOG.md` entries
+- [ ] BDD responsibility taxonomy — add mutually exclusive `@template` / `@adopter` scope tags alongside status, migrate all scenarios, and add scope-aware governance and dashboard reporting
+- [ ] Template-ready milestone release — after the BDD taxonomy work merges, manually create the repository tag and GitHub release; no package publication or Changesets version PR is planned
 - [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `fasciculum-instrumentorum` fork proves reuse
 - [ ] Phase 11 Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks; begin with ADR and interface contracts
 

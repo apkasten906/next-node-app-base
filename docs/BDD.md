@@ -118,6 +118,8 @@ Notes:
 
 ## Implementer Coverage Reference
 
+> Planned governance migration: status and responsibility will become independent dimensions. Every scenario will retain one status tag and gain exactly one responsibility tag: `@template` or `@adopter`. The dashboard will gain separate scope filters and default to template-owned scenarios. Until that migration lands, existing `@wip @adopter` scenarios remain the adopter catalog.
+
 The Gherkin files are the comprehensive, version-controlled list of behaviors available to teams adopting this template:
 
 - `apps/backend/features/*.feature`

@@ -102,28 +102,16 @@ node scripts/publish-packages.js
 
 ## CI/CD Workflows
 
-### GitHub Actions Automated Publishing
+### GitHub Actions Manual Publishing
 
-The repository includes a GitHub Actions workflow (`.github/workflows/publish.yml`) for automated package publishing.
+The repository includes a manually triggered GitHub Actions workflow (`.github/workflows/publish.yml`) for package publishing.
 
 #### Workflow Triggers
 
-1. **Manual Dispatch** (recommended for testing)
-   - Go to Actions → Publish Packages → Run workflow
-   - Options:
-     - Dry-run mode (default: enabled)
-     - Custom registry URL (default: GitHub Packages)
-     - Packages filter (default: all publishable packages)
-
-2. **Git Tags** (automatic publishing)
-   - Push a version tag: `git tag v1.0.0 && git push --tags`
-   - Workflow publishes all non-private packages
-   - Always runs in production mode (no dry-run)
-
-3. **GitHub Releases** (automatic publishing)
-   - Create a release in GitHub UI
-   - Workflow publishes packages and updates release notes
-   - Release notes automatically include published package list
+- Go to Actions → Publish Packages → Run workflow.
+- Dry-run mode is enabled by default.
+- You may select a custom registry and package filter.
+- Tags and GitHub releases do not trigger package publication.
 
 #### Workflow Jobs
 
@@ -138,10 +126,6 @@ The repository includes a GitHub Actions workflow (`.github/workflows/publish.ym
    - Runs `scripts/publish-packages.js` with appropriate environment
    - Uses `GITHUB_TOKEN` for authentication (automatic)
    - Creates publish summary in GitHub Actions UI
-
-3. **Release Notes Job** (only for releases)
-   - Updates release notes with published package list
-   - Formats as: `@apkasten906/package-name@version`
 
 #### Required Secrets
 
@@ -167,20 +151,6 @@ The repository includes a GitHub Actions workflow (`.github/workflows/publish.ym
    - Packages filter: (leave empty for all)
 5. Click "Run workflow"
 6. Monitor output in Actions log
-
-#### Example: Publish via Git Tag
-
-```bash
-# Ensure all changes are committed
-git status
-
-# Create and push a version tag
-git tag v1.0.0
-git push origin v1.0.0
-
-# Workflow automatically triggers and publishes
-# Check Actions tab for progress
-```
 
 #### Example: Publishing to Internal Registry
 
@@ -271,6 +241,18 @@ Select the affected workspace packages, choose the semantic version bump, and de
 When a release is ready to prepare, manually run `.github/workflows/version-packages.yml` from the GitHub Actions tab. It uses the changeset files accumulated on `master` to open or update a `chore(release): version packages` pull request. That pull request updates package versions and package-level changelogs independently.
 
 The workflow does not run on ordinary pushes. It versions private packages so the repository can prepare `@repo/types` and future packages such as `@repo/contracts` before they become publishable. It does not publish packages or create tags. Publishing remains an explicit operation through the existing Publish Packages workflow after a package is marked `"private": false` and reviewed.
+
+### Template Repository Releases
+
+Repository/template releases are independent of package versioning. The current project goal is distribution through cloning and GitHub's **Use this template** feature; no workspace package is planned for publication.
+
+After the planned BDD responsibility-taxonomy work is merged:
+
+1. Choose the template milestone version.
+2. Create the repository tag manually from the final merged `master` commit.
+3. Create the GitHub release from that tag.
+
+Do not run the Version Packages or Publish Packages workflows for this milestone. They are retained for a future decision to distribute workspace packages independently.
 
 ## Service Mesh Integration
 
@@ -419,7 +401,7 @@ turbo run build --filter=@apkasten906/types
 
 ## Future Enhancements
 
-- [x] **GitHub Actions workflow for automated publishing** - IMPLEMENTED (`.github/workflows/publish.yml`)
+- [x] **GitHub Actions workflow for manual publishing** - IMPLEMENTED (`.github/workflows/publish.yml`)
 - [x] **Changesets versioning** - Version Packages PR automation is implemented
 - [ ] Provenance attestation for published packages
 - [ ] NPM package signing
@@ -429,7 +411,7 @@ turbo run build --filter=@apkasten906/types
 ## Completed Features
 
 ✅ **Registry-agnostic publishing script** - `scripts/publish-packages.js` supports any npm-compatible registry
-✅ **GitHub Actions workflow** - Automated publishing via manual dispatch, tags, or releases
+✅ **GitHub Actions workflow** - Explicit package publishing through manual dispatch
 ✅ **Dry-run mode** - Test publishing without actually uploading packages
 ✅ **Package filtering** - Selectively publish specific packages
 ✅ **Service mesh support** - Route publishing through internal registries via environment variables

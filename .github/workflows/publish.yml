@@ -20,25 +20,16 @@ on:
         type: string
         default: ""
 
-  # Publish on tags (for release automation)
-  push:
-    tags:
-      - "v*"
-
-  # Publish on GitHub releases
-  release:
-    types: [published]
-
 # Required permissions for GitHub Packages
 permissions:
-  contents: write
+  contents: read
   packages: write
 
 env:
   NODE_VERSION: "25.x"
-  REGISTRY_URL_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['registry-url'] || '' }}
-  DRY_RUN_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['dry-run'] || '' }}
-  PACKAGES_FILTER_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs['packages-filter'] || '' }}
+  REGISTRY_URL_INPUT: ${{ github.event.inputs['registry-url'] }}
+  DRY_RUN_INPUT: ${{ github.event.inputs['dry-run'] }}
+  PACKAGES_FILTER_INPUT: ${{ github.event.inputs['packages-filter'] }}
 
 jobs:
   build:
@@ -99,14 +90,7 @@ jobs:
 
       - name: Determine dry-run mode
         id: dry-run
-        run: |
-          # Manual dispatch: use input
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "enabled=$DRY_RUN_INPUT" >> "$GITHUB_OUTPUT"
-          # Tag/release: always publish for real
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          fi
+        run: echo "enabled=$DRY_RUN_INPUT" >> "$GITHUB_OUTPUT"
 
       - name: Publish packages (dry-run)
         if: steps.dry-run.outputs.enabled == 'true'
@@ -142,42 +126,3 @@ jobs:
             echo ""
             echo "Check the logs above for detailed publish results."
           } >> "$GITHUB_STEP_SUMMARY"
-
-  # Optional: Create GitHub release notes with published packages
-  release-notes:
-    name: Update Release Notes
-    runs-on: ubuntu-latest
-    needs: publish
-    if: github.event_name == 'release'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - name: Get published packages
-        id: packages
-        run: |
-          # Extract package names and versions from packages/*
-          packages=$(find packages -name 'package.json' -not -path '*/node_modules/*' -exec jq -r 'select(.private == false) | "\(.name)@\(.version)"' {} \; | paste -sd "," -)
-          echo "list=$packages" >> "$GITHUB_OUTPUT"
-
-      - name: Add packages to release notes
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const packages = '${{ steps.packages.outputs.list }}'.split(',').filter(Boolean);
-            if (packages.length === 0) {
-              console.log('No publishable packages found');
-              return;
-            }
-
-            const packageList = packages.map(pkg => `- \`${pkg}\``).join('\n');
-            const body = `## Published Packages\n\n${packageList}\n\n---\n\n${context.payload.release.body}`;
-
-            await github.rest.repos.updateRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: context.payload.release.id,
-              body: body
-            });
