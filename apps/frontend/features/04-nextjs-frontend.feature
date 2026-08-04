@@ -9,6 +9,7 @@ Feature: Next.js Frontend Application
     And the backend API is running on port 3001
 
   @ready @frontend @nextjs @app-router @impl_frontend_app_router
+  @template
   Scenario: Next.js App Router architecture
     Given Next.js App Router is configured
     When I inspect the route entries
@@ -17,6 +18,7 @@ Feature: Next.js Frontend Application
     And client components should be marked with "use client"
 
   @ready @frontend @auth @backend-only @impl_frontend_backend_only_auth
+  @template
   Scenario: Backend-only authentication setup
     Given ADR-011 backend-only auth is configured in the frontend
     When I inspect the frontend auth boundary
@@ -25,6 +27,7 @@ Feature: Next.js Frontend Application
     And server-rendered auth checks should call the backend current-user endpoint
 
   @ready @frontend @auth @login @backend-only @impl_frontend_backend_only_login
+  @template
   Scenario: User login with backend-only auth
     Given the sign-in client uses the auth hook
     When I inspect the sign-in flow
@@ -52,6 +55,7 @@ Feature: Next.js Frontend Application
     And I should be redirected to home page
 
   @ready @frontend @dashboard @auth @impl_frontend_dashboard_auth_gateway
+  @template
   Scenario: Protected dashboard access
     Given the dashboard page requires the current user
     When unauthenticated user accesses protected route
@@ -61,6 +65,7 @@ Feature: Next.js Frontend Application
     And user information should be displayed
 
   @ready @frontend @tanstack-query @setup @impl_frontend_query_provider
+  @template
   Scenario: TanStack Query configuration
     Given TanStack Query is set up
     When the application loads
@@ -96,6 +101,7 @@ Feature: Next.js Frontend Application
     And retry button should be available
 
   @ready @frontend @tailwind @impl_frontend_tailwind
+  @template
   Scenario: Tailwind CSS styling
     Given Tailwind CSS 4 is configured
     When I inspect components
@@ -104,6 +110,7 @@ Feature: Next.js Frontend Application
     And dark mode should be supported
 
   @ready @frontend @responsive @impl_frontend_responsive_layout
+  @template
   Scenario: Responsive layout
     When I view the site on mobile "<device>"
     Then layout should adapt to screen size
@@ -126,6 +133,7 @@ Feature: Next.js Frontend Application
     Then dark mode preference should persist
 
   @ready @frontend @seo @metadata @impl_frontend_metadata
+  @template
   Scenario: SEO metadata configuration
     Given SEO metadata is configured
     When I view page source
@@ -157,6 +165,7 @@ Feature: Next.js Frontend Application
     And FOUT/FOIT should be prevented
 
   @ready @frontend @route-protection @impl_frontend_route_auth
+  @template
   Scenario: Route-level authentication
     Given certain routes require authentication
     When unauthenticated user accesses protected route
@@ -187,6 +196,7 @@ Feature: Next.js Frontend Application
     Then validation should pass
 
   @ready @frontend @error-pages @impl_frontend_custom_error_pages
+  @template
   Scenario: Custom error pages
     When I navigate to non-existent route
     Then custom 404 page should be shown
@@ -195,6 +205,7 @@ Feature: Next.js Frontend Application
     Then custom 500 page should be shown
 
   @ready @frontend @loading-states @impl_frontend_loading_ui
+  @template
   Scenario: Loading UI with Suspense
     Given a page uses React Suspense
     When the page loads
@@ -211,6 +222,7 @@ Feature: Next.js Frontend Application
     And time to first byte should be minimal
 
   @ready @frontend @api-routes @impl_frontend_route_handlers
+  @template
   Scenario: Next.js API routes with Route Handlers
     When I inspect GET "/api/health"
     Then the API route should respond
@@ -218,6 +230,7 @@ Feature: Next.js Frontend Application
     And status code should be 200
 
   @ready @frontend @middleware @impl_frontend_middleware
+  @template
   Scenario: Next.js middleware for request handling
     Given middleware is configured
     When I make a request

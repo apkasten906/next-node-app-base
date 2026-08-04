@@ -4,6 +4,8 @@ export type {
   BddFeatureOverview,
   BddScenarioOverview,
   Snapshot,
+  ResponsibilityCounts,
+  ResponsibilityKey,
   StatusCounts,
   StatusKey,
 } from '@/lib/contracts/bdd-types';

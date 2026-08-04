@@ -1,3 +1,4 @@
+@template
 Feature: Project Foundation and Governance
   As a development team
   We need a solid monorepo foundation with code quality standards

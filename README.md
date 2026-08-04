@@ -12,7 +12,7 @@ A production-oriented starter repository for a Next.js frontend and an Express b
 - Changesets package versioning with a reviewable Version Packages pull request
 - Security, ADR, workflow-linting, and dependency-governance foundations
 
-Adopter-specific scenarios remain tagged @wip @adopter as implementation guides. See [PROGRESS.md](PROGRESS.md) for current scope and priorities.
+Adopter-specific scenarios are tagged `@wip @adopter` as implementation guides and are separate from template-owned coverage. See [PROGRESS.md](PROGRESS.md) for current scope and priorities.
 
 ## Prerequisites
 
@@ -113,13 +113,13 @@ Playwright starts the frontend and backend automatically for E2E runs and uses d
 
 BDD status:
 
-- @ready: implemented base-repository behavior in the default BDD gate
-- @wip @adopter: guidance for applications created from this template
+- `@ready @template`: implemented base-repository behavior in the default BDD gate
+- `@wip @adopter`: guidance for applications created from this template
 - @manual: behavior requiring manual verification
 
 The [BDD implementer coverage reference](docs/BDD.md#implementer-coverage-reference) explains how to browse every scenario and isolate the `@wip @adopter` implementation backlog in the admin-only BDD dashboard. See also the [testing documentation](docs/TESTING.md) and [E2E guide](apps/frontend/docs/E2E_TESTING.md).
 
-The next governance update will separate responsibility (`@template` / `@adopter`) from execution status and make dashboard totals scope-aware.
+Responsibility (`@template` / `@adopter`) is independent from execution status. Dashboard totals and filters are scope-aware and default to template-owned scenarios.
 
 ## Versioning and Publishing
 

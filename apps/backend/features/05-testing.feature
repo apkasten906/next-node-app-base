@@ -9,6 +9,7 @@ Feature: Testing Infrastructure
 
   @testing @resilience @external-services @impl_test_resilience_external_services
   @ready
+  @template
   Scenario: Backend tests are resilient without external services
     Given backend test setup forces external service mocks
     And backend CI test runner forces external service mocks
@@ -16,6 +17,7 @@ Feature: Testing Infrastructure
     And Redis and database integration tests should be skippable when external services are disabled
 
   @testing @vitest @unit
+  @adopter
   Scenario: Vitest unit testing for backend
     Given Vitest is configured for unit tests
     When I run unit tests for a service
@@ -24,6 +26,7 @@ Feature: Testing Infrastructure
     And coverage reports should be generated
 
   @testing @vitest @integration
+  @adopter
   Scenario: Integration testing with Vitest
     Given integration tests are defined
     When I run integration tests
@@ -32,6 +35,7 @@ Feature: Testing Infrastructure
     And tests should run in isolation
 
   @testing @playwright @e2e
+  @adopter
   Scenario: Playwright E2E testing
     Given Playwright is configured for E2E tests
     When I run E2E tests for user flow "<flow>"
@@ -46,6 +50,7 @@ Feature: Testing Infrastructure
       | dashboard access  |
 
   @testing @e2e @seeding
+  @adopter
   Scenario: Deterministic E2E seeding via HTTP endpoint
     Given the backend exposes a dev-only seed endpoint at "POST /api/e2e/seed"
     And the endpoint is blocked when NODE_ENV is "production"
@@ -56,6 +61,7 @@ Feature: Testing Infrastructure
     And the seeded state should be consistent across runs
 
   @ready @no-server @testing @e2e @seeding @moderator @impl_e2e_moderator_persona
+  @template
   Scenario: Deterministic moderator E2E persona contract
     Given the moderator E2E persona contract sources are loaded
     Then backend default seed personas should include moderator@example.com with role MODERATOR
@@ -64,6 +70,7 @@ Feature: Testing Infrastructure
     And development fallback login should authenticate the moderator with role MODERATOR
 
   @testing @coverage
+  @adopter
   Scenario: Code coverage thresholds
     Given coverage thresholds are configured
     When I run tests with coverage
@@ -72,6 +79,7 @@ Feature: Testing Infrastructure
     And function coverage should be at least 80%
 
   @testing @supertest
+  @adopter
   Scenario: API endpoint testing with Supertest
     Given Supertest is configured for API testing
     When I test POST "/api/users" endpoint
@@ -80,6 +88,7 @@ Feature: Testing Infrastructure
     And I should assert on status codes and body
 
   @testing @mocking
+  @adopter
   Scenario: Service mocking and stubbing
     Given a service depends on external dependencies
     When I write unit tests for the service
@@ -88,6 +97,7 @@ Feature: Testing Infrastructure
     And tests should not depend on external services
 
   @testing @fixtures
+  @adopter
   Scenario: Test data fixtures
     Given test fixtures are defined
     When I run tests that need sample data
@@ -96,6 +106,7 @@ Feature: Testing Infrastructure
     And fixtures should be cleaned up after tests
 
   @testing @snapshot
+  @adopter
   Scenario: Snapshot testing for UI components
     Given snapshot tests are configured
     When I render a component
@@ -105,6 +116,7 @@ Feature: Testing Infrastructure
     And developers should review and update snapshots
 
   @testing @parallel
+  @adopter
   Scenario: Parallel test execution
     Given test suite has multiple test files
     When I run tests in parallel mode
@@ -113,6 +125,7 @@ Feature: Testing Infrastructure
     And tests should not interfere with each other
 
   @testing @watch-mode
+  @adopter
   Scenario: Watch mode for development
     Given watch mode is enabled
     When I change a source file

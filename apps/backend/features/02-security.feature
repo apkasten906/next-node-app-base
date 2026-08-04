@@ -17,6 +17,7 @@ Feature: Security Framework
     And singleton services should maintain state
 
   @ready @security @jwt @impl_jwt_authentication
+  @template
   Scenario: JWT token generation and validation
     Given a user with valid credentials
     When I generate a JWT token for the user
@@ -28,6 +29,7 @@ Feature: Security Framework
     And user information should be extracted correctly
 
   @ready @security @jwt-expiration @impl_jwt_expiration
+  @template
   Scenario: JWT token expiration handling
     Given an expired JWT token
     When I attempt to validate the expired token
@@ -94,6 +96,7 @@ Feature: Security Framework
 
   @security @authorization @audit-log @impl_authz_own_audit
   @ready
+  @template
   Scenario: Owner-based authorization and audit logging
     Given AuthorizationService and AuditLogService are configured
     When user "user-123" is granted permission "posts:update:own"
@@ -116,6 +119,7 @@ Feature: Security Framework
     And ABAC policy should be evaluated correctly
 
   @ready @security @rate-limiting @impl_rate_limiting
+  @template
   Scenario: Rate limiting for API endpoints
     Given rate limiting is enabled for endpoint "/api/auth/login"
     And the limit is 5 requests per minute
@@ -126,6 +130,7 @@ Feature: Security Framework
     And I should receive a 429 status code
 
   @ready @security @owasp @helmet @impl_helmet_security_headers
+  @template
   Scenario: OWASP Top 10 protection with Helmet.js
     Given Helmet.js is configured for Express
     When I make a request to any API endpoint
@@ -138,6 +143,7 @@ Feature: Security Framework
       | Content-Security-Policy     |
 
   @ready @security @cors @impl_cors_allowed_origins
+  @template
   Scenario: CORS configuration for allowed origins
     Given CORS is configured with allowed origins
     When I make a request from origin "<origin>"
@@ -171,6 +177,7 @@ Feature: Security Framework
       | access  | admin-panel   |
 
   @ready @security @input-validation @impl_input_validation_sanitization
+  @template
   Scenario: Input validation and sanitization
     Given input validation is configured
     When I submit data with malicious input "<input>"
@@ -186,6 +193,7 @@ Feature: Security Framework
 
   @security @secrets-management @impl_secrets_management_env
   @ready
+  @template
   Scenario: Environment-based secrets management
     Given secrets are stored in environment variables
     When the application starts
@@ -194,6 +202,7 @@ Feature: Security Framework
     And secrets should be different per environment
 
   @ready @security @auth-contract @backend-only @impl_backend_only_auth_contract
+  @template
   Scenario: ADR-011 backend-only authentication contract
     Given the ADR-011 backend auth contract source is loaded
     Then backend auth routes should expose login, refresh, logout, and current-user endpoints

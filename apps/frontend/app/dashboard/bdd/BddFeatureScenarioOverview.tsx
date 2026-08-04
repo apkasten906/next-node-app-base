@@ -4,10 +4,11 @@ import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState, type JSX } from 'react';
 
-import type { BddFeatureOverview, StatusKey } from './types';
+import type { BddFeatureOverview, ResponsibilityKey, StatusKey } from './types';
 
 const STATUS_ORDER: readonly StatusKey[] = ['ready', 'wip', 'manual', 'skip', 'other'];
 const STATUS_SET_ALL = new Set<StatusKey>(STATUS_ORDER);
+const RESPONSIBILITY_ORDER: readonly ResponsibilityKey[] = ['template', 'adopter', 'other'];
 
 function isStatusKey(v: string): v is StatusKey {
   return (STATUS_ORDER as readonly string[]).includes(v);
@@ -46,6 +47,21 @@ function serializeStatesParam(selected: Set<StatusKey>): string | undefined {
   if (selected.size === 0) return 'none';
   if (isAllSelected(selected)) return undefined;
   return STATUS_ORDER.filter((s) => selected.has(s)).join(',');
+}
+
+function parseScopesParam(param: string | undefined): Set<ResponsibilityKey> {
+  if (param === undefined) return new Set(['template']);
+  if (param === 'all') return new Set(RESPONSIBILITY_ORDER);
+  const selected = param
+    .split(',')
+    .filter((v): v is ResponsibilityKey => RESPONSIBILITY_ORDER.includes(v as ResponsibilityKey));
+  return new Set(selected);
+}
+
+function serializeScopesParam(selected: Set<ResponsibilityKey>): string | undefined {
+  if (selected.size === 1 && selected.has('template')) return undefined;
+  if (selected.size === RESPONSIBILITY_ORDER.length) return 'all';
+  return RESPONSIBILITY_ORDER.filter((scope) => selected.has(scope)).join(',') || 'none';
 }
 
 function statusPillClass(status: StatusKey): string {
@@ -105,14 +121,23 @@ function getStatusCount(
 export function BddFeatureScenarioOverview({
   features,
   initialStatesParam,
-}: Readonly<{ features: BddFeatureOverview[]; initialStatesParam?: string }>): JSX.Element {
+  initialScopesParam,
+}: Readonly<{
+  features: BddFeatureOverview[];
+  initialStatesParam?: string;
+  initialScopesParam?: string;
+}>): JSX.Element {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const urlStatesParam = searchParams.get('states') ?? undefined;
+  const urlScopesParam = searchParams.get('scopes') ?? undefined;
 
   const [selectedStatuses, setSelectedStatuses] = useState<Set<StatusKey>>(() =>
     parseStatesParam(initialStatesParam)
+  );
+  const [selectedScopes, setSelectedScopes] = useState<Set<ResponsibilityKey>>(() =>
+    parseScopesParam(initialScopesParam)
   );
 
   useEffect(() => {
@@ -121,25 +146,36 @@ export function BddFeatureScenarioOverview({
   }, [urlStatesParam]);
 
   useEffect(() => {
-    const desiredParam = serializeStatesParam(selectedStatuses);
-    const currentParam = urlStatesParam;
+    setSelectedScopes(parseScopesParam(urlScopesParam));
+  }, [urlScopesParam]);
 
-    if (desiredParam === undefined && currentParam === undefined) return;
-    if (desiredParam !== currentParam) {
-      const nextSearch = new URLSearchParams(searchParams.toString());
-      if (desiredParam === undefined) nextSearch.delete('states');
-      else nextSearch.set('states', desiredParam);
-
-      const qs = nextSearch.toString();
-      const href = (qs ? `${pathname}?${qs}` : pathname) as Route;
-      router.replace(href, { scroll: false });
-    }
-  }, [pathname, router, searchParams, selectedStatuses, urlStatesParam]);
+  useEffect(() => {
+    const desiredStates = serializeStatesParam(selectedStatuses);
+    const desiredScopes = serializeScopesParam(selectedScopes);
+    if (desiredStates === urlStatesParam && desiredScopes === urlScopesParam) return;
+    const nextSearch = new URLSearchParams(searchParams.toString());
+    if (desiredStates === undefined) nextSearch.delete('states');
+    else nextSearch.set('states', desiredStates);
+    if (desiredScopes === undefined) nextSearch.delete('scopes');
+    else nextSearch.set('scopes', desiredScopes);
+    const qs = nextSearch.toString();
+    router.replace((qs ? `${pathname}?${qs}` : pathname) as Route, { scroll: false });
+  }, [
+    pathname,
+    router,
+    searchParams,
+    selectedScopes,
+    selectedStatuses,
+    urlScopesParam,
+    urlStatesParam,
+  ]);
 
   const filtered = useMemo(() => {
     const out = features
       .map((f) => {
-        const scenarios = f.scenarios.filter((s) => selectedStatuses.has(s.status));
+        const scenarios = f.scenarios.filter(
+          (s) => selectedStatuses.has(s.status) && selectedScopes.has(s.responsibility)
+        );
         const counts = {
           total: scenarios.length,
           ready: scenarios.filter((s) => s.status === 'ready').length,
@@ -159,7 +195,7 @@ export function BddFeatureScenarioOverview({
 
     const scenarioCount = out.reduce((acc, f) => acc + f.scenarios.length, 0);
     return { features: out, scenarioCount };
-  }, [features, selectedStatuses]);
+  }, [features, selectedScopes, selectedStatuses]);
 
   function setAll(next: boolean): void {
     setSelectedStatuses(new Set(next ? STATUS_ORDER : []));
@@ -229,6 +265,41 @@ export function BddFeatureScenarioOverview({
         </div>
       </div>
 
+      <div className="mt-3 rounded-lg border bg-white p-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="text-sm font-medium">Filter by responsibility</div>
+          <button
+            type="button"
+            className="text-xs rounded-md border bg-white px-3 py-1.5 hover:bg-gray-50"
+            onClick={() => {
+              setSelectedScopes(new Set(['adopter']));
+              setSelectedStatuses(new Set(['wip']));
+            }}
+          >
+            Adopter backlog
+          </button>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-4">
+          {RESPONSIBILITY_ORDER.map((scope) => (
+            <label key={scope} className="flex items-center gap-2 text-sm capitalize">
+              <input
+                type="checkbox"
+                checked={selectedScopes.has(scope)}
+                onChange={(event) => {
+                  setSelectedScopes((previous) => {
+                    const next = new Set(previous);
+                    if (event.target.checked) next.add(scope);
+                    else next.delete(scope);
+                    return next;
+                  });
+                }}
+              />
+              {scope}
+            </label>
+          ))}
+        </div>
+      </div>
+
       <div className="mt-4 space-y-3">
         {filtered.features.map((f) => {
           return (
@@ -281,6 +352,7 @@ export function BddFeatureScenarioOverview({
                       <tr>
                         <th className="text-left font-medium px-3 py-2">Scenario</th>
                         <th className="text-left font-medium px-3 py-2">Status</th>
+                        <th className="text-left font-medium px-3 py-2">Responsibility</th>
                         <th className="text-left font-medium px-3 py-2">Impl</th>
                         <th className="text-left font-medium px-3 py-2">Tags</th>
                       </tr>
@@ -299,6 +371,7 @@ export function BddFeatureScenarioOverview({
                                 {formatStatusLabel(s.status)}
                               </span>
                             </td>
+                            <td className="px-3 py-2 capitalize">{s.responsibility}</td>
                             <td className="px-3 py-2">
                               {s.implTags.length ? (
                                 <span className="font-mono text-xs">{s.implTags.join(' ')}</span>

@@ -10,6 +10,7 @@ Feature: Notification Service Abstraction
 
   @notifications @email @impl_notifications
   @ready
+  @template
   Scenario: Send email notification
     Given email provider is configured
     When I send an email to "user@example.com" with subject "Welcome"
@@ -18,6 +19,7 @@ Feature: Notification Service Abstraction
     And delivery status should be tracked
 
   @notifications @email @sendgrid
+  @adopter
   Scenario: SendGrid email provider
     Given EMAIL_PROVIDER is set to "sendgrid"
     And SendGrid API key is configured
@@ -27,6 +29,7 @@ Feature: Notification Service Abstraction
     And delivery should be confirmed
 
   @notifications @email @console
+  @adopter
   Scenario: Console email provider for development
     Given EMAIL_PROVIDER is set to "console"
     When I send an email in development mode
@@ -36,6 +39,7 @@ Feature: Notification Service Abstraction
 
   @notifications @sms @impl_notifications_sms
   @ready
+  @template
   Scenario: Send SMS notification
     Given SMS provider is configured
     When I send an SMS to "+1234567890" with message "Verification code: 123456"
@@ -44,6 +48,7 @@ Feature: Notification Service Abstraction
     And delivery status should be tracked
 
   @notifications @sms @twilio
+  @adopter
   Scenario: Twilio SMS provider
     Given SMS_PROVIDER is set to "twilio"
     And Twilio credentials are configured
@@ -54,6 +59,7 @@ Feature: Notification Service Abstraction
 
   @notifications @push @impl_notifications_push
   @ready
+  @template
   Scenario: Send push notification
     Given push notification provider is configured
     When I send a push notification to device token "<token>"
@@ -67,6 +73,7 @@ Feature: Notification Service Abstraction
       | fcm-token-456-device-ios               |
 
   @notifications @push @fcm
+  @adopter
   Scenario: Firebase Cloud Messaging push provider
     Given PUSH_PROVIDER is set to "fcm"
     And Firebase credentials are configured
@@ -76,6 +83,7 @@ Feature: Notification Service Abstraction
     And delivery should be confirmed
 
   @notifications @bulk-email
+  @adopter
   Scenario: Send bulk email notifications
     Given email provider supports bulk sending
     When I send bulk emails to 100 recipients
@@ -84,6 +92,7 @@ Feature: Notification Service Abstraction
     And all deliveries should be tracked
 
   @notifications @templates
+  @adopter
   Scenario: Email template rendering
     Given email templates are defined
     When I send an email using template "welcome-email"
@@ -95,6 +104,7 @@ Feature: Notification Service Abstraction
     And the email should contain personalized content
 
   @notifications @attachments
+  @adopter
   Scenario: Send email with attachments
     Given an email with attachments
     When I send an email with PDF attachment
@@ -104,6 +114,7 @@ Feature: Notification Service Abstraction
 
   @notifications @retry @impl_notifications
   @ready
+  @template
   Scenario: Notification delivery retry logic
     Given a notification fails to deliver
     When the initial delivery attempt fails
@@ -113,6 +124,7 @@ Feature: Notification Service Abstraction
 
   @notifications @health-check @impl_notifications
   @ready
+  @template
   Scenario: Notification service health check
     Given notification providers are configured
     When I check notification service health
@@ -121,6 +133,7 @@ Feature: Notification Service Abstraction
     And push provider status should be reported
 
   @notifications @provider-switching
+  @adopter
   Scenario: Switch notification providers via environment variables
     Given notification service uses dependency injection
     When I change EMAIL_PROVIDER from "console" to "sendgrid"
@@ -129,6 +142,7 @@ Feature: Notification Service Abstraction
     And emails should be sent via the new provider
 
   @notifications @error-handling
+  @adopter
   Scenario: Handle notification delivery failures
     Given email provider is unavailable
     When I attempt to send an email
@@ -137,6 +151,7 @@ Feature: Notification Service Abstraction
     And the user should be notified of the failure
 
   @notifications @logging
+  @adopter
   Scenario: Notification delivery logging
     Given notification logging is enabled
     When any notification is sent

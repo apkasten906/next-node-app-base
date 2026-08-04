@@ -9,6 +9,7 @@ Feature: Backend Core Services
     And environment variables are configured
 
   @ready @backend @express @impl_express_init
+  @template
   Scenario: Express server initialization
     Given Express is configured with middleware
     When the server starts
@@ -17,6 +18,7 @@ Feature: Backend Core Services
     And error handling should be configured
 
   @ready @backend @database @prisma @impl_prisma_connection
+  @template
   Scenario: Prisma ORM database connection
     Given Prisma is configured for PostgreSQL
     When the application connects to the database
@@ -25,6 +27,7 @@ Feature: Backend Core Services
     And migrations should be up to date
 
   @ready @backend @database @crud @impl_user_crud
+  @template
   Scenario: Database CRUD operations
     Given a User model exists in the database
     When I create a new user with data:
@@ -42,6 +45,7 @@ Feature: Backend Core Services
     Then the user should be removed from the database
 
   @ready @backend @cache @redis @impl_redis_cache
+  @template
   Scenario: Redis caching service
     Given Redis is configured and running
     When I set a cache key "test-key" with value "test-value"
@@ -53,6 +57,7 @@ Feature: Backend Core Services
     Then the cache key should be expired
 
   @ready @backend @cache @invalidation @impl_cache_invalidation
+  @template
   Scenario: Cache invalidation strategies
     Given cached data exists for key "user:123"
     When the underlying data is updated
@@ -61,6 +66,7 @@ Feature: Backend Core Services
     And the fresh data should be cached
 
   @ready @backend @logging @winston @impl_winston_logging
+  @template
   Scenario: Winston logging service
     Given Winston is configured with multiple transports
     When I log a message at level "<level>"
@@ -76,6 +82,7 @@ Feature: Backend Core Services
       | debug |
 
   @ready @backend @logging @correlation-id @impl_correlation_id
+  @template
   Scenario: Request correlation ID tracking
     Given correlation ID middleware is enabled
     When I make an API request
@@ -84,6 +91,7 @@ Feature: Backend Core Services
     And all logs for this request should include the correlation ID
 
   @ready @backend @error-handling @impl_error_handler
+  @template
   Scenario: Global error handling middleware
     Given global error handler is configured
     When an unhandled error occurs in a route
@@ -93,6 +101,7 @@ Feature: Backend Core Services
     And in production, stack traces should be hidden
 
   @ready @backend @health-check @impl_health_check
+  @template
   Scenario: Health check endpoint
     Given the application is running
     When I request GET "/health"
@@ -104,6 +113,7 @@ Feature: Backend Core Services
       | status    |
 
   @backend @readiness-check @impl_readiness_check
+  @adopter
   Scenario: Readiness check with dependencies
     Given the application is running
     And database is connected
@@ -115,6 +125,7 @@ Feature: Backend Core Services
     And cache health should be "true"
 
   @backend @readiness-check @failure
+  @adopter
   Scenario: Readiness check when dependencies fail
     Given the application is running
     And database is disconnected
@@ -124,6 +135,7 @@ Feature: Backend Core Services
     And database health should be "false"
 
   @backend @middleware @compression @impl_compression
+  @adopter
   Scenario: Response compression middleware
     Given compression middleware is enabled
     When I request a large JSON response
@@ -131,6 +143,7 @@ Feature: Backend Core Services
     And the Content-Encoding header should be "gzip"
 
   @ready @backend @middleware @cors @impl_cors
+  @template
   Scenario: CORS middleware configuration
     Given CORS is configured for allowed origins
     When I make a preflight OPTIONS request
@@ -139,6 +152,7 @@ Feature: Backend Core Services
     And credentials should be allowed for trusted origins
 
   @ready @backend @webhooks @impl_webhooks
+  @template
   Scenario: Webhook event publishing
     Given a webhook service is configured
     And a webhook subscriber is registered for event "<event>"
@@ -154,6 +168,7 @@ Feature: Backend Core Services
       | order.completed |
 
   @ready @backend @webhooks @security @impl_webhooks
+  @template
   Scenario: Webhook signature verification
     Given webhooks have signature verification enabled
     When a webhook is received with a valid signature
@@ -163,6 +178,7 @@ Feature: Backend Core Services
     And an error should be logged
 
   @ready @backend @database @transactions @impl_db_transactions
+  @template
   Scenario: Database transactions for atomic operations
     Given multiple database operations need to be atomic
     When I start a transaction
@@ -175,6 +191,7 @@ Feature: Backend Core Services
     And no changes should be persisted
 
   @ready @backend @database @soft-delete @impl_soft_delete
+  @template
   Scenario: Soft delete implementation
     Given a User model with soft delete support
     When I soft delete a user
@@ -185,6 +202,7 @@ Feature: Backend Core Services
     Then the soft deleted user should not be included
 
   @backend @middleware @request-validation @impl_request_validation
+  @adopter
   Scenario: Request body validation
     Given request validation middleware is configured
     When I POST to "/api/users" with invalid data
@@ -193,6 +211,7 @@ Feature: Backend Core Services
     And validation errors should be detailed in the response
 
   @ready @backend @graceful-shutdown @impl_graceful_shutdown
+  @template
   Scenario: Graceful server shutdown
     Given the server is running with active connections
     When a shutdown signal is received

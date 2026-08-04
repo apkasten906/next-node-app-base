@@ -9,6 +9,7 @@ Feature: Error Handling and Recovery
     Given the application is running
 
   @ready @boundary @critical @impl_frontend_global_error_boundary
+  @template
   Scenario: Global error boundary catches errors
     Given I am on the application
     When a component throws an unexpected error
@@ -18,6 +19,7 @@ Feature: Error Handling and Recovery
     And I should have an option to go back to home
 
   @ready @404 @impl_frontend_not_found_page
+  @template
   Scenario: Handle 404 - Page not found
     When I navigate to a non-existent page "/this-does-not-exist"
     Then I should see a 404 error page
@@ -41,6 +43,7 @@ Feature: Error Handling and Recovery
     And after signing in, I should be redirected to the original page
 
   @ready @500 @impl_frontend_error_page
+  @template
   Scenario: Handle 500 - Server error
     Given the API returns a 500 error
     When I try to load a page
@@ -99,6 +102,7 @@ Feature: Error Handling and Recovery
     And I should be able to manually dismiss it
 
   @ready @recovery @impl_frontend_error_recovery
+  @template
   Scenario: Error recovery with action retry
     Given an API request failed
     When I see the error message
@@ -142,6 +146,7 @@ Feature: Error Handling and Recovery
     And my data should still be there
 
   @ready @javascript-error @impl_frontend_error_logging
+  @template
   Scenario: Catch and report JavaScript errors
     Given I am using the application
     When a JavaScript error occurs
@@ -191,6 +196,7 @@ Feature: Error Handling and Recovery
     And the error log should include browser information
 
   @ready @accessibility @impl_frontend_accessible_errors
+  @template
   Scenario: Error messages are accessible
     Given I am using a screen reader
     When an error occurs

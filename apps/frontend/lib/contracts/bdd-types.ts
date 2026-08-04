@@ -1,4 +1,5 @@
 export type StatusKey = 'ready' | 'wip' | 'manual' | 'skip' | 'other';
+export type ResponsibilityKey = 'template' | 'adopter' | 'other';
 
 export type StatusCounts = {
   total: number;
@@ -9,12 +10,20 @@ export type StatusCounts = {
   other: number;
 };
 
+export type ResponsibilityCounts = {
+  total: number;
+  template: number;
+  adopter: number;
+  other: number;
+};
+
 export type BddScenarioOverview = {
   appName: string;
   filePath: string;
   featureName: string;
   scenarioName: string;
   status: StatusKey;
+  responsibility: ResponsibilityKey;
   tags: string[];
   implTags: string[];
 };
@@ -33,9 +42,17 @@ export type Snapshot = {
   apps: Array<{ appName: string; counts: StatusCounts }>;
   features: BddFeatureOverview[];
   overall: StatusCounts;
+  responsibility: ResponsibilityCounts;
   issues: {
     missingStatus: Array<{ filePath: string; scenarioName: string; tags: string[] }>;
     conflictingStatus: Array<{
+      filePath: string;
+      scenarioName: string;
+      tags: string[];
+      primaryStatusTags: string[];
+    }>;
+    missingResponsibility: Array<{ filePath: string; scenarioName: string; tags: string[] }>;
+    conflictingResponsibility: Array<{
       filePath: string;
       scenarioName: string;
       tags: string[];

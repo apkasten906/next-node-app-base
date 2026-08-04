@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Added independent `@template` / `@adopter` BDD responsibility governance, template-scoped default Cucumber profiles, and scope-aware dashboard filters with an adopter-backlog preset
 - Upgraded to Node.js 25 for native TypeScript support ([ADR-001](docs/adr/001-node-js-25-native-typescript.md))
 - Updated `.nvmrc` to Node.js 25
 - Updated Dev Container to use `node:25-bookworm`

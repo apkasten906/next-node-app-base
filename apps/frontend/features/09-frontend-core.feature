@@ -24,6 +24,7 @@ Feature: Frontend Core Features
     And the response should match the handler definition
 
   @ready @frontend @api-client @impl_frontend_typed_api_client
+  @template
   Scenario: Type-safe API client
     Given a type-safe API client is configured
     When I make an API request using the client
@@ -33,6 +34,7 @@ Feature: Frontend Core Features
 
   @frontend @api-client @error-handling @impl_frontend_error_handling
   @ready
+  @template
   Scenario: API client error handling
     Given the API client is configured
     When an API request fails with status "<status>"
@@ -49,6 +51,7 @@ Feature: Frontend Core Features
 
   @frontend @error-boundary @impl_frontend_error_handling
   @ready
+  @template
   Scenario: React error boundary
     Given an error boundary is configured
     When a component throws an error
@@ -57,6 +60,7 @@ Feature: Frontend Core Features
     And the error should be logged
 
   @frontend @websocket @ready @impl_frontend_websocket_hook
+  @template
   Scenario: WebSocket hook wiring
     Given the WebSocket hook is implemented
     Then it should use socket.io-client
@@ -64,6 +68,7 @@ Feature: Frontend Core Features
     And it should support reconnection state transitions
 
   @ready @frontend @error-boundary @recovery @impl_frontend_error_boundary_recovery
+  @template
   Scenario: Error boundary recovery
     Given an error boundary with retry functionality
     When a component errors and user clicks retry
@@ -93,6 +98,7 @@ Feature: Frontend Core Features
     Then the feature should be disabled
 
   @ready @frontend @loading-states @impl_frontend_loading_state
+  @template
   Scenario: Loading state management
     Given a component fetches data from API
     When the API request is in progress
@@ -121,6 +127,7 @@ Feature: Frontend Core Features
     And loading indicator should be shown during fetch
 
   @ready @frontend @caching @query @impl_frontend_query_caching
+  @template
   Scenario: TanStack Query caching
     Given TanStack Query is configured
     When I fetch data for a query
@@ -138,6 +145,7 @@ Feature: Frontend Core Features
     And UI should update with fresh data
 
   @ready @frontend @offline @impl_frontend_offline_detection
+  @template
   Scenario: Offline detection and handling
     Given offline detection is enabled
     When the user goes offline
@@ -149,6 +157,7 @@ Feature: Frontend Core Features
     And pending requests should be retried
 
   @ready @frontend @accessibility @aria @impl_frontend_semantic_accessibility
+  @template
   Scenario: ARIA labels and semantic HTML
     Given components use semantic HTML
     When I inspect a button component
@@ -166,6 +175,7 @@ Feature: Frontend Core Features
     Then focus should return to trigger element
 
   @ready @frontend @accessibility @keyboard @impl_frontend_keyboard_navigation
+  @template
   Scenario: Keyboard navigation
     Given interactive components exist
     When I navigate using Tab key
@@ -174,6 +184,7 @@ Feature: Frontend Core Features
     And Enter/Space should activate elements
 
   @ready @frontend @forms @validation @impl_frontend_form_validation
+  @template
   Scenario: Form validation
     Given a form with validation rules
     When I submit invalid data
