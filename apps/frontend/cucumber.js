@@ -21,7 +21,7 @@ const common = {
 module.exports = {
   default: {
     ...common,
-    tags: '@ready and not @skip',
+    tags: '@template and @ready and not @skip',
   },
   all: {
     ...common,
@@ -30,6 +30,10 @@ module.exports = {
   wip: {
     ...common,
     tags: '@wip and not @skip',
+  },
+  adopter: {
+    ...common,
+    tags: '@adopter and not @skip',
   },
   manual: {
     ...common,

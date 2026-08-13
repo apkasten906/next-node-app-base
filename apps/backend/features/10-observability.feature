@@ -8,6 +8,7 @@ Feature: Observability and Monitoring
     Given the observability repository artifacts are available
 
   @ready @metrics @prometheus @impl_prometheus_metrics
+  @template
   Scenario: Prometheus metrics exposition
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
     Then the observability artifact should contain:
@@ -21,6 +22,7 @@ Feature: Observability and Monitoring
       | Content-Type |
 
   @ready @metrics @custom @impl_prometheus_metrics
+  @template
   Scenario: Custom business metrics
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
     Then the observability artifact should contain:
@@ -30,6 +32,7 @@ Feature: Observability and Monitoring
       | incrementCounter         |
 
   @ready @metrics @labels @impl_prometheus_metrics
+  @template
   Scenario: Metrics with labels
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
     Then the observability artifact should contain:
@@ -39,6 +42,7 @@ Feature: Observability and Monitoring
       | status_code |
 
   @ready @grafana @impl_grafana_dashboards
+  @template
   Scenario: Grafana dashboard for metrics visualization
     When I inspect the observability artifact "kubernetes/observability/grafana/grafana-dashboards.yaml"
     Then the observability artifact should contain:
@@ -50,6 +54,7 @@ Feature: Observability and Monitoring
       | CPU Usage             |
 
   @ready @grafana @alerts @impl_grafana_alerts
+  @template
   Scenario: Grafana alerting rules
     When I inspect the observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml"
     Then the observability artifact should contain:
@@ -66,6 +71,7 @@ Feature: Observability and Monitoring
       | webhook_configs   |
 
   @ready @tracing @jaeger @impl_jaeger_tracing
+  @template
   Scenario: Distributed tracing with Jaeger
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/TracingService.ts"
     Then the observability artifact should contain:
@@ -81,6 +87,7 @@ Feature: Observability and Monitoring
       | COLLECTOR_OTLP_ENABLED |
 
   @ready @tracing @spans @impl_jaeger_tracing
+  @template
   Scenario: Trace span creation
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/TracingService.ts"
     Then the observability artifact should contain:
@@ -90,6 +97,7 @@ Feature: Observability and Monitoring
       | traceExporter               |
 
   @ready @tracing @context-propagation @impl_trace_context
+  @template
   Scenario: Trace context propagation
     When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
     Then the observability artifact should contain:
@@ -100,6 +108,7 @@ Feature: Observability and Monitoring
       | TraceFlags.SAMPLED |
 
   @ready @logging @structured @impl_winston_logging
+  @template
   Scenario: Structured logging with Winston
     When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
     Then the observability artifact should contain:
@@ -111,6 +120,7 @@ Feature: Observability and Monitoring
       | format.json() |
 
   @ready @logging @levels @impl_winston_logging
+  @template
   Scenario: Log level filtering
     When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
     Then the observability artifact should contain:
@@ -127,6 +137,7 @@ Feature: Observability and Monitoring
     Then the scenario remains an adopter implementation guide
 
   @ready @logging @loki @impl_loki_logs
+  @template
   Scenario: Loki log aggregation
     When I inspect the observability artifact "kubernetes/observability/loki/loki-config.yaml"
     Then the observability artifact should contain:
@@ -140,6 +151,7 @@ Feature: Observability and Monitoring
       | kubernetes_sd_configs |
 
   @ready @apm @impl_apm_tracing
+  @template
   Scenario: Application Performance Monitoring
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/TracingService.ts"
     Then the observability artifact should contain:
@@ -153,6 +165,7 @@ Feature: Observability and Monitoring
       | db_query_duration_seconds    |
 
   @ready @health-checks @impl_readiness_check
+  @template
   Scenario: Comprehensive health check endpoints
     When I inspect the observability artifact "apps/backend/src/index.ts"
     Then the observability artifact should contain:
@@ -168,6 +181,7 @@ Feature: Observability and Monitoring
       | status: isReady         |
 
   @ready @uptime-monitoring @impl_grafana_alerts
+  @template
   Scenario: Uptime monitoring and alerting
     When I inspect the observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml"
     Then the observability artifact should contain:
@@ -191,6 +205,7 @@ Feature: Observability and Monitoring
     Then the scenario remains an adopter implementation guide
 
   @ready @database-monitoring @impl_prometheus_metrics
+  @template
   Scenario: Database query performance monitoring
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
     Then the observability artifact should contain:
@@ -204,6 +219,7 @@ Feature: Observability and Monitoring
       | SlowDatabaseQueries |
 
   @ready @cache-monitoring @impl_prometheus_metrics
+  @template
   Scenario: Redis cache monitoring
     When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
     Then the observability artifact should contain:
@@ -216,6 +232,7 @@ Feature: Observability and Monitoring
       | HighCacheMissRate |
 
   @ready @custom-dashboards @impl_grafana_dashboards
+  @template
   Scenario: Custom monitoring dashboards
     When I inspect the observability artifact "kubernetes/observability/grafana/grafana-dashboards.yaml"
     Then the observability artifact should contain:
@@ -225,6 +242,7 @@ Feature: Observability and Monitoring
       | CPU Usage Over Time   |
 
   @ready @slo @impl_slo_monitoring
+  @template
   Scenario: Service Level Objectives tracking
     When I inspect the observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml"
     Then the observability artifact should contain:
@@ -241,6 +259,7 @@ Feature: Observability and Monitoring
       | Error Budget Remaining |
 
   @ready @correlation-id @impl_trace_log_correlation
+  @template
   Scenario: Request correlation across logs and traces
     When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
     Then the observability artifact should contain:

@@ -9,6 +9,8 @@ describe('unit: computeBddGovernanceSnapshot', () => {
     expect(snapshot).toHaveProperty('generatedAt');
     expect(snapshot).toHaveProperty('overall');
     expect(snapshot.overall).toHaveProperty('total');
+    expect(snapshot.responsibility.total).toBe(snapshot.overall.total);
+    expect(snapshot.responsibility.other).toBe(0);
 
     expect(snapshot).toHaveProperty('apps');
     expect(Array.isArray(snapshot.apps)).toBe(true);
@@ -19,6 +21,8 @@ describe('unit: computeBddGovernanceSnapshot', () => {
     expect(snapshot).toHaveProperty('issues');
     expect(snapshot.issues).toHaveProperty('missingStatus');
     expect(snapshot.issues).toHaveProperty('conflictingStatus');
+    expect(snapshot.issues.missingResponsibility).toHaveLength(0);
+    expect(snapshot.issues.conflictingResponsibility).toHaveLength(0);
 
     expect(snapshot).toHaveProperty('implAudit');
     expect(snapshot.implAudit).toHaveProperty('implTags');

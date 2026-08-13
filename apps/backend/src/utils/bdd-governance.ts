@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 type StatusKey = 'ready' | 'wip' | 'manual' | 'skip' | 'other';
+export type ResponsibilityKey = 'template' | 'adopter' | 'other';
 
 export type StatusCounts = {
   total: number;
@@ -9,6 +10,13 @@ export type StatusCounts = {
   wip: number;
   manual: number;
   skip: number;
+  other: number;
+};
+
+export type ResponsibilityCounts = {
+  total: number;
+  template: number;
+  adopter: number;
   other: number;
 };
 
@@ -46,6 +54,7 @@ export type BddScenarioOverview = {
   featureName: string;
   scenarioName: string;
   status: StatusKey;
+  responsibility: ResponsibilityKey;
   tags: string[];
   implTags: string[];
 };
@@ -64,9 +73,12 @@ export type BddGovernanceSnapshot = {
   apps: Array<{ appName: string; counts: StatusCounts }>;
   features: BddFeatureOverview[];
   overall: StatusCounts;
+  responsibility: ResponsibilityCounts;
   issues: {
     missingStatus: MissingStatusIssue[];
     conflictingStatus: ConflictingStatusIssue[];
+    missingResponsibility: MissingStatusIssue[];
+    conflictingResponsibility: ConflictingStatusIssue[];
   };
   implAudit: {
     implTagsTotal: number;
@@ -89,15 +101,20 @@ const PRIMARY_STATUS_TAGS: readonly string[] = [
   STATUS_TAGS.manual,
 ];
 
+const RESPONSIBILITY_TAGS: readonly string[] = ['@template', '@adopter'];
+
 type ScenarioRow = {
   filePath: string;
   featureName: string;
   scenarioName: string;
   tags: string[];
   status: StatusKey;
+  responsibility: ResponsibilityKey;
   implTags: string[];
   featurePrimaryStatusTags: string[];
   scenarioPrimaryStatusTags: string[];
+  featureResponsibilityTags: string[];
+  scenarioResponsibilityTags: string[];
 };
 
 type FeatureRow = {
@@ -110,6 +127,10 @@ type FeatureRow = {
 
 function createEmptyCounts(): StatusCounts {
   return { total: 0, ready: 0, wip: 0, manual: 0, skip: 0, other: 0 };
+}
+
+function createEmptyResponsibilityCounts(): ResponsibilityCounts {
+  return { total: 0, template: 0, adopter: 0, other: 0 };
 }
 
 function parseTagsLine(line: string): string[] {
@@ -136,6 +157,12 @@ function classify(tags: string[]): StatusKey {
   if (tags.includes(STATUS_TAGS.manual)) return 'manual';
   if (tags.includes(STATUS_TAGS.ready)) return 'ready';
   if (tags.includes(STATUS_TAGS.wip)) return 'wip';
+  return 'other';
+}
+
+function classifyResponsibility(tags: string[]): ResponsibilityKey {
+  if (tags.includes('@template')) return 'template';
+  if (tags.includes('@adopter')) return 'adopter';
   return 'other';
 }
 
@@ -274,11 +301,23 @@ function parseFeatureFile(appName: string, filePath: string, content: string): F
       const effectivePrimaryStatusTags =
         scenarioPrimaryStatusTags.length > 0 ? scenarioPrimaryStatusTags : featurePrimaryStatusTags;
 
+      const featureResponsibilityTags = RESPONSIBILITY_TAGS.filter((t) => featureTags.includes(t));
+      const scenarioResponsibilityTags = RESPONSIBILITY_TAGS.filter((t) => pendingTags.includes(t));
+      const effectiveResponsibilityTags =
+        scenarioResponsibilityTags.length > 0
+          ? scenarioResponsibilityTags
+          : featureResponsibilityTags;
+
       const tags = Array.from(
         new Set([
-          ...featureTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
-          ...pendingTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
+          ...featureTags.filter(
+            (t) => !PRIMARY_STATUS_TAGS.includes(t) && !RESPONSIBILITY_TAGS.includes(t)
+          ),
+          ...pendingTags.filter(
+            (t) => !PRIMARY_STATUS_TAGS.includes(t) && !RESPONSIBILITY_TAGS.includes(t)
+          ),
           ...effectivePrimaryStatusTags,
+          ...effectiveResponsibilityTags,
         ])
       );
 
@@ -288,9 +327,12 @@ function parseFeatureFile(appName: string, filePath: string, content: string): F
         scenarioName,
         tags,
         status: classify(tags),
+        responsibility: classifyResponsibility(tags),
         implTags: extractImplTags(tags),
         featurePrimaryStatusTags,
         scenarioPrimaryStatusTags,
+        featureResponsibilityTags,
+        scenarioResponsibilityTags,
       });
 
       pendingTags = [];
@@ -307,6 +349,27 @@ function parseFeatureFile(appName: string, filePath: string, content: string): F
     featureTags,
     scenarios,
   };
+}
+
+function evaluateResponsibilityIssues(
+  row: ScenarioRow,
+  missing: MissingStatusIssue[],
+  conflicting: ConflictingStatusIssue[]
+): void {
+  const effective =
+    row.scenarioResponsibilityTags.length > 0
+      ? row.scenarioResponsibilityTags
+      : row.featureResponsibilityTags;
+  if (effective.length === 0) {
+    missing.push({ filePath: row.filePath, scenarioName: row.scenarioName, tags: row.tags });
+  } else if (effective.length > 1) {
+    conflicting.push({
+      filePath: row.filePath,
+      scenarioName: row.scenarioName,
+      tags: row.tags,
+      primaryStatusTags: effective,
+    });
+  }
 }
 
 function evaluateStatusIssues(
@@ -381,6 +444,14 @@ function incrementCounts(counts: StatusCounts, status: StatusKey): void {
   }
 }
 
+function incrementResponsibilityCounts(
+  counts: ResponsibilityCounts,
+  responsibility: ResponsibilityKey
+): void {
+  counts.total += 1;
+  counts[responsibility] += 1;
+}
+
 function addImplRow(implMap: Map<string, ImplSummary>, implTag: string, row: ScenarioRow): void {
   if (!implMap.has(implTag)) {
     implMap.set(implTag, { ready: 0, wip: 0, manual: 0, skip: 0, other: 0, scenarios: [] });
@@ -400,6 +471,9 @@ type ComputeAppCountsParams = {
   implMap: Map<string, ImplSummary>;
   missingReadyImpl: Array<{ filePath: string; scenarioName: string }>;
   overall: StatusCounts;
+  responsibility: ResponsibilityCounts;
+  missingResponsibility: MissingStatusIssue[];
+  conflictingResponsibility: ConflictingStatusIssue[];
 };
 
 function computeAppCounts(params: ComputeAppCountsParams): StatusCounts | null {
@@ -412,6 +486,9 @@ function computeAppCounts(params: ComputeAppCountsParams): StatusCounts | null {
     implMap,
     missingReadyImpl,
     overall,
+    responsibility,
+    missingResponsibility,
+    conflictingResponsibility,
   } = params;
   const appCounts = createEmptyCounts();
   const featureFiles = findFeatureFiles(featuresDir);
@@ -426,9 +503,11 @@ function computeAppCounts(params: ComputeAppCountsParams): StatusCounts | null {
 
     for (const row of feature.scenarios) {
       evaluateStatusIssues(row, outMissingStatus, outConflictingStatus);
+      evaluateResponsibilityIssues(row, missingResponsibility, conflictingResponsibility);
 
       incrementCounts(appCounts, row.status);
       incrementCounts(overall, row.status);
+      incrementResponsibilityCounts(responsibility, row.responsibility);
 
       if (row.status === 'ready' && row.implTags.length === 0) {
         missingReadyImpl.push({ filePath: row.filePath, scenarioName: row.scenarioName });
@@ -450,9 +529,12 @@ export function computeBddGovernanceSnapshot(): BddGovernanceSnapshot {
   const apps: Array<{ appName: string; counts: StatusCounts }> = [];
   const features: FeatureRow[] = [];
   const overall = createEmptyCounts();
+  const responsibility = createEmptyResponsibilityCounts();
 
   const missingStatus: MissingStatusIssue[] = [];
   const conflictingStatus: ConflictingStatusIssue[] = [];
+  const missingResponsibility: MissingStatusIssue[] = [];
+  const conflictingResponsibility: ConflictingStatusIssue[] = [];
 
   const implMap = new Map<string, ImplSummary>();
   const missingReadyImpl: Array<{ filePath: string; scenarioName: string }> = [];
@@ -474,6 +556,9 @@ export function computeBddGovernanceSnapshot(): BddGovernanceSnapshot {
       implMap,
       missingReadyImpl,
       overall,
+      responsibility,
+      missingResponsibility,
+      conflictingResponsibility,
     });
 
     if (!appCounts) continue;
@@ -512,15 +597,25 @@ export function computeBddGovernanceSnapshot(): BddGovernanceSnapshot {
             featureName: s.featureName,
             scenarioName: s.scenarioName,
             status: s.status,
+            responsibility: s.responsibility,
             tags: s.tags,
             implTags: s.implTags,
           })),
         };
       }),
     overall,
+    responsibility,
     issues: {
       missingStatus: missingStatus.map((i) => ({ ...i, filePath: relify(repoRoot, i.filePath) })),
       conflictingStatus: conflictingStatus.map((i) => ({
+        ...i,
+        filePath: relify(repoRoot, i.filePath),
+      })),
+      missingResponsibility: missingResponsibility.map((i) => ({
+        ...i,
+        filePath: relify(repoRoot, i.filePath),
+      })),
+      conflictingResponsibility: conflictingResponsibility.map((i) => ({
         ...i,
         filePath: relify(repoRoot, i.filePath),
       })),

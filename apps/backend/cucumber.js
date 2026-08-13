@@ -34,7 +34,7 @@ module.exports = {
   // Default: run only scenarios explicitly marked as implemented.
   default: {
     ...common,
-    tags: '@ready and not @skip',
+    tags: '@template and @ready and not @skip',
   },
   // Run everything (useful locally once step definitions are complete).
   all: {
@@ -45,6 +45,10 @@ module.exports = {
   wip: {
     ...common,
     tags: '@wip and not @skip',
+  },
+  adopter: {
+    ...common,
+    tags: '@adopter and not @skip',
   },
   // Run only manual/ops requirements.
   manual: {

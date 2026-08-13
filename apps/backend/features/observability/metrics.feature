@@ -1,3 +1,4 @@
+@template
 @ready @observability
 Feature: Prometheus Metrics Collection
   As a DevOps engineer

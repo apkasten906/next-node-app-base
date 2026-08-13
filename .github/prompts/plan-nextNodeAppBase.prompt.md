@@ -466,14 +466,26 @@ Consequence: lower migration risk and clearer package boundaries.
 
 - ✅ **Review-driven semantic versioning (Changesets)** — `@changesets/cli`, private-package versioning config, a manually triggered and immutable-action-pinned Version Packages PR workflow, current 2026 changelog entries, and publishing guidance are complete. Version preparation and publishing remain explicit operator actions.
 
-1. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
-2. **Phase 11 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet; begin with ADR and interface contracts in `packages/types`.
+1. ✅ **BDD responsibility taxonomy** — `@template` / `@adopter` is now a responsibility dimension independent of `@ready` / `@wip` / `@manual` / `@skip`; governance, dashboard, profiles, all 387 scenarios, tests, and docs were migrated atomically.
+2. **Template-ready milestone release** — after the responsibility taxonomy merges, manually create the repository tag and GitHub release. Do not run package versioning or publishing: all workspace packages remain private and the current distribution goal is GitHub clone/template use.
+3. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
+4. **Phase 11 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet; begin with ADR and interface contracts in `packages/types`.
 
 ## N. BDD Scenario Scope: Base Repo vs Adopter
 
 The dividing line: **base repo = infrastructure, conventions, and cross-cutting concerns the template wires up for any adopter; adopter = business domain logic, provider choices, production ops, and app-specific UX.**
 
-The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip @adopter` permanently in this repo and serve as implementation guides for teams forking the template.
+### Implemented taxonomy
+
+Status and responsibility are independent:
+
+- Every scenario has exactly one effective execution status: `@ready`, `@wip`, `@manual`, or `@skip`.
+- Every scenario has exactly one effective responsibility tag: `@template` or `@adopter`.
+- `@template` means the base repository owns the behavior; `@adopter` means the scenario is implementation guidance for a fork.
+- Feature-level tags may provide defaults, with explicit scenario-level overrides.
+- Default CI selects template-owned ready scenarios. Dashboard reporting defaults to template scope and provides an adopter-backlog preset.
+
+The migration classifies 171 template-owned ready scenarios and 216 adopter-owned WIP scenarios. Default Cucumber profiles and dashboard reporting select template-owned behavior; the dashboard provides an adopter-backlog preset.
 
 ### Base repo responsibility (complete)
 
@@ -493,7 +505,7 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip @
 | 12-kubernetes-devops | ~10/34 | Dockerfiles, Docker Compose, GitHub Actions CI, K8s manifest templates             |
 | Frontend base        | 32/32  | i18n, Next.js, ADR-011 frontend auth wiring, error handling, core hooks, a11y      |
 
-### Adopter responsibility (`@wip @adopter` permanently in this repo)
+### Adopter responsibility (migrate to responsibility-aware tagging)
 
 | Feature                      | Scope  | Notes                                                                              |
 | ---------------------------- | ------ | ---------------------------------------------------------------------------------- |
@@ -524,4 +536,4 @@ The `@ready` tag tracks only base-repo scenarios. Adopter scenarios stay `@wip @
 - **Frontend error-handling first batch complete**: `@impl_frontend_global_error_boundary`, `@impl_frontend_not_found_page`, `@impl_frontend_error_page`, `@impl_frontend_error_recovery`, `@impl_frontend_error_logging`, and `@impl_frontend_accessible_errors` are now `@ready`.
 - **Frontend core expanded batch complete**: `@impl_frontend_typed_api_client`, `@impl_frontend_error_boundary_recovery`, `@impl_frontend_loading_state`, `@impl_frontend_debounce_hook`, `@impl_frontend_query_caching`, `@impl_frontend_offline_detection`, `@impl_frontend_semantic_accessibility`, `@impl_frontend_keyboard_navigation`, and `@impl_frontend_form_validation` are now `@ready`.
 - **Frontend base complete**: final Next.js scenarios for responsive layout, route-level authentication, custom error pages, and loading UI are now `@ready`; remaining frontend scenarios are explicitly `@adopter`.
-- **Final classification cleanup complete**: adopter-only frontend/security scenarios are tagged `@adopter` and stay `@wip`. E2E personas moderator implementation and BDD coverage merged in PR #64 with green CI.
+- **Responsibility migration complete**: every scenario has exactly one effective status and responsibility. All ready coverage is template-owned; all WIP guidance is adopter-owned. E2E personas moderator implementation and BDD coverage merged in PR #64 with green CI.

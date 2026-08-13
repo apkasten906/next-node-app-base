@@ -15,6 +15,7 @@ const PRIMARY_STATUS_TAGS = /** @type {const} */ ([
   STATUS_TAGS.wip,
   STATUS_TAGS.manual,
 ]);
+const RESPONSIBILITY_TAGS = /** @type {const} */ (['@template', '@adopter']);
 
 /**
  * @param {string} line
@@ -73,14 +74,23 @@ function buildScenarioTags(featureTags, pendingTags) {
   // This allows gradual promotion within a feature that still defaults to @wip.
   const effectivePrimaryStatusTags =
     scenarioPrimaryStatusTags.length > 0 ? scenarioPrimaryStatusTags : featurePrimaryStatusTags;
+  const featureResponsibilityTags = RESPONSIBILITY_TAGS.filter((t) => featureTags.includes(t));
+  const scenarioResponsibilityTags = RESPONSIBILITY_TAGS.filter((t) => pendingTags.includes(t));
+  const effectiveResponsibilityTags =
+    scenarioResponsibilityTags.length > 0 ? scenarioResponsibilityTags : featureResponsibilityTags;
 
   const scenarioTags = Array.from(
     new Set([
       // Keep all non-status tags from both scopes.
-      ...featureTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
-      ...pendingTags.filter((t) => !PRIMARY_STATUS_TAGS.includes(t)),
+      ...featureTags.filter(
+        (t) => !PRIMARY_STATUS_TAGS.includes(t) && !RESPONSIBILITY_TAGS.includes(t)
+      ),
+      ...pendingTags.filter(
+        (t) => !PRIMARY_STATUS_TAGS.includes(t) && !RESPONSIBILITY_TAGS.includes(t)
+      ),
       // Apply the effective status tags.
       ...effectivePrimaryStatusTags,
+      ...effectiveResponsibilityTags,
     ])
   );
 
@@ -89,6 +99,7 @@ function buildScenarioTags(featureTags, pendingTags) {
     featurePrimaryStatusTags,
     scenarioPrimaryStatusTags,
     effectivePrimaryStatusTags,
+    effectiveResponsibilityTags,
   };
 }
 
@@ -187,6 +198,7 @@ function parseFeatureFile(filePath, fileContent, missingStatus, conflictingStatu
         featurePrimaryStatusTags,
         scenarioPrimaryStatusTags,
         effectivePrimaryStatusTags,
+        effectiveResponsibilityTags,
       } = buildScenarioTags(featureTags, pendingTags);
       pendingTags = [];
 
@@ -200,6 +212,15 @@ function parseFeatureFile(filePath, fileContent, missingStatus, conflictingStatu
         missingStatus,
         conflictingStatus,
       });
+
+      if (effectiveResponsibilityTags.length !== 1) {
+        conflictingStatus.push({
+          filePath,
+          scenarioName,
+          tags: scenarioTags,
+          primaryStatusTags: effectiveResponsibilityTags,
+        });
+      }
 
       counts.total += 1;
       const status = classify(scenarioTags);

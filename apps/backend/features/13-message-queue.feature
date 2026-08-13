@@ -10,6 +10,7 @@ Feature: Message Queue System with BullMQ
     And Bull Board dashboard is configured
 
   @ready @queue @email @impl_queue_system
+  @template
   Scenario: Queue email notification job
     Given email queue is configured
     When I add an email job with recipient "user@example.com"
@@ -18,6 +19,7 @@ Feature: Message Queue System with BullMQ
     And the job should be visible in Bull Board dashboard
 
   @ready @queue @email @processing @impl_queue_system
+  @template
   Scenario: Process email job successfully
     Given email queue has a pending job
     When the EmailProcessor processes the job
@@ -26,6 +28,7 @@ Feature: Message Queue System with BullMQ
     And completion time should be recorded
 
   @ready @queue @email @retry @impl_queue_system
+  @template
   Scenario: Retry failed email job
     Given email queue has a failing job
     And retry strategy is configured with 3 attempts
@@ -35,6 +38,7 @@ Feature: Message Queue System with BullMQ
     And backoff delay should be exponential
 
   @ready @queue @sms @impl_queue_system
+  @template
   Scenario: Queue SMS notification job
     Given SMS queue is configured
     When I add an SMS job with phone "+1234567890"
@@ -42,6 +46,7 @@ Feature: Message Queue System with BullMQ
     And the job should respect rate limits
 
   @ready @queue @webhook @impl_queue_system
+  @template
   Scenario: Queue webhook delivery job
     Given webhook queue is configured
     When I add a webhook job with URL "https://api.example.com/webhook"
@@ -49,6 +54,7 @@ Feature: Message Queue System with BullMQ
     And the job should include payload and headers
 
   @ready @queue @file-processing @impl_queue_system
+  @template
   Scenario: Queue file processing job
     Given file-processing queue is configured
     When I add a file processing job for "document.pdf"
@@ -56,11 +62,13 @@ Feature: Message Queue System with BullMQ
     And the job should include file metadata
 
   @ready @queue @monitoring @impl_queue_system
+  @template
   Scenario: Bull Board dashboard route is configured
     Given Bull Board dashboard is configured
     Then the queue monitoring dashboard should be available at "/admin/queues"
 
   @ready @queue @monitoring @impl_queue_system
+  @template
   Scenario: View queue metrics in Bull Board
     Given Bull Board dashboard is enabled
     And queues have active and completed jobs
@@ -70,6 +78,7 @@ Feature: Message Queue System with BullMQ
     And I should see active, completed, and failed jobs
 
   @ready @queue @health @impl_queue_system
+  @template
   Scenario: Queue health participates in readiness checks
     Given queue health check is configured
     When the readiness endpoint checks dependencies
@@ -77,6 +86,7 @@ Feature: Message Queue System with BullMQ
     And disabled queues should be reported as "disabled"
 
   @queue @management
+  @adopter
   Scenario: Pause and resume queue
     Given email queue is active
     When I pause the email queue
@@ -86,6 +96,7 @@ Feature: Message Queue System with BullMQ
     Then jobs should start processing again
 
   @queue @management
+  @adopter
   Scenario: Clean completed jobs
     Given email queue has 100 completed jobs
     When I clean completed jobs older than 24 hours
@@ -93,6 +104,7 @@ Feature: Message Queue System with BullMQ
     And recent completed jobs should remain
 
   @queue @management
+  @adopter
   Scenario: Drain queue
     Given email queue has pending jobs
     When I drain the email queue
@@ -100,6 +112,7 @@ Feature: Message Queue System with BullMQ
     And active jobs should complete normally
 
   @queue @rate-limiting
+  @adopter
   Scenario: Respect concurrency limits
     Given email queue has concurrency limit of 5
     When 10 jobs are queued simultaneously
@@ -107,6 +120,7 @@ Feature: Message Queue System with BullMQ
     And remaining jobs should wait in queue
 
   @queue @rate-limiting
+  @adopter
   Scenario: Respect rate limits per minute
     Given webhook queue has rate limit of 100 jobs/minute
     When 150 jobs are queued in one minute
@@ -114,6 +128,7 @@ Feature: Message Queue System with BullMQ
     And 50 jobs should process in second minute
 
   @ready @queue @error-handling @dlq @impl_queue_system
+  @template
   Scenario: Handle processor errors gracefully
     Given email queue has a job
     And EmailProcessor throws an error
@@ -123,6 +138,7 @@ Feature: Message Queue System with BullMQ
     And retry should be attempted if configured
 
   @queue @integration
+  @adopter
   Scenario: Queue system integrates with NotificationService
     Given NotificationService is configured
     And QueueService is available
@@ -131,6 +147,7 @@ Feature: Message Queue System with BullMQ
     And fallback to direct send if queue unavailable
 
   @queue @data-export
+  @adopter
   Scenario: Queue data export job
     Given data-export queue is configured
     When I request a CSV export of user data
@@ -139,6 +156,7 @@ Feature: Message Queue System with BullMQ
     And progress should be tracked
 
   @queue @cleanup
+  @adopter
   Scenario: Queue cleanup job
     Given cleanup queue is configured
     When I schedule a cleanup job for expired sessions
@@ -146,6 +164,7 @@ Feature: Message Queue System with BullMQ
     And the job should execute at specified time
 
   @queue @priority
+  @adopter
   Scenario: Process high-priority jobs first
     Given email queue has jobs with different priorities
     When I add a high-priority job

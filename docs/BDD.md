@@ -118,6 +118,8 @@ Notes:
 
 ## Implementer Coverage Reference
 
+Status and responsibility are independent dimensions. Every scenario has one effective status and exactly one effective responsibility: `@template` or `@adopter`. Feature tags provide defaults; scenario tags override them.
+
 The Gherkin files are the comprehensive, version-controlled list of behaviors available to teams adopting this template:
 
 - `apps/backend/features/*.feature`
@@ -126,15 +128,17 @@ The Gherkin files are the comprehensive, version-controlled list of behaviors av
 Use the scenario tags to distinguish responsibility:
 
 - `@ready` describes base-template behavior that is already implemented and enforced.
-- `@wip @adopter` describes product-, provider-, operations-, or UX-specific behavior that an adopting team may implement.
+- `@template` describes behavior maintained by the base repository.
+- `@adopter` describes product-, provider-, operations-, or UX-specific behavior that an adopting team may implement.
 - `@manual` describes behavior that requires documented manual verification.
 
 The BDD Governance dashboard presents the same source data as an implementer-friendly catalog. With the backend and frontend running, sign in as an administrator and open:
 
-- <http://localhost:3000/dashboard/bdd> for every feature and scenario
-- <http://localhost:3000/dashboard/bdd?states=wip> for the implementation backlog
+- <http://localhost:3000/dashboard/bdd> for template-owned scenarios (the default)
+- <http://localhost:3000/dashboard/bdd?scopes=all> for every feature and scenario
+- <http://localhost:3000/dashboard/bdd?scopes=adopter&states=wip> for the adopter implementation backlog
 
-The dashboard shows each scenario's feature file, effective status, `@impl_*` traceability tag, and other tags. In the WIP view, use the displayed `@adopter` tag to identify intended adopter work; a WIP scenario without `@adopter` is ordinary unfinished repository work and should not automatically become an adopter requirement.
+The dashboard shows each scenario's feature file, effective status, responsibility, `@impl_*` traceability tag, and other tags. Its responsibility filter defaults to `template`; the **Adopter backlog** preset selects `@adopter @wip` scenarios.
 
 For a non-UI view:
 

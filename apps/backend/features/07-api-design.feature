@@ -10,6 +10,7 @@ Feature: API Design Patterns
 
   @api @versioning @header
   @ready @impl_api_versioning
+  @template
   Scenario: Header-based API versioning
     Given API versioning is configured
     When I make a request with Accept header "application/vnd.api+json; version=1.0"
@@ -18,6 +19,7 @@ Feature: API Design Patterns
 
   @api @versioning @fallback
   @ready @impl_api_versioning
+  @template
   Scenario: Default API version fallback
     Given API versioning is configured with default version 1.0
     When I make a request without version header
@@ -25,12 +27,14 @@ Feature: API Design Patterns
 
   @api @versioning @unsupported
   @ready @impl_api_versioning
+  @template
   Scenario: Unsupported API version handling
     When I make a request with Accept header "application/vnd.api+json; version=99.0"
     Then the response status should be 400
     And the response should indicate unsupported version
 
   @api @hateoas
+  @adopter
   Scenario: HATEOAS links in API responses
     Given HATEOAS is enabled for API endpoints
     When I GET "/api/users/123"
@@ -40,6 +44,7 @@ Feature: API Design Patterns
     And "_links" should contain "delete" link
 
   @api @hateoas @pagination
+  @adopter
   Scenario: HATEOAS pagination links
     Given a collection endpoint with multiple pages
     When I GET "/api/users?page=2&pageSize=10"
@@ -52,6 +57,7 @@ Feature: API Design Patterns
       | last  |
 
   @api @pagination
+  @adopter
   Scenario: Pagination with query parameters
     Given a collection of 50 users exists
     When I GET "/api/users?page=<page>&pageSize=<pageSize>"
@@ -66,6 +72,7 @@ Feature: API Design Patterns
       | 6    | 10       | 0     |
 
   @api @filtering
+  @adopter
   Scenario: Resource filtering with query operators
     Given users exist in the database
     When I GET "/api/users?filter=<filter>"
@@ -79,12 +86,14 @@ Feature: API Design Patterns
       | age[gt]=18                      |
 
   @api @filtering @multiple
+  @adopter
   Scenario: Multiple filter conditions
     Given users exist with various attributes
     When I GET "/api/users?filter=role[eq]=admin&filter=status[eq]=active"
     Then only users matching all conditions should be returned
 
   @api @sorting
+  @adopter
   Scenario: Resource sorting
     Given users exist in the database
     When I GET "/api/users?sort=<sortField>&order=<order>"
@@ -97,6 +106,7 @@ Feature: API Design Patterns
       | name      | asc   |
 
   @api @sorting @multiple
+  @adopter
   Scenario: Multi-field sorting
     Given users exist in the database
     When I GET "/api/users?sort=role,createdAt&order=asc,desc"
@@ -105,6 +115,7 @@ Feature: API Design Patterns
 
   @api @swagger
   @ready @impl_openapi_docs
+  @template
   Scenario: Swagger/OpenAPI documentation
     Given Swagger is configured
     When I navigate to "/api-docs"
@@ -115,6 +126,7 @@ Feature: API Design Patterns
 
   @api @swagger @schemas
   @ready @impl_openapi_docs
+  @template
   Scenario: OpenAPI schema definitions
     Given OpenAPI specifications are defined
     When I view the Swagger documentation
@@ -128,6 +140,7 @@ Feature: API Design Patterns
 
   @api @swagger @security
   @ready @impl_openapi_docs
+  @template
   Scenario: Swagger security schemes
     Given security schemes are defined in Swagger
     When I view API endpoints in Swagger
@@ -136,6 +149,7 @@ Feature: API Design Patterns
     And I should be able to authenticate via Swagger UI
 
   @api @rate-limiting @endpoint
+  @adopter
   Scenario: Per-endpoint rate limiting
     Given rate limiting is configured for "/api/users"
     And the limit is 100 requests per minute
@@ -145,6 +159,7 @@ Feature: API Design Patterns
     Then the request should be rejected with 429 status
 
   @api @compression
+  @adopter
   Scenario: Response compression for large payloads
     Given compression middleware is enabled
     When I request a large collection endpoint
@@ -153,6 +168,7 @@ Feature: API Design Patterns
     And response size should be significantly reduced
 
   @api @etag
+  @adopter
   Scenario: ETag caching for conditional requests
     Given ETags are enabled for resource endpoints
     When I GET "/api/users/123"
@@ -162,6 +178,7 @@ Feature: API Design Patterns
     And no body should be returned
 
   @api @content-negotiation
+  @adopter
   Scenario: Content type negotiation
     When I request "/api/users" with Accept header "application/json"
     Then the response Content-Type should be "application/json"
@@ -169,6 +186,7 @@ Feature: API Design Patterns
     Then the response status should be 406 Not Acceptable
 
   @api @error-response
+  @adopter
   Scenario: Standardized error responses
     Given API error handling is configured
     When an error occurs during request processing
@@ -180,6 +198,7 @@ Feature: API Design Patterns
       | path    |
 
   @api @query-validation
+  @adopter
   Scenario: Query parameter validation
     Given query parameter validation is enabled
     When I GET "/api/users?page=<page>&pageSize=<pageSize>"

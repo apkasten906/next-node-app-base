@@ -1,3 +1,4 @@
+@template
 Feature: Internationalization (i18n)
   As a user
   I want the UI to support multiple languages
