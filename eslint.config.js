@@ -184,6 +184,55 @@ module.exports = [
     },
   },
 
+  // Backend Cucumber feature/support files (no type-checking to avoid tsconfig include issues)
+  {
+    files: ['apps/backend/features/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      parser: tsparser,
+      globals: {
+        require: 'readonly',
+        module: 'readonly',
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        Buffer: 'readonly',
+        Promise: 'readonly',
+        Symbol: 'readonly',
+        setTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearTimeout: 'readonly',
+        clearInterval: 'readonly',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+      security: securityPlugin,
+      import: importPlugin,
+    },
+    rules: {
+      ...eslint.configs.recommended.rules,
+      ...tseslint.configs.recommended.rules,
+      ...securityPlugin.configs.recommended.rules,
+
+      'no-undef': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/explicit-function-return-type': ['warn', { allowExpressions: true }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      'security/detect-object-injection': 'warn',
+      'security/detect-non-literal-fs-filename': 'off',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'prefer-const': 'error',
+      'no-var': 'error',
+
+      ...prettierConfig.rules,
+    },
+  },
+
   // TypeScript test files (no type-checking to avoid tsconfig include issues)
   {
     files: ['**/*.test.ts', '**/*.spec.ts', '**/*.test.tsx', '**/*.spec.tsx'],

@@ -7,6 +7,12 @@ pnpm -s lint-staged || {
   exit 1;
 }
 
+echo "Building workspace packages"
+pnpm --filter @repo/types build || {
+  echo "Package build failed";
+  exit 1;
+}
+
 echo "Running quick TypeScript check (backend)"
 pnpm -C apps/backend exec tsc --noEmit || {
   echo "TypeScript check failed";

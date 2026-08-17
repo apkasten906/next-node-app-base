@@ -8,7 +8,9 @@ Feature: File Storage Abstraction
     Given storage service is configured
     And environment variables specify the provider
 
-  @storage @local
+  @storage @local @impl_storage_local_provider
+  @ready
+  @template
   Scenario: Local filesystem storage
     Given STORAGE_PROVIDER is set to "local"
     When I upload a file to local storage
@@ -17,6 +19,7 @@ Feature: File Storage Abstraction
     And the file should be accessible via URL
 
   @storage @s3
+  @adopter
   Scenario: AWS S3 storage
     Given STORAGE_PROVIDER is set to "s3"
     And AWS credentials are configured
@@ -26,6 +29,7 @@ Feature: File Storage Abstraction
     And file metadata should include S3 URL
 
   @storage @azure
+  @adopter
   Scenario: Azure Blob Storage
     Given STORAGE_PROVIDER is set to "azure"
     And Azure Storage credentials are configured
@@ -35,6 +39,7 @@ Feature: File Storage Abstraction
     And file metadata should include Azure URL
 
   @storage @gcp
+  @adopter
   Scenario: Google Cloud Storage
     Given STORAGE_PROVIDER is set to "gcp"
     And GCP credentials are configured
@@ -43,7 +48,9 @@ Feature: File Storage Abstraction
     And object name should be generated
     And file metadata should include GCS URL
 
-  @storage @upload @single
+  @storage @upload @single @impl_storage_upload_single
+  @ready
+  @template
   Scenario: Upload a single file
     When I upload a file with:
       | field       | value              |
@@ -61,21 +68,27 @@ Feature: File Storage Abstraction
       | url          |
       | uploadedAt   |
 
-  @storage @upload @multiple
+  @storage @upload @multiple @impl_storage_upload_multiple
+  @ready
+  @template
   Scenario: Upload multiple files
     When I upload 3 files simultaneously
     Then all files should be stored successfully
     And metadata for all files should be returned
     And each file should have unique path
 
-  @storage @download
+  @storage @download @impl_storage_download
+  @ready
+  @template
   Scenario: Download a file
     Given a file "documents/report.pdf" exists in storage
     When I download the file
     Then the file content should be returned as Buffer
     And the content should match the original file
 
-  @storage @signed-url
+  @storage @signed-url @impl_storage_signed_url
+  @ready
+  @template
   Scenario: Generate signed URL for temporary access
     Given a file exists in storage
     When I request a signed URL with expiration 3600 seconds
@@ -83,7 +96,9 @@ Feature: File Storage Abstraction
     And the URL should be valid for 1 hour
     And the URL should allow file access without authentication
 
-  @storage @delete
+  @storage @delete @impl_storage_delete
+  @ready
+  @template
   Scenario: Delete a file
     Given a file "temp/old-file.txt" exists in storage
     When I delete the file
@@ -91,20 +106,25 @@ Feature: File Storage Abstraction
     And the file should no longer be accessible
 
   @storage @delete @multiple
+  @adopter
   Scenario: Delete multiple files
     Given 5 files exist in "temp/" folder
     When I delete all files in the folder
     Then all files should be removed
     And deletion results should indicate success for each file
 
-  @storage @exists
+  @storage @exists @impl_storage_exists
+  @ready
+  @template
   Scenario: Check if file exists
     When I check if "documents/report.pdf" exists
     Then existence check should return true
     When I check if "documents/nonexistent.pdf" exists
     Then existence check should return false
 
-  @storage @list
+  @storage @list @impl_storage_list
+  @ready
+  @template
   Scenario: List files in a folder
     Given 10 files exist in "images/" folder
     When I list files in "images/" folder
@@ -112,12 +132,14 @@ Feature: File Storage Abstraction
     And the list should contain 10 items
 
   @storage @list @prefix
+  @adopter
   Scenario: List files with prefix filter
     Given files exist with various prefixes
     When I list files with prefix "user-123-"
     Then only files matching the prefix should be returned
 
   @storage @list @pagination
+  @adopter
   Scenario: List files with pagination
     Given 100 files exist in storage
     When I list files with maxResults=20
@@ -125,6 +147,7 @@ Feature: File Storage Abstraction
     And a continuation token should be provided
 
   @storage @metadata
+  @adopter
   Scenario: Get file metadata
     Given a file exists in storage
     When I request metadata for the file
@@ -137,6 +160,7 @@ Feature: File Storage Abstraction
       | bucket       |
 
   @storage @copy
+  @adopter
   Scenario: Copy a file
     Given a file "original/file.txt" exists
     When I copy the file to "backup/file.txt"
@@ -145,6 +169,7 @@ Feature: File Storage Abstraction
     And metadata for the copy should be returned
 
   @storage @move
+  @adopter
   Scenario: Move a file
     Given a file "temp/file.txt" exists
     When I move the file to "archive/file.txt"
@@ -152,7 +177,9 @@ Feature: File Storage Abstraction
     And the file should no longer exist at old path
     And metadata for the moved file should be returned
 
-  @storage @validation @file-type
+  @storage @validation @file-type @impl_storage_mime_validation
+  @ready
+  @template
   Scenario: File type validation
     Given allowed MIME types are configured
     When I upload a file with MIME type "<mimeType>"
@@ -165,7 +192,9 @@ Feature: File Storage Abstraction
       | application/x-sh    | rejected |
       | text/html           | rejected |
 
-  @storage @validation @file-size
+  @storage @validation @file-size @impl_storage_size_validation
+  @ready
+  @template
   Scenario: File size validation
     Given maximum file size is 5MB
     When I upload a file of size "<size>"
@@ -179,6 +208,7 @@ Feature: File Storage Abstraction
 
   @storage @validation @filename @impl_storage_filename_sanitization
   @ready
+  @template
   Scenario: Filename sanitization
     When I upload a file with filename "<filename>"
     Then the filename should be sanitized to "<sanitized>"
@@ -191,6 +221,7 @@ Feature: File Storage Abstraction
       | .hidden                 | hidden              |
 
   @storage @multer @single-upload
+  @adopter
   Scenario: Multer single file upload endpoint
     When I POST to "/api/files/upload" with file in "file" field
     Then the file should be uploaded
@@ -198,6 +229,7 @@ Feature: File Storage Abstraction
     And authentication should be required
 
   @storage @multer @multiple-upload
+  @adopter
   Scenario: Multer multiple files upload endpoint
     When I POST to "/api/files/upload/multiple" with 3 files
     Then all files should be uploaded
@@ -205,6 +237,7 @@ Feature: File Storage Abstraction
     And maximum 10 files should be allowed
 
   @storage @multer @image-upload
+  @adopter
   Scenario: Image-specific upload endpoint
     When I POST to "/api/files/upload/image" with JPEG file
     Then the file should be uploaded to "images/" folder
@@ -212,6 +245,7 @@ Feature: File Storage Abstraction
     And maximum size should be 5MB
 
   @storage @multer @document-upload
+  @adopter
   Scenario: Document-specific upload endpoint
     When I POST to "/api/files/upload/document" with PDF file
     Then the file should be uploaded to "documents/" folder
@@ -219,6 +253,7 @@ Feature: File Storage Abstraction
     And maximum size should be 10MB
 
   @storage @api @download-file
+  @adopter
   Scenario: Download file via API
     Given a file exists at path "documents/report.pdf"
     When I GET "/api/files/documents/report.pdf?download=true"
@@ -226,6 +261,7 @@ Feature: File Storage Abstraction
     And Content-Disposition header should indicate attachment
 
   @storage @api @get-url
+  @adopter
   Scenario: Get file signed URL via API
     Given a file exists in storage
     When I GET "/api/files/documents/report.pdf?download=false"
@@ -233,6 +269,7 @@ Feature: File Storage Abstraction
     And no file content should be transferred
 
   @storage @api @delete-file
+  @adopter
   Scenario: Delete file via API
     Given a file exists in storage
     When I DELETE "/api/files/temp/old-file.txt"
@@ -241,6 +278,7 @@ Feature: File Storage Abstraction
     And authentication should be required
 
   @storage @api @list-files
+  @adopter
   Scenario: List files via API
     Given files exist in storage
     When I GET "/api/files/list?folder=images&maxResults=20"
@@ -248,6 +286,7 @@ Feature: File Storage Abstraction
     And pagination should be applied
 
   @storage @health-check
+  @adopter
   Scenario: Storage service health check
     When I GET "/api/files/health"
     Then health status should be returned
@@ -255,6 +294,7 @@ Feature: File Storage Abstraction
     And connectivity to storage should be verified
 
   @storage @provider-switching
+  @adopter
   Scenario: Switch storage providers
     Given STORAGE_PROVIDER is "local"
     When I change STORAGE_PROVIDER to "s3"

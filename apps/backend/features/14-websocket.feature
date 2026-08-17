@@ -10,6 +10,7 @@ Feature: WebSocket Real-Time Communication
     And authentication middleware is active
 
   @websocket @ready @impl_websocket_support
+  @template
   Scenario: WebSocket service wiring is configured
     Given the backend WebSocket service is implemented
     Then WebSockets should be gated by "DISABLE_WEBSOCKETS"
@@ -17,6 +18,7 @@ Feature: WebSocket Real-Time Communication
     And WebSocket service should default to path "/socket.io"
 
   @websocket @connection
+  @adopter
   Scenario: Client connects with valid token
     Given I have a valid authentication token
     When I connect to WebSocket server with token
@@ -24,7 +26,8 @@ Feature: WebSocket Real-Time Communication
     And I should receive a connection confirmation
     And my connection should be tracked in server
 
-  @websocket @connection
+  @ready @websocket @connection @auth @impl_websocket_auth_rejection
+  @template
   Scenario: Client connection rejected without token
     Given I do not have an authentication token
     When I attempt to connect to WebSocket server
@@ -32,7 +35,8 @@ Feature: WebSocket Real-Time Communication
     And I should receive an authentication error
     And connection count should not increase
 
-  @websocket @connection
+  @ready @websocket @connection @impl_websocket_disconnect_tracking
+  @template
   Scenario: Client disconnects gracefully
     Given I am connected to WebSocket server
     When I disconnect from the server
@@ -40,7 +44,8 @@ Feature: WebSocket Real-Time Communication
     And any rooms I joined should be cleaned up
     And disconnect event should be logged
 
-  @websocket @rooms
+  @ready @websocket @rooms @impl_websocket_rooms
+  @template
   Scenario: Client joins a room
     Given I am connected to WebSocket server
     When I request to join room "project-123"
@@ -49,7 +54,8 @@ Feature: WebSocket Real-Time Communication
     And the room should be added to my connection info
     And room member count should increase
 
-  @websocket @rooms
+  @ready @websocket @rooms @impl_websocket_rooms
+  @template
   Scenario: Client leaves a room
     Given I am connected to WebSocket server
     And I have joined room "project-123"
@@ -59,7 +65,8 @@ Feature: WebSocket Real-Time Communication
     And the room should be removed from my connection info
     And room member count should decrease
 
-  @websocket @rooms
+  @ready @websocket @rooms @impl_websocket_room_info
+  @template
   Scenario: Get room information
     Given multiple clients are connected to WebSocket server
     And 5 clients have joined room "team-chat"
@@ -68,7 +75,8 @@ Feature: WebSocket Real-Time Communication
     And member count should be 5
     And room name should be "team-chat"
 
-  @websocket @messaging
+  @ready @websocket @messaging @impl_websocket_room_messages
+  @template
   Scenario: Send message to room
     Given I am connected to WebSocket server
     And I have joined room "project-123"
@@ -79,6 +87,7 @@ Feature: WebSocket Real-Time Communication
     And the message should have a timestamp
 
   @websocket @messaging
+  @adopter
   Scenario: Send direct message to user
     Given I am connected to WebSocket server
     And user "user-456" is also connected
@@ -87,7 +96,8 @@ Feature: WebSocket Real-Time Communication
     And the message should include sender information
     And other clients should not receive the message
 
-  @websocket @typing
+  @ready @websocket @typing @impl_websocket_typing
+  @template
   Scenario: Broadcast typing indicator
     Given I am connected to WebSocket server
     And I have joined room "chat-room"
@@ -96,7 +106,8 @@ Feature: WebSocket Real-Time Communication
     And the event should include my user ID
     And the event should include the room ID
 
-  @websocket @typing
+  @ready @websocket @typing @impl_websocket_typing
+  @template
   Scenario: Stop typing indicator
     Given I am connected to WebSocket server
     And I have joined room "chat-room"
@@ -105,7 +116,8 @@ Feature: WebSocket Real-Time Communication
     Then other room members should receive typing-stop event
     And my typing indicator should be cleared
 
-  @websocket @presence
+  @ready @websocket @presence @impl_websocket_presence
+  @template
   Scenario: Update user presence status
     Given I am connected to WebSocket server
     When I update my presence to "away"
@@ -113,7 +125,8 @@ Feature: WebSocket Real-Time Communication
     And my status should change to "away"
     And the update should include timestamp
 
-  @websocket @presence
+  @ready @websocket @presence @impl_websocket_presence_statuses
+  @template
   Scenario: Presence statuses
     Given I am connected to WebSocket server
     Then I can set presence to "online"
@@ -121,7 +134,8 @@ Feature: WebSocket Real-Time Communication
     And I can set presence to "busy"
     And I can set presence to "offline"
 
-  @websocket @broadcasting
+  @ready @websocket @broadcasting @impl_websocket_broadcast
+  @template
   Scenario: Broadcast to all connected clients
     Given multiple clients are connected to WebSocket server
     When server broadcasts a system announcement
@@ -129,7 +143,8 @@ Feature: WebSocket Real-Time Communication
     And the message should be marked as broadcast
     And the message should include system sender
 
-  @websocket @broadcasting
+  @ready @websocket @broadcasting @impl_websocket_broadcast_room
+  @template
   Scenario: Broadcast to specific room only
     Given I am connected to WebSocket server
     And room "team-a" has 5 clients
@@ -139,6 +154,7 @@ Feature: WebSocket Real-Time Communication
     And clients in "team-b" should not receive the message
 
   @websocket @scaling
+  @adopter
   Scenario: Horizontal scaling with Redis adapter
     Given Redis Pub/Sub is configured
     And multiple WebSocket server instances are running
@@ -149,6 +165,7 @@ Feature: WebSocket Real-Time Communication
     And Redis should handle message distribution
 
   @websocket @rate-limiting
+  @adopter
   Scenario: Connection rate limiting
     Given max connections limit is 1000
     When 1001 clients attempt to connect
@@ -157,6 +174,7 @@ Feature: WebSocket Real-Time Communication
     And rate limit error should be returned
 
   @websocket @rate-limiting
+  @adopter
   Scenario: Event rate limiting per client
     Given I am connected to WebSocket server
     And event throttling is enabled
@@ -165,7 +183,8 @@ Feature: WebSocket Real-Time Communication
     And excessive events should be rejected
     And rate limit warning should be issued
 
-  @websocket @health
+  @ready @websocket @health @impl_websocket_health
+  @template
   Scenario: WebSocket health check
     Given WebSocket server is running
     When health check is requested
@@ -174,7 +193,8 @@ Feature: WebSocket Real-Time Communication
     And uptime should be reported
     And Redis adapter status should be included
 
-  @websocket @health
+  @ready @websocket @health @metrics @impl_websocket_metrics
+  @template
   Scenario: WebSocket metrics
     Given WebSocket server is running
     And multiple clients are connected
@@ -185,6 +205,7 @@ Feature: WebSocket Real-Time Communication
     And uptime should be included
 
   @websocket @error-handling
+  @adopter
   Scenario: Handle invalid event data
     Given I am connected to WebSocket server
     When I send malformed event data
@@ -193,6 +214,7 @@ Feature: WebSocket Real-Time Communication
     And my connection should remain active
 
   @websocket @error-handling
+  @adopter
   Scenario: Handle room join timeout
     Given I am connected to WebSocket server
     When I request to join a room
@@ -201,6 +223,7 @@ Feature: WebSocket Real-Time Communication
     And the join request should be cancelled
 
   @websocket @security
+  @adopter
   Scenario: Token expiration during connection
     Given I am connected with a token expiring in 1 minute
     When my token expires
@@ -209,6 +232,7 @@ Feature: WebSocket Real-Time Communication
     And I should be able to reconnect with new token
 
   @websocket @security
+  @adopter
   Scenario: Prevent unauthorized room access
     Given I am connected to WebSocket server
     And room "private-channel" requires special permissions
@@ -217,6 +241,7 @@ Feature: WebSocket Real-Time Communication
     And I should receive permission error
 
   @websocket @integration
+  @adopter
   Scenario: WebSocket integrates with HTTP server
     Given backend HTTP server is running
     And WebSocket service is initialized
@@ -224,7 +249,8 @@ Feature: WebSocket Real-Time Communication
     Then WebSocket health should be included
     And both HTTP and WebSocket should be operational
 
-  @websocket @shutdown
+  @ready @websocket @shutdown @impl_websocket_shutdown
+  @template
   Scenario: Graceful shutdown
     Given WebSocket server is running
     And multiple clients are connected
@@ -234,7 +260,8 @@ Feature: WebSocket Real-Time Communication
     And Redis connections should close properly
     And no data should be lost
 
-  @websocket @frontend
+  @ready @websocket @frontend @impl_frontend_websocket_hook
+  @template
   Scenario: React hook manages connection state
     Given I use useWebSocket hook in frontend
     When component mounts
@@ -243,7 +270,8 @@ Feature: WebSocket Real-Time Communication
     When component unmounts
     Then WebSocket should disconnect cleanly
 
-  @websocket @frontend
+  @ready @websocket @frontend @impl_frontend_websocket_reconnect
+  @template
   Scenario: Auto-reconnection after disconnect
     Given I am connected via useWebSocket hook
     When connection is lost unexpectedly

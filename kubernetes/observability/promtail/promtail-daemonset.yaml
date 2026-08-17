@@ -1,0 +1,218 @@
+# Promtail — RBAC, ServiceAccount, ConfigMap, DaemonSet
+#
+# Promtail runs as a DaemonSet on every node so that it can tail container
+# logs from /var/log/pods on the host.  It pushes structured log lines to
+# Loki over HTTP (port 3100).
+#
+# Security notes:
+#   - The /var/log hostPath mount is read-only.  /run/promtail (positions
+#     file) is backed by an emptyDir volume, not a hostPath.
+#   - The container runs as root because kubelet writes logs with root
+#     ownership.  The ServiceAccount token is auto-mounted for Kubernetes
+#     service-discovery only; the ClusterRole grants read access to pods and
+#     nodes metadata only.
+#   - allowPrivilegeEscalation is disabled; CAP_DAC_READ_SEARCH is added so
+#     Promtail can read files owned by other users on the host filesystem.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: promtail
+  namespace: observability
+  labels:
+    app: promtail
+    component: logging
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: promtail
+  labels:
+    app: promtail
+    component: logging
+rules:
+  # Minimal permissions for kubernetes_sd_configs role: pod.
+  # nodes — required for pod-to-node metadata (__meta_kubernetes_pod_node_name).
+  # pods  — required for pod discovery and label/annotation metadata.
+  # nodes/proxy, services, and endpoints are not needed for pod-role SD.
+  - apiGroups: ['']
+    resources:
+      - nodes
+      - pods
+    verbs: ['get', 'watch', 'list']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: promtail
+  labels:
+    app: promtail
+    component: logging
+subjects:
+  - kind: ServiceAccount
+    name: promtail
+    namespace: observability
+roleRef:
+  kind: ClusterRole
+  name: promtail
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-config
+  namespace: observability
+  labels:
+    app: promtail
+    component: logging
+data:
+  promtail.yaml: |
+    server:
+      http_listen_port: 9080
+      grpc_listen_port: 0
+      log_level: warn
+
+    positions:
+      filename: /run/promtail/positions.yaml
+
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+        # Batch settings — keep defaults; tune for high-volume clusters.
+        batchwait: 1s
+        batchsize: 1048576
+
+    scrape_configs:
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        pipeline_stages:
+          # Parse the CRI log format emitted by containerd / CRI-O.
+          - cri: {}
+          # Drop probe / health-check spam so Loki does not fill up with noise.
+          - drop:
+              expression: '(?i)(GET /health|GET /ready|GET /metrics|kube-probe)'
+              drop_counter_reason: health_probe_drop
+        relabel_configs:
+          # Only scrape pods that have not opted out.
+          - source_labels: [__meta_kubernetes_pod_annotation_promtail_io_scrape]
+            action: drop
+            regex: 'false'
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: __host__
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+          - source_labels: [__meta_kubernetes_pod_label_component]
+            target_label: component
+          # Build the log path from the discovered pod UID.  The /*/ wildcard
+          # covers the per-container subdirectory that kubelet creates under
+          # /var/log/pods/<namespace>_<pod-name>_<uid>/<container>/<n>.log.
+          - source_labels:
+              - __meta_kubernetes_pod_uid
+            target_label: __path__
+            replacement: /var/log/pods/*$1/*/*.log
+          # Carry through the correlation ID label when it is set on the pod.
+          - source_labels: [__meta_kubernetes_pod_annotation_correlation_id]
+            target_label: correlation_id
+            regex: (.+)
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail
+  namespace: observability
+  labels:
+    app: promtail
+    component: logging
+spec:
+  selector:
+    matchLabels:
+      app: promtail
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: promtail
+        component: logging
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '9080'
+        prometheus.io/path: '/metrics'
+    spec:
+      serviceAccountName: promtail
+      # Promtail must run as root to read host container logs written by kubelet.
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+      tolerations:
+        # Tolerate all taints so Promtail runs on every node, including control-plane nodes.
+        - operator: Exists
+          effect: NoSchedule
+        - operator: Exists
+          effect: NoExecute
+      containers:
+        - name: promtail
+          image: grafana/promtail:3.0.0
+          args:
+            - '-config.file=/etc/promtail/promtail.yaml'
+          ports:
+            - name: http
+              containerPort: 9080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+              ephemeral-storage: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+              add:
+                # Required to read log files owned by the kubelet user on the host.
+                - DAC_READ_SEARCH
+          volumeMounts:
+            - name: config
+              mountPath: /etc/promtail/promtail.yaml
+              subPath: promtail.yaml
+              readOnly: true
+            - name: varlog
+              mountPath: /var/log
+              readOnly: true
+            - name: positions
+              mountPath: /run/promtail
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: promtail-config
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: positions
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

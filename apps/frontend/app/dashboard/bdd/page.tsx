@@ -61,12 +61,16 @@ export default async function BddDashboardPage({
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
 
   let statesParam: string | undefined;
+  let scopesParam: string | undefined;
   const rawStates = resolvedSearchParams?.['states'];
   if (typeof rawStates === 'string') {
     statesParam = rawStates;
   } else if (Array.isArray(rawStates)) {
     statesParam = rawStates[0];
   }
+  const rawScopes = resolvedSearchParams?.['scopes'];
+  if (typeof rawScopes === 'string') scopesParam = rawScopes;
+  else if (Array.isArray(rawScopes)) scopesParam = rawScopes[0];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -84,10 +88,11 @@ export default async function BddDashboardPage({
         </div>
 
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Total scenarios" value={`${snapshot.overall.total}`} />
+          <StatCard title="Template scenarios" value={`${snapshot.responsibility.template}`} />
+          <StatCard title="Adopter scenarios" value={`${snapshot.responsibility.adopter}`} />
           <StatCard title="Ready" value={`${snapshot.overall.ready}`} sub="Default CI gate" />
           <StatCard title="WIP" value={`${snapshot.overall.wip}`} />
-          <StatCard title="Manual" value={`${snapshot.overall.manual}`} />
+          <StatCard title="Total scenarios" value={`${snapshot.overall.total}`} />
         </div>
 
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -145,6 +150,18 @@ export default async function BddDashboardPage({
               </div>
             </div>
             <div className="rounded-lg border bg-white p-4">
+              <div className="font-medium">Missing responsibility tags</div>
+              <div className="mt-1 text-xs text-gray-500">
+                Count: {snapshot.issues.missingResponsibility.length} (expected 0)
+              </div>
+            </div>
+            <div className="rounded-lg border bg-white p-4">
+              <div className="font-medium">Conflicting responsibility tags</div>
+              <div className="mt-1 text-xs text-gray-500">
+                Count: {snapshot.issues.conflictingResponsibility.length} (expected 0)
+              </div>
+            </div>
+            <div className="rounded-lg border bg-white p-4">
               <div className="font-medium">Conflicting status tags</div>
               <div className="mt-1 text-xs text-gray-500">
                 Count: {snapshot.issues.conflictingStatus.length} (expected 0)
@@ -153,7 +170,11 @@ export default async function BddDashboardPage({
           </div>
         </div>
 
-        <BddFeatureScenarioOverview features={snapshot.features} initialStatesParam={statesParam} />
+        <BddFeatureScenarioOverview
+          features={snapshot.features}
+          initialStatesParam={statesParam}
+          initialScopesParam={scopesParam}
+        />
       </main>
     </div>
   );

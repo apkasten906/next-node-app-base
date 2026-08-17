@@ -8,7 +8,8 @@ Feature: Kubernetes and DevOps Infrastructure
     Given Kubernetes cluster is available
     And DevOps tools are configured
 
-  @k8s @deployment
+  @ready @k8s @deployment @impl_k8s_app_manifests
+  @template
   Scenario: Kubernetes deployment manifest
     Given a Kubernetes deployment manifest exists
     When I apply the deployment
@@ -16,7 +17,8 @@ Feature: Kubernetes and DevOps Infrastructure
     And desired replica count should be met
     And containers should be running
 
-  @k8s @service
+  @ready @k8s @service @impl_k8s_app_manifests
+  @template
   Scenario: Kubernetes service for load balancing
     Given a Kubernetes service is defined
     When the service is created
@@ -25,6 +27,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And service discovery should work
 
   @k8s @ingress
+  @adopter
   Scenario: Ingress controller for external access
     Given an Ingress resource is configured
     When I access the application via domain
@@ -32,7 +35,8 @@ Feature: Kubernetes and DevOps Infrastructure
     And TLS termination should work
     And HTTP to HTTPS redirect should work
 
-  @k8s @configmap
+  @ready @k8s @configmap @impl_k8s_app_manifests
+  @template
   Scenario: ConfigMap for configuration management
     Given a ConfigMap with application config
     When pods are deployed
@@ -42,6 +46,7 @@ Feature: Kubernetes and DevOps Infrastructure
     Then pods should be restarted with new config
 
   @k8s @secrets
+  @adopter
   Scenario: Kubernetes Secrets for sensitive data
     Given secrets are stored in Kubernetes Secrets
     When pods are deployed
@@ -50,6 +55,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And secrets should be encrypted at rest
 
   @k8s @hpa
+  @adopter
   Scenario: Horizontal Pod Autoscaler
     Given HPA is configured for the deployment
     And target CPU utilization is 70%
@@ -59,13 +65,15 @@ Feature: Kubernetes and DevOps Infrastructure
     Then excess pods should be terminated
 
   @k8s @vpa
+  @adopter
   Scenario: Vertical Pod Autoscaler
     Given VPA is configured
     When pod resource usage is monitored
     Then VPA should recommend resource limits
     And pods should be updated with new limits
 
-  @k8s @resource-limits
+  @ready @k8s @resource-limits @impl_k8s_app_manifests
+  @template
   Scenario: Resource requests and limits
     Given pods have resource limits defined
     Then each pod should have:
@@ -75,7 +83,8 @@ Feature: Kubernetes and DevOps Infrastructure
     And pods should not exceed limits
     And resource requests should be guaranteed
 
-  @k8s @health-probes
+  @ready @k8s @health-probes @impl_k8s_app_manifests
+  @template
   Scenario: Liveness and readiness probes
     Given health probes are configured
     When a pod starts
@@ -84,6 +93,7 @@ Feature: Kubernetes and DevOps Infrastructure
     Then liveness probe should restart the pod
 
   @k8s @rolling-update
+  @adopter
   Scenario: Rolling update deployment strategy
     Given a new version is ready to deploy
     When I update the deployment
@@ -92,6 +102,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And zero downtime should be achieved
 
   @k8s @rollback
+  @adopter
   Scenario: Deployment rollback
     Given a new deployment caused issues
     When I rollback the deployment
@@ -100,6 +111,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And service should return to normal
 
   @k8s @persistent-volume
+  @adopter
   Scenario: Persistent Volume for stateful data
     Given a PersistentVolumeClaim is defined
     When a pod mounts the PVC
@@ -107,6 +119,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And volume should be provisioned dynamically
 
   @k8s @statefulset
+  @adopter
   Scenario: StatefulSet for stateful applications
     Given a StatefulSet is configured for database
     When StatefulSet is deployed
@@ -115,6 +128,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And pods should be created/deleted in order
 
   @k8s @network-policy
+  @adopter
   Scenario: Network policies for pod communication
     Given NetworkPolicies are defined
     Then pod-to-pod communication should be restricted
@@ -122,6 +136,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And unauthorized traffic should be blocked
 
   @k8s @monitoring
+  @adopter
   Scenario: Kubernetes metrics with Prometheus
     Given Prometheus is deployed in cluster
     When I query Kubernetes metrics
@@ -130,6 +145,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And cluster metrics should be available
 
   @cicd @github-actions
+  @adopter
   Scenario: GitHub Actions CI/CD pipeline
     Given GitHub Actions workflow is configured
     When I push code to repository
@@ -142,6 +158,7 @@ Feature: Kubernetes and DevOps Infrastructure
 
   @cicd @github-actions @impl_workflow_lint_actionlint
   @ready
+  @template
   Scenario: Workflow linting is wired with actionlint
     Given workflow lint tooling is present
     Then root package.json should expose a workflows lint command
@@ -150,6 +167,7 @@ Feature: Kubernetes and DevOps Infrastructure
 
   @cicd @build @impl_docker_multistage_build
   @ready
+  @template
   Scenario: Multi-stage Docker build
     Given a multi-stage Dockerfile exists
     When I build the Docker image
@@ -159,6 +177,7 @@ Feature: Kubernetes and DevOps Infrastructure
 
   @k8s @verdaccio @impl_verdaccio_k8s_manifests
   @ready
+  @template
   Scenario: Verdaccio in-cluster registry manifests are present
     Given Verdaccio Kubernetes manifests are available
     Then Verdaccio manifests should include a Deployment, Service, PVC, and ConfigMap
@@ -167,13 +186,15 @@ Feature: Kubernetes and DevOps Infrastructure
 
   @docker @compose @impl_docker_compose_dev
   @ready
+  @template
   Scenario: Docker Compose development environment is configured
     Given Docker Compose configuration exists
     Then the Compose file should define required services
     And backend service should build from the backend Dockerfile
     And frontend service should build from the frontend Dockerfile
 
-  @cicd @test-stage
+  @ready @cicd @test-stage @impl_ci_test_stage
+  @template
   Scenario: CI pipeline test stage
     Given CI pipeline has test stage
     When tests run in CI
@@ -183,6 +204,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And test results should be published
 
   @cicd @security-scan
+  @adopter
   Scenario: Container security scanning
     Given security scanning is enabled in CI
     When Docker image is built
@@ -191,6 +213,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And scan report should be archived
 
   @cicd @deploy-staging
+  @adopter
   Scenario: Automated deployment to staging
     Given tests pass in CI
     When deployment stage runs
@@ -199,6 +222,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And staging should be validated
 
   @cicd @deploy-production
+  @adopter
   Scenario: Production deployment with approval
     Given staging deployment succeeded
     When production deployment is triggered
@@ -208,6 +232,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And health checks should verify deployment
 
   @cicd @canary-deployment
+  @adopter
   Scenario: Canary deployment strategy - healthy metrics
     Given canary deployment is configured
     When new version is deployed
@@ -217,6 +242,7 @@ Feature: Kubernetes and DevOps Infrastructure
     Then traffic should gradually shift to 100%
 
   @cicd @canary-deployment
+  @adopter
   Scenario: Canary deployment strategy - unhealthy metrics
     Given canary deployment is configured
     When new version is deployed
@@ -226,6 +252,7 @@ Feature: Kubernetes and DevOps Infrastructure
     Then rollback should occur
 
   @cicd @blue-green
+  @adopter
   Scenario: Blue-green deployment
     Given blue environment is running
     When green environment is deployed
@@ -236,6 +263,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And blue should be kept for rollback
 
   @cicd @gitops
+  @adopter
   Scenario: GitOps with ArgoCD/FluxCD
     Given GitOps is configured
     When I commit to Git repository
@@ -244,6 +272,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And deployments should be automated
 
   @cicd @secrets-management
+  @adopter
   Scenario: Secrets management in CI/CD
     Given secrets are stored in vault
     When CI/CD pipeline runs
@@ -252,6 +281,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And secrets should be rotated regularly
 
   @cicd @notifications
+  @adopter
   Scenario: Build and deployment notifications
     Given notification integrations are configured
     When build fails
@@ -262,6 +292,7 @@ Feature: Kubernetes and DevOps Infrastructure
     Then on-call engineer should be paged
 
   @k8s @service-mesh
+  @adopter
   Scenario: Service mesh with Istio/Linkerd
     Given service mesh is deployed
     When services communicate
@@ -271,6 +302,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And retries should be automatic
 
   @k8s @operator
+  @adopter
   Scenario: Kubernetes operator for custom resources
     Given a custom operator is deployed
     When I create a custom resource
@@ -279,6 +311,7 @@ Feature: Kubernetes and DevOps Infrastructure
     And operator should handle updates
 
   @k8s @backup
+  @adopter
   Scenario: Cluster backup and restore
     Given backup solution is configured
     When backup is triggered
@@ -288,6 +321,7 @@ Feature: Kubernetes and DevOps Infrastructure
     Then cluster should be restorable from backup
 
   @k8s @cost-optimization
+  @adopter
   Scenario: Resource cost monitoring
     Given cost monitoring is enabled
     When I view cost reports

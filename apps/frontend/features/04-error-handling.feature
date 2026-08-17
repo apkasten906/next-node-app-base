@@ -8,7 +8,8 @@ Feature: Error Handling and Recovery
   Background:
     Given the application is running
 
-  @boundary @critical
+  @ready @boundary @critical @impl_frontend_global_error_boundary
+  @template
   Scenario: Global error boundary catches errors
     Given I am on the application
     When a component throws an unexpected error
@@ -17,14 +18,15 @@ Feature: Error Handling and Recovery
     And I should have an option to reload the page
     And I should have an option to go back to home
 
-  @404
+  @ready @404 @impl_frontend_not_found_page
+  @template
   Scenario: Handle 404 - Page not found
     When I navigate to a non-existent page "/this-does-not-exist"
     Then I should see a 404 error page
     And I should see a message "Page not found"
     And I should see navigation options to go home
 
-  @403
+  @adopter @403
   Scenario: Handle 403 - Forbidden access
     Given I am signed in as a regular user
     When I try to access an admin-only page
@@ -32,7 +34,7 @@ Feature: Error Handling and Recovery
     And I should see a message "Access denied"
     And I should be offered to contact support
 
-  @401
+  @adopter @401
   Scenario: Handle 401 - Unauthorized access
     Given my session has expired
     When I try to access a protected page
@@ -40,7 +42,8 @@ Feature: Error Handling and Recovery
     And I should see a message "Please sign in to continue"
     And after signing in, I should be redirected to the original page
 
-  @500
+  @ready @500 @impl_frontend_error_page
+  @template
   Scenario: Handle 500 - Server error
     Given the API returns a 500 error
     When I try to load a page
@@ -49,7 +52,7 @@ Feature: Error Handling and Recovery
     And I should have an option to retry
     And the error should be reported to monitoring
 
-  @network
+  @adopter @network
   Scenario: Handle network connection loss
     Given I am browsing the application
     When my internet connection is lost
@@ -59,7 +62,7 @@ Feature: Error Handling and Recovery
     Then the offline indicator should disappear
     And data should be synchronized
 
-  @form-errors
+  @adopter @form-errors
   Scenario: Display inline form validation errors
     Given I am on a form page
     When I submit the form with invalid data
@@ -67,7 +70,7 @@ Feature: Error Handling and Recovery
     And the first invalid field should be focused
     And the form should not be submitted
 
-  @api-errors
+  @adopter @api-errors
   Scenario: Handle API validation errors
     Given I am creating a resource
     When the API returns validation errors
@@ -75,14 +78,14 @@ Feature: Error Handling and Recovery
     And I should see all errors simultaneously
     And errors should be cleared when I fix the field
 
-  @timeout
+  @adopter @timeout
   Scenario: Handle request timeout
     Given the API is slow
     When a request takes longer than the timeout
     Then I should see a timeout error
     And I should have options to retry or cancel
 
-  @retry
+  @adopter @retry
   Scenario: Automatic retry on transient errors
     Given the API returns a temporary error (503)
     When I make a request
@@ -90,7 +93,7 @@ Feature: Error Handling and Recovery
     And I should see a "Retrying..." indicator
     And it should retry up to 3 times with exponential backoff
 
-  @toast
+  @adopter @toast
   Scenario: Display error notifications as toasts
     Given I am using the application
     When an error occurs during an action
@@ -98,7 +101,8 @@ Feature: Error Handling and Recovery
     And the toast should auto-dismiss after 5 seconds
     And I should be able to manually dismiss it
 
-  @recovery
+  @ready @recovery @impl_frontend_error_recovery
+  @template
   Scenario: Error recovery with action retry
     Given an API request failed
     When I see the error message
@@ -106,7 +110,7 @@ Feature: Error Handling and Recovery
     When I click "Retry"
     Then the failed action should be attempted again
 
-  @partial-failure
+  @adopter @partial-failure
   Scenario: Handle partial bulk operation failures
     Given I am deleting 10 resources in bulk
     When 3 deletions fail and 7 succeed
@@ -114,7 +118,7 @@ Feature: Error Handling and Recovery
     And I should see details of which items failed
     And I should have an option to retry failed items
 
-  @file-upload-error
+  @adopter @file-upload-error
   Scenario: Handle file upload errors
     Given I am uploading a file
     When the upload fails due to network error
@@ -122,7 +126,7 @@ Feature: Error Handling and Recovery
     And I should have an option to retry upload
     And my file selection should be preserved
 
-  @concurrent-edit
+  @adopter @concurrent-edit
   Scenario: Handle concurrent edit conflicts
     Given I am editing a resource
     And another user edits the same resource
@@ -131,7 +135,7 @@ Feature: Error Handling and Recovery
     And I should see what changed
     And I should have options to overwrite or merge
 
-  @session-expiry
+  @adopter @session-expiry
   Scenario: Handle session expiry during operation
     Given I am in the middle of filling a form
     When my session expires
@@ -141,16 +145,17 @@ Feature: Error Handling and Recovery
     Then I should return to the form
     And my data should still be there
 
-  @javascript-error
+  @ready @javascript-error @impl_frontend_error_logging
+  @template
   Scenario: Catch and report JavaScript errors
     Given I am using the application
     When a JavaScript error occurs
     Then the application should not crash
-    And the error should be sent to Sentry
+    And the error should be sent to the error logger
     And I should see a graceful error message
     And the rest of the application should continue working
 
-  @websocket-error
+  @adopter @websocket-error
   Scenario: Handle WebSocket connection errors
     Given I am on a page using WebSocket
     When the WebSocket fails to connect
@@ -158,7 +163,7 @@ Feature: Error Handling and Recovery
     And the app should fall back to polling
     And I should be notified that real-time features are limited
 
-  @quota-exceeded
+  @adopter @quota-exceeded
   Scenario: Handle storage quota exceeded
     Given I am uploading files
     When my storage quota is exceeded
@@ -166,7 +171,7 @@ Feature: Error Handling and Recovery
     And I should see my current usage
     And I should have options to upgrade or delete files
 
-  @browser-compatibility
+  @adopter @browser-compatibility
   Scenario: Handle unsupported browser features
     Given I am using an older browser
     When I access a feature requiring modern APIs
@@ -174,7 +179,7 @@ Feature: Error Handling and Recovery
     And I should be offered a download link for modern browsers
     And basic functionality should still work
 
-  @error-boundaries
+  @adopter @error-boundaries
   Scenario: Nested error boundaries isolate failures
     Given I am on a complex page with multiple components
     When one component fails
@@ -182,7 +187,7 @@ Feature: Error Handling and Recovery
     And the rest of the page should continue working
     And I should be able to interact with other components
 
-  @error-logging
+  @adopter @error-logging
   Scenario: Errors include helpful context
     Given an error occurs
     Then the error log should include user ID
@@ -190,7 +195,8 @@ Feature: Error Handling and Recovery
     And the error log should include user actions leading to error
     And the error log should include browser information
 
-  @accessibility
+  @ready @accessibility @impl_frontend_accessible_errors
+  @template
   Scenario: Error messages are accessible
     Given I am using a screen reader
     When an error occurs

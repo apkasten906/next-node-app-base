@@ -115,6 +115,37 @@ const swaggerDefinition = {
           },
         },
       },
+      User: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid', description: 'User ID' },
+          email: { type: 'string', format: 'email', description: 'User email address' },
+          name: { type: 'string', description: 'Display name' },
+          role: {
+            type: 'string',
+            enum: ['admin', 'user', 'moderator'],
+            description: 'User role',
+          },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+          lastLoginAt: { type: 'string', format: 'date-time', nullable: true },
+        },
+        required: ['id', 'email', 'role'],
+      },
+      FileMetadata: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid', description: 'File ID' },
+          filename: { type: 'string', description: 'Stored filename' },
+          originalName: { type: 'string', description: 'Original upload filename' },
+          mimeType: { type: 'string', description: 'MIME type' },
+          size: { type: 'integer', description: 'File size in bytes' },
+          url: { type: 'string', format: 'uri', description: 'Download URL' },
+          uploadedBy: { type: 'string', format: 'uuid', description: 'Uploader user ID' },
+          createdAt: { type: 'string', format: 'date-time' },
+        },
+        required: ['id', 'filename', 'mimeType', 'size'],
+      },
     },
     parameters: {
       PageParam: {

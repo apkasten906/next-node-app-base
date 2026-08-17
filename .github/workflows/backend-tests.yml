@@ -18,7 +18,6 @@ jobs:
         uses: ./.github/actions/setup-node-pnpm
         with:
           node-version: 25.x
-          pnpm-version: 8.15.0
           install: "true"
 
       - name: Generate Prisma client
@@ -26,6 +25,12 @@ jobs:
 
       - name: Run backend unit tests
         run: pnpm -w --filter backend test:unit
+
+      - name: Run backend integration tests
+        run: pnpm -w --filter backend test:integration
+
+      - name: Generate backend coverage report
+        run: pnpm -w --filter backend test:coverage
 
       - name: Upload coverage
         if: always()

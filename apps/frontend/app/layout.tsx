@@ -3,12 +3,18 @@ import type { JSX, ReactNode } from 'react';
 
 import { RootErrorBoundary } from '@/components/error-boundary';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { OfflineIndicator } from '@/components/offline-indicator';
 import { Providers } from '@/components/providers';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Next Node App Base',
   description: 'Production-ready monorepo with Next.js and Node.js',
+  openGraph: {
+    title: 'Next Node App Base',
+    description: 'Production-ready monorepo with Next.js and Node.js',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
@@ -21,6 +27,7 @@ export default function RootLayout({
       <body>
         <RootErrorBoundary>
           <Providers>
+            <OfflineIndicator />
             <div className="min-h-screen">
               <header className="border-b">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">

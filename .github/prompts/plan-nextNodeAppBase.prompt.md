@@ -6,6 +6,14 @@ Reframe this repository from a single reusable app template into a reusable plat
 
 This plan is analysis-first. It does not authorize destructive moves. It should guide safe, incremental refactoring.
 
+## Current Snapshot
+
+- **Stable and merged**: frontend auth/UI boundary cleanup and lint/CI boundary enforcement are complete.
+- **Stable and merged**: distributed tracing (`feat/phase-10-jaeger-tracing`, PR #51) is complete.
+- **Stable and merged**: Phase 10 observability remainder (`feat/phase-10-loki-alertmanager`, PR #58, May 2026) — Loki, Promtail, Alertmanager manifests, Grafana `tracesToLogsV2` wiring, backend `injectTraceContext` logger format, all Kubernetes NetworkPolicy Istio egress rules, ADR-020 delivered.
+- **Stable and merged**: `chore/devcontainer-updates` (PR #59, May 2026) — pnpm 11 engine constraint (`>=11.0.0`), `packageManager` pinned to `pnpm@11.1.3`, devcontainer extensions reorganised with section comments, spell-check word additions.
+- **Stable and merged**: `chore/upgrade-turborepo-v2` (PR #60, May 2026) — `turbo` upgraded from `^1.11.3` to `2.9.14`; `pipeline` key renamed to `tasks` in `turbo.json`; pnpm toolchain aligned to `11.1.3` across root, CI, and devcontainer; orphaned `node_modules/turbo-windows-64` directory removed.
+
 ## Guardrails
 
 - Do not start with broad file moves or package splits.
@@ -339,10 +347,12 @@ UI components must not directly call backend or auth endpoints.
 - `auth-api.ts` added; `lib/env.ts` centralizes `resolveApiBaseUrl()`.
 - Route files are now thin (no transport or auth logic inline).
 
-### 5. Add a lightweight architectural enforcement mechanism — ⬜ NEXT
+### 5. Add a lightweight architectural enforcement mechanism — ✅ DONE (PR `feat/lint-ci-boundary-enforcement`, April 2026)
 
-- Add ESLint restrictions or a simple grep-based CI rule preventing raw endpoint fetches inside `apps/frontend/components/**` and selected page files.
-- Allow exceptions only in `lib/api/**`, route handlers, and test code.
+- `no-restricted-syntax` rule in `eslint.config.js` blocks raw `fetch()` in `components/**`, `app/**/!(route).{ts,tsx}`, and `src/hooks/**`.
+- Exceptions: `app/api/**` (entire directory excluded via ESLint `ignores`). Files outside those three glob patterns — including `lib/api/**` and `src/server/**` — are not subject to the rule. Test files are not explicitly excluded; a test file inside a blocked directory would be caught.
+- `lint.yml` CI workflow enforces the rule on every push and PR.
+- `CONTRIBUTING.md` documents the required call path for contributors.
 
 ### 6. Stabilize contracts before extraction
 
@@ -364,16 +374,12 @@ UI components must not directly call backend or auth endpoints.
 
 - Once seams are stable and validated, move folders toward the target structure with mechanical, low-risk refactors.
 
-## J. First Concrete Changes — ✅ DONE (PR #50, April 2026)
+## J. Execution Notes
 
-All six steps were completed as part of `feat/frontend-auth-boundaries`:
+The detailed step-by-step execution history for the frontend boundary cleanup is intentionally collapsed here to avoid duplicating status across multiple sections.
 
-1. ✅ Introduced `apps/frontend/lib/api/auth-api.ts` as the single auth transport module.
-2. ✅ Introduced `apps/frontend/src/application/auth/sign-in.ts` and `src/hooks/auth/use-sign-in.ts`.
-3. ✅ Refactored `signin-client.tsx` to call `useSignIn()` instead of direct `fetch`.
-4. ✅ Introduced `apps/frontend/src/server/auth/require-current-user.ts` (server-only).
-5. ✅ Refactored `dashboard/page.tsx` and `dashboard/bdd/page.tsx` to use server gateways.
-6. ⬜ **PENDING**: Add a narrow lint rule or CI check forbidding raw auth/backend endpoint fetches in UI components. (Next priority — prevents regression.)
+- Historical implementation details are captured by PR #50 and its follow-up lint/CI enforcement work.
+- The live source of truth for completed, in-flight, and next work is section M below.
 
 ## K. ADR Notes
 
@@ -418,20 +424,116 @@ Consequence: lower migration risk and clearer package boundaries.
 - The first refactoring wave (frontend auth/UI boundaries) is complete. Backend service extraction comes after Phase 10 observability.
 - ✅ UI/auth boundary cleanup is in place and validated. File moves remain gated behind seam stabilization.
 
-## M. Current Status and Next Focus
+## M. Execution State and Next Focus
 
-### Completed — April 2026
+### Completed — April/May 2026
 
 - ✅ `feat/frontend-auth-boundaries` merged to master as PR #50.
   - All direct auth/backend fetches removed from UI components and server pages.
   - Layered architecture (`useSignIn` → `AuthApplicationService` → `authApi` → `apiClient`) established.
   - `requireCurrentUser()` and `getBddStatusSnapshot()` server gateways in place.
   - `copilot-instructions.md` added with SOLID + boundary rules.
+- ✅ `feat/lint-ci-boundary-enforcement` merged to master as PR #57 (May 2026).
+  - `no-restricted-syntax` ESLint rule blocks raw `fetch()` in `components/**`, `app/**/!(route).{ts,tsx}`, and `src/hooks/**`; `app/api/**` excluded entirely via `ignores`.
+  - `.github/workflows/lint.yml` runs `pnpm -w lint` in CI on every push and PR; ESLint JSON report uploaded as artifact on failure.
+  - `CONTRIBUTING.md` documents the frontend layering rule, exact blocked globs, and allowed transport layers.
+- ✅ `feat/phase-10-jaeger-tracing` merged to master as PR #51 (May 2026).
+  - Jaeger Kubernetes manifests, Grafana datasource, backend OpenTelemetry bootstrap, ADR-019, and observability docs delivered.
+  - Trace-to-logs rewiring (`tracesToLogsV2`) intentionally deferred until Loki rollout.
+- ✅ `feat/phase-10-loki-alertmanager` merged to master as PR #58 (May 2026).
+  - Loki, Promtail, and Alertmanager Kubernetes manifests (deployments, configs, services, network policies).
+  - Grafana `tracesToLogsV2` datasource link wired to Loki; Alertmanager `matchers:` syntax corrected.
+  - All Kubernetes NetworkPolicy objects updated with Istio egress rules (Loki, Promtail, Alertmanager, Grafana, Prometheus).
+  - Backend `injectTraceContext` Winston format step added to `logger.service.ts`; three unit tests added.
+  - ADR-020 authored. Kiali deferred (low priority, until Istio is actively in use).
+- ✅ `chore/devcontainer-updates` merged to master as PR #59 (May 2026).
+  - pnpm engine constraint raised to `>=11.0.0`; `packageManager` field pinned to `pnpm@11.1.3+sha512`.
+  - Devcontainer extensions list reorganised with labelled sections; `openai.chatgpt` added in AI section; spell-check word additions.
+- ✅ `chore/upgrade-turborepo-v2` merged to master as PR #60 (May 2026).
+  - `turbo` dependency upgraded from `^1.11.3` to `2.9.14`.
+  - `turbo.json` `pipeline` key renamed to `tasks` (Turborepo v2 breaking rename).
+  - pnpm toolchain unified to `11.1.3` across root `package.json`, CI workflows, and devcontainer.
+  - Orphaned `node_modules/turbo-windows-64` directory (root cause of v1.13.4 ghost resolution) removed.
+  - ADR-003 and `CONTRIBUTING.md` updated to document corepack hash discipline.
+
+- ✅ `chore/e2e-personas-moderator` merged to master as PR [#64](https://github.com/apkasten906/next-node-app-base/pull/64) (July 31, 2026; merge commit `cda412f`).
+  - Deterministic `moderator` fixtures and `MODERATOR` seed/login support added across backend and frontend.
+  - Unit coverage validates defaults, role validation, normalization, and frontend seed payloads.
+  - `@ready @impl_e2e_moderator_persona` BDD coverage validates seed upserts, fixture parity, and fallback authentication.
+  - ADR, BDD governance, lint, backend, and cross-platform E2E CI checks passed.
 
 ### Next priority (in order)
 
-1. **Lint/CI boundary enforcement** (Migration Plan step 5) — add an ESLint rule or CI check preventing raw `fetch` calls to backend endpoints from inside `components/**` and `app/**/page.tsx`. Prevents regression without a code review.
-2. **Phase 10 observability remainder** (branch: `feat/phase-10-observability`) — Jaeger distributed tracing, Loki centralized logging, Alertmanager, Kiali.
-3. **E2E personas moderator** (branch: `chore/e2e-personas-moderator`) — adds `moderator` persona + `MODERATOR` role; still on hold.
-4. **Contract package extraction** (Migration Plan step 6) — once the second consumer app (`the-azure-citadel`) is bootstrapped, promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package.
-5. **Phase 8.5 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet.
+- ✅ **Review-driven semantic versioning (Changesets)** — `@changesets/cli`, private-package versioning config, a manually triggered and immutable-action-pinned Version Packages PR workflow, current 2026 changelog entries, and publishing guidance are complete. Version preparation and publishing remain explicit operator actions.
+
+1. ✅ **BDD responsibility taxonomy** — `@template` / `@adopter` is now a responsibility dimension independent of `@ready` / `@wip` / `@manual` / `@skip`; governance, dashboard, profiles, all 387 scenarios, tests, and docs were migrated atomically.
+2. **Template-ready milestone release** — after the responsibility taxonomy merges, manually create the repository tag and GitHub release. Do not run package versioning or publishing: all workspace packages remain private and the current distribution goal is GitHub clone/template use.
+3. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
+4. **Phase 11 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet; begin with ADR and interface contracts in `packages/types`.
+
+## N. BDD Scenario Scope: Base Repo vs Adopter
+
+The dividing line: **base repo = infrastructure, conventions, and cross-cutting concerns the template wires up for any adopter; adopter = business domain logic, provider choices, production ops, and app-specific UX.**
+
+### Implemented taxonomy
+
+Status and responsibility are independent:
+
+- Every scenario has exactly one effective execution status: `@ready`, `@wip`, `@manual`, or `@skip`.
+- Every scenario has exactly one effective responsibility tag: `@template` or `@adopter`.
+- `@template` means the base repository owns the behavior; `@adopter` means the scenario is implementation guidance for a fork.
+- Feature-level tags may provide defaults, with explicit scenario-level overrides.
+- Default CI selects template-owned ready scenarios. Dashboard reporting defaults to template scope and provides an adopter-backlog preset.
+
+The migration classifies 171 template-owned ready scenarios and 216 adopter-owned WIP scenarios. Default Cucumber profiles and dashboard reporting select template-owned behavior; the dashboard provides an adopter-backlog preset.
+
+### Base repo responsibility (complete)
+
+| Feature              | Scope  | Notes                                                                              |
+| -------------------- | ------ | ---------------------------------------------------------------------------------- |
+| 01-foundation        | All 11 | Monorepo, TypeScript, Docker, env, ESLint, Prisma, health                          |
+| 03-backend-core      | All 19 | Express, DI (TSyringe), routing, error middleware                                  |
+| 02-security          | 9/9    | CORS, Helmet, rate limiting, JWT, ADR-011 auth contract, Zod, secrets, audit       |
+| 07-api-design        | ~13/19 | REST conventions, response/error formats, OpenAPI, versioning scheme               |
+| 10-observability     | ~19/22 | Metrics, dashboards, alerts, tracing, structured logs, health, and SLO scaffolding |
+| 05-testing           | All 12 | Vitest config, coverage thresholds, BDD tooling                                    |
+| 13-message-queue     | ~10/19 | BullMQ setup, worker base class, retry, DLQ pattern, health endpoint               |
+| 14-websocket         | 18/28  | Socket.io setup, auth rejection, rooms, messaging, presence, health, frontend hook |
+| 11-advanced-testing  | ~8/23  | Pact scaffolding, k6 scaffolding, ZAP scaffolding                                  |
+| 06-notifications     | 5/15   | `NotificationService` interface, email/SMS/push base flows, retry, health check    |
+| 08-file-storage      | 11/30  | `StorageAdapter` interface, local provider, core CRUD, signed URL, validation      |
+| 12-kubernetes-devops | ~10/34 | Dockerfiles, Docker Compose, GitHub Actions CI, K8s manifest templates             |
+| Frontend base        | 32/32  | i18n, Next.js, ADR-011 frontend auth wiring, error handling, core hooks, a11y      |
+
+### Adopter responsibility (migrate to responsibility-aware tagging)
+
+| Feature                      | Scope  | Notes                                                                              |
+| ---------------------------- | ------ | ---------------------------------------------------------------------------------- |
+| 10-observability             | ~3/22  | ELK, Sentry, and runtime profiling provider/tool choices                           |
+| 02-security                  | 8      | Business RBAC/ABAC rules, password policies, encryption/audit details, sessions    |
+| 06-notifications             | ~10/15 | SendGrid/Twilio/FCM wiring, templates, attachments, bulk sends, failure UX         |
+| 08-file-storage              | ~19/30 | S3/Azure/GCP providers, CDN, API auth flows, prefix/pagination, copy/move policies |
+| 12-kubernetes-devops         | ~24/34 | Canary, blue-green, GitOps/ArgoCD, production approvals, secrets pipelines         |
+| 11-advanced-testing          | ~15/23 | Load scenarios with business SLOs, contract tests for custom APIs                  |
+| 13-message-queue             | ~8/18  | Domain-specific job types and event handlers                                       |
+| 14-websocket                 | ~13/28 | Business-specific events, domain room naming, custom presence logic                |
+| Frontend: 01-authentication  | All 12 | Product login UX, OAuth provider choices, mobile behavior, lockout/session UX      |
+| Frontend: 02-user-management | All 17 | Profile fields, avatars, password change, notification prefs                       |
+| Frontend: 03-api-integration | All 21 | CRUD for custom resources, search/filter/sort/pagination, CSV export               |
+| Frontend: 04-nextjs-frontend | 13     | NextAuth-specific UX, product query flows, sitemap/images/fonts, role pages        |
+| Frontend: 04-error-handling  | 17     | Product 4xx/timeout/toast/bulk/upload/conflict/quota/browser behavior              |
+| Frontend: 09-frontend-core   | 10     | MSW handlers, product feature flags, optimistic/infinite UX, async validation      |
+
+### BDD backlog priority rationale
+
+- **Observability complete**: 19/19 base scenarios are now `@ready` and validate real source/manifests. ELK, Sentry, and runtime profiling remain adopter concerns.
+- **File storage and notifications complete**: interfaces and local/console providers are tagged for the base slice; provider-specific workflows remain adopter guidance.
+- **Message queue complete**: 10/10 base scenarios are now `@ready`, including retry, failed-job retention, queue metrics, and readiness-health coverage.
+- **Advanced testing complete**: 8/8 base scenarios are now `@ready`, covering Pact, k6, and OWASP ZAP scaffolding.
+- **Kubernetes/DevOps complete**: 10/10 base scenarios are now `@ready`, covering app manifest templates, Docker, Compose, workflow linting, and CI test stages.
+- **Backend-only auth checkpoint complete**: `@impl_backend_only_auth_contract` validates the ADR-011 backend contract for login, refresh, logout, current-user lookup, HttpOnly/SameSite cookies, refresh-token flow, and server-gateway cookie forwarding before frontend auth scenarios are promoted.
+- **Frontend Next.js/auth first batch complete**: `@impl_frontend_app_router`, `@impl_frontend_backend_only_auth`, `@impl_frontend_backend_only_login`, `@impl_frontend_dashboard_auth_gateway`, `@impl_frontend_query_provider`, `@impl_frontend_tailwind`, `@impl_frontend_metadata`, `@impl_frontend_route_handlers`, and `@impl_frontend_middleware` are now `@ready`.
+- **Frontend error-handling first batch complete**: `@impl_frontend_global_error_boundary`, `@impl_frontend_not_found_page`, `@impl_frontend_error_page`, `@impl_frontend_error_recovery`, `@impl_frontend_error_logging`, and `@impl_frontend_accessible_errors` are now `@ready`.
+- **Frontend core expanded batch complete**: `@impl_frontend_typed_api_client`, `@impl_frontend_error_boundary_recovery`, `@impl_frontend_loading_state`, `@impl_frontend_debounce_hook`, `@impl_frontend_query_caching`, `@impl_frontend_offline_detection`, `@impl_frontend_semantic_accessibility`, `@impl_frontend_keyboard_navigation`, and `@impl_frontend_form_validation` are now `@ready`.
+- **Frontend base complete**: final Next.js scenarios for responsive layout, route-level authentication, custom error pages, and loading UI are now `@ready`; remaining frontend scenarios are explicitly `@adopter`.
+- **Responsibility migration complete**: every scenario has exactly one effective status and responsibility. All ready coverage is template-owned; all WIP guidance is adopter-owned. E2E personas moderator implementation and BDD coverage merged in PR #64 with green CI.

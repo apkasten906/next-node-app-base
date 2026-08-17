@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.4
 
 ARG NODE_VERSION=25
-ARG PNPM_VERSION=8.15.0
+ARG PNPM_VERSION=11.1.3
 
 # Stage 1: Dependencies
 FROM node:${NODE_VERSION}-alpine AS deps

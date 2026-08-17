@@ -4,17 +4,16 @@
     "target": "ES2022",
     "lib": ["ES2022"],
     "module": "commonjs",
-    "moduleResolution": "node",
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"],
-      "@repo/types": ["../../packages/types/src"],
+      "@repo/types": ["../../packages/types/dist"],
       "@repo/utils": ["../../packages/utils/src"],
       "@repo/constants": ["../../packages/constants/src"]
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"],
+  "references": [{ "path": "../../packages/types" }]
 }

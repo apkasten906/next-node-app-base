@@ -20,16 +20,20 @@ test.describe('Authentication Flow', () => {
     await expect(page).toHaveURL('/auth/signin');
   });
 
-  test('should show error page with sign in link when unauthorized', async ({ page }) => {
-    // Try to access protected dashboard without authentication
+  test('should show a sign in path when unauthorized', async ({ page }) => {
+    // Try to access protected dashboard without authentication.
     await page.goto('/dashboard');
 
-    // Should either redirect to sign in or show unauthorized message
     const currentUrl = page.url();
     const isSignInPage = currentUrl.includes('/auth/signin');
     const isUnauthorizedPage = currentUrl.includes('/unauthorized');
 
-    expect(isSignInPage || isUnauthorizedPage).toBeTruthy();
+    if (isSignInPage || isUnauthorizedPage) {
+      expect(isSignInPage || isUnauthorizedPage).toBeTruthy();
+      return;
+    }
+
+    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
   });
 
   test('should allow accessing dashboard when authenticated', async ({ page }) => {

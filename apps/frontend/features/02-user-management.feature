@@ -1,4 +1,4 @@
-@e2e @user-management
+@e2e @user-management @adopter
 @wip
 Feature: User Management
   As an authenticated user

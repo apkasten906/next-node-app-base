@@ -1,213 +1,275 @@
-@wip
+@observability
 Feature: Observability and Monitoring
   As a DevOps engineer
   We need comprehensive observability
   So that we can monitor, debug, and optimize the application
 
   Background:
-    Given observability tools are configured
-    And the application is running
+    Given the observability repository artifacts are available
 
-  @observability @metrics @prometheus
+  @ready @metrics @prometheus @impl_prometheus_metrics
+  @template
   Scenario: Prometheus metrics exposition
-    Given Prometheus metrics are configured
-    When I access the metrics endpoint "/metrics"
-    Then Prometheus-formatted metrics should be returned
-    And metrics should include:
-      | metric                    |
-      | http_requests_total       |
-      | http_request_duration_ms  |
-      | nodejs_heap_size_used     |
-      | nodejs_eventloop_lag      |
+    When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
+    Then the observability artifact should contain:
+      | marker                        |
+      | http_requests_total           |
+      | http_request_duration_seconds |
+      | registerDefaultMetrics        |
+    And observability artifact "apps/backend/src/routes/metrics.routes.ts" should contain:
+      | marker       |
+      | getMetrics() |
+      | Content-Type |
 
-  @observability @metrics @custom
+  @ready @metrics @custom @impl_prometheus_metrics
+  @template
   Scenario: Custom business metrics
-    Given custom metrics are defined
-    When business events occur
-    Then custom metrics should be incremented
-    And metrics should be available at "/metrics"
-    Examples:
-      | event          | metric              |
-      | user_signup    | users_created_total |
-      | order_placed   | orders_total        |
-      | payment_failed | payment_errors      |
+    When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
+    Then the observability artifact should contain:
+      | marker                   |
+      | user_registrations_total |
+      | api_errors_total         |
+      | incrementCounter         |
 
-  @observability @metrics @labels
+  @ready @metrics @labels @impl_prometheus_metrics
+  @template
   Scenario: Metrics with labels
-    Given metrics support labels
-    When I record an HTTP request
-    Then the metric should include labels:
-      | label     |
-      | method    |
-      | path      |
-      | status    |
-      | duration  |
+    When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
+    Then the observability artifact should contain:
+      | marker      |
+      | method      |
+      | route       |
+      | status_code |
 
-  @observability @grafana
+  @ready @grafana @impl_grafana_dashboards
+  @template
   Scenario: Grafana dashboard for metrics visualization
-    Given Grafana is configured with Prometheus data source
-    When I access Grafana dashboards
-    Then I should see application metrics visualized
-    And dashboards should show:
-      | panel                  |
-      | Request Rate           |
-      | Error Rate             |
-      | Response Time (p95)    |
-      | Memory Usage           |
-      | CPU Usage              |
+    When I inspect the observability artifact "kubernetes/observability/grafana/grafana-dashboards.yaml"
+    Then the observability artifact should contain:
+      | marker                |
+      | Request Rate          |
+      | Error Rate (5xx)      |
+      | P95 Latency           |
+      | Heap Memory           |
+      | CPU Usage             |
 
-  @observability @grafana @alerts
+  @ready @grafana @alerts @impl_grafana_alerts
+  @template
   Scenario: Grafana alerting rules
-    Given alerting rules are configured
-    When error rate exceeds threshold
-    Then an alert should be triggered
-    And alert should be sent to configured channels
-    And alert should include relevant context
+    When I inspect the observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml"
+    Then the observability artifact should contain:
+      | marker           |
+      | HighErrorRate    |
+      | SlowResponseTime |
+      | severity         |
+      | summary          |
+      | description      |
+    And observability artifact "kubernetes/observability/alertmanager/alertmanager-config.yaml" should contain:
+      | marker            |
+      | critical-receiver |
+      | warning-receiver  |
+      | webhook_configs   |
 
-  @observability @tracing @jaeger
+  @ready @tracing @jaeger @impl_jaeger_tracing
+  @template
   Scenario: Distributed tracing with Jaeger
-    Given Jaeger tracing is enabled
-    When a request spans multiple services
-    Then a trace should be created
-    And spans should be recorded for each service
-    And trace ID should propagate across services
+    When I inspect the observability artifact "apps/backend/src/infrastructure/observability/TracingService.ts"
+    Then the observability artifact should contain:
+      | marker                       |
+      | OTLPTraceExporter            |
+      | getNodeAutoInstrumentations  |
+      | OTEL_EXPORTER_OTLP_ENDPOINT  |
+      | ATTR_SERVICE_NAME            |
+    And observability artifact "kubernetes/observability/jaeger/jaeger-deployment.yaml" should contain:
+      | marker       |
+      | jaeger       |
+      | 4318         |
+      | COLLECTOR_OTLP_ENABLED |
 
-  @observability @tracing @spans
+  @ready @tracing @spans @impl_jaeger_tracing
+  @template
   Scenario: Trace span creation
-    Given tracing is enabled
-    When a database query is executed
-    Then a span should be created for the query
-    And span should include:
-      | attribute    |
-      | operation    |
-      | duration     |
-      | query        |
-      | status       |
+    When I inspect the observability artifact "apps/backend/src/infrastructure/observability/TracingService.ts"
+    Then the observability artifact should contain:
+      | marker                      |
+      | NodeSDK                     |
+      | getNodeAutoInstrumentations |
+      | traceExporter               |
 
-  @observability @tracing @context-propagation
+  @ready @tracing @context-propagation @impl_trace_context
+  @template
   Scenario: Trace context propagation
-    Given a request enters the system
-    When the request calls downstream services
-    Then trace context should be propagated
-    And all spans should belong to the same trace
-    And parent-child relationships should be preserved
+    When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
+    Then the observability artifact should contain:
+      | marker         |
+      | getActiveSpan  |
+      | traceId        |
+      | spanId         |
+      | TraceFlags.SAMPLED |
 
-  @observability @logging @structured
+  @ready @logging @structured @impl_winston_logging
+  @template
   Scenario: Structured logging with Winston
-    Given structured logging is configured
-    When application logs an event
-    Then log should be in JSON format
-    And log should include:
-      | field         |
+    When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
+    Then the observability artifact should contain:
+      | marker        |
+      | winston       |
       | timestamp     |
       | level         |
-      | message       |
       | correlationId |
-      | metadata      |
+      | format.json() |
 
-  @observability @logging @levels
+  @ready @logging @levels @impl_winston_logging
+  @template
   Scenario: Log level filtering
-    Given log level is set to "info"
-    When I log messages at different levels
-    Then "debug" logs should be filtered out
-    And "info", "warn", and "error" logs should be recorded
+    When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
+    Then the observability artifact should contain:
+      | marker                         |
+      | process.env['LOG_LEVEL']       |
+      | debug(message                  |
+      | info(message                   |
+      | warn(message                   |
+      | error(message                  |
 
-  @observability @logging @elk
+  @wip @adopter @logging @elk
   Scenario: ELK Stack log aggregation
-    Given logs are shipped to Elasticsearch
-    When I search for logs in Kibana
-    Then I should find application logs
-    And logs should be searchable by fields
-    And logs should be filterable by time range
+    Given ELK is not the base repository log aggregation provider
+    Then the scenario remains an adopter implementation guide
 
-  @observability @logging @loki
-  Scenario: Loki log aggregation (alternative to ELK)
-    Given logs are shipped to Loki
-    When I query logs in Grafana
-    Then I should find application logs
-    And logs should be queryable using LogQL
-    And logs should be efficient for time-series queries
+  @ready @logging @loki @impl_loki_logs
+  @template
+  Scenario: Loki log aggregation
+    When I inspect the observability artifact "kubernetes/observability/loki/loki-config.yaml"
+    Then the observability artifact should contain:
+      | marker        |
+      | schema: v13   |
+      | retention_period |
+    And observability artifact "kubernetes/observability/promtail/promtail-daemonset.yaml" should contain:
+      | marker            |
+      | /var/log/pods     |
+      | loki              |
+      | kubernetes_sd_configs |
 
-  @observability @apm
+  @ready @apm @impl_apm_tracing
+  @template
   Scenario: Application Performance Monitoring
-    Given APM agent is configured
-    When the application handles requests
-    Then performance metrics should be collected
-    And slow transactions should be flagged
-    And bottlenecks should be identified
+    When I inspect the observability artifact "apps/backend/src/infrastructure/observability/TracingService.ts"
+    Then the observability artifact should contain:
+      | marker                      |
+      | NodeSDK                     |
+      | getNodeAutoInstrumentations |
+      | OTLPTraceExporter           |
+    And observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts" should contain:
+      | marker                       |
+      | http_request_duration_seconds |
+      | db_query_duration_seconds    |
 
-  @observability @health-checks
+  @ready @health-checks @impl_readiness_check
+  @template
   Scenario: Comprehensive health check endpoints
-    When I GET "/health"
-    Then health status should include:
-      | component     |
-      | application   |
-      | database      |
-      | cache         |
-      | storage       |
-      | external-apis |
+    When I inspect the observability artifact "apps/backend/src/index.ts"
+    Then the observability artifact should contain:
+      | marker                  |
+      | service: 'backend'      |
+      | checkDependency         |
+      | databaseCheck           |
+      | cacheCheck              |
+      | storageCheck            |
+      | queueCheck              |
+      | websocketCheck          |
+      | latencyMs               |
+      | status: isReady         |
 
-  @observability @uptime-monitoring
+  @ready @uptime-monitoring @impl_grafana_alerts
+  @template
   Scenario: Uptime monitoring and alerting
-    Given uptime monitoring is configured
-    When the application is down
-    Then uptime monitor should detect the outage
-    And alerts should be sent to on-call team
-    And incident should be created
+    When I inspect the observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml"
+    Then the observability artifact should contain:
+      | marker   |
+      | NodeDown |
+      | up{job="kubernetes-nodes"} == 0 |
+      | severity: critical |
+    And observability artifact "kubernetes/observability/prometheus-config.yaml" should contain:
+      | marker       |
+      | alertmanagers |
+      | alertmanager:9093 |
 
-  @observability @error-tracking @sentry
+  @wip @adopter @error-tracking @sentry
   Scenario: Error tracking with Sentry
-    Given Sentry is configured
-    When an unhandled error occurs
-    Then the error should be sent to Sentry
-    And error should include stack trace
-    And error should include request context
-    And team should be notified based on severity
+    Given Sentry is not configured by the base repository
+    Then the scenario remains an adopter implementation guide
 
-  @observability @performance @profiling
+  @wip @adopter @performance @profiling
   Scenario: CPU and memory profiling
-    Given profiling is enabled
-    When I trigger a profiling session
-    Then CPU usage should be profiled
-    And memory allocations should be tracked
-    And profiling report should be generated
+    Given runtime profiling is not configured by the base repository
+    Then the scenario remains an adopter implementation guide
 
-  @observability @database-monitoring
+  @ready @database-monitoring @impl_prometheus_metrics
+  @template
   Scenario: Database query performance monitoring
-    Given database monitoring is enabled
-    When slow queries are executed
-    Then slow queries should be logged
-    And query execution time should be tracked
-    And query patterns should be analyzed
+    When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
+    Then the observability artifact should contain:
+      | marker                    |
+      | db_query_duration_seconds |
+      | db_queries_total          |
+      | operation                 |
+      | table                     |
+    And observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml" should contain:
+      | marker              |
+      | SlowDatabaseQueries |
 
-  @observability @cache-monitoring
+  @ready @cache-monitoring @impl_prometheus_metrics
+  @template
   Scenario: Redis cache monitoring
-    Given Redis monitoring is enabled
-    Then cache hit rate should be tracked
-    And cache miss rate should be tracked
-    And memory usage should be monitored
-    And eviction rate should be monitored
+    When I inspect the observability artifact "apps/backend/src/infrastructure/observability/MetricsService.ts"
+    Then the observability artifact should contain:
+      | marker             |
+      | cache_hits_total   |
+      | cache_misses_total |
+      | cache_name         |
+    And observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml" should contain:
+      | marker            |
+      | HighCacheMissRate |
 
-  @observability @custom-dashboards
+  @ready @custom-dashboards @impl_grafana_dashboards
+  @template
   Scenario: Custom monitoring dashboards
-    Given custom dashboards are created
-    When I view the dashboard
-    Then I should see key business metrics
-    And I should see technical metrics
-    And I should see SLA compliance metrics
+    When I inspect the observability artifact "kubernetes/observability/grafana/grafana-dashboards.yaml"
+    Then the observability artifact should contain:
+      | marker                |
+      | Request Rate by Route |
+      | P95 Latency by Route  |
+      | CPU Usage Over Time   |
 
-  @observability @slo
-  Scenario: Service Level Objectives (SLO) tracking
-    Given SLOs are defined
-    Then availability SLO should be tracked
-    And latency SLO should be tracked
-    And error rate SLO should be tracked
-    And SLO compliance should be reported
+  @ready @slo @impl_slo_monitoring
+  @template
+  Scenario: Service Level Objectives tracking
+    When I inspect the observability artifact "kubernetes/observability/prometheus-rules-configmap.yaml"
+    Then the observability artifact should contain:
+      | marker                         |
+      | slo:http_availability:ratio_30d |
+      | slo:http_latency:ratio_30d     |
+      | slo:http_error_budget:remaining |
+      | SLOAvailabilityBudgetBurn      |
+      | SLOLatencyBudgetBurn           |
+    And observability artifact "kubernetes/observability/grafana/grafana-dashboards.yaml" should contain:
+      | marker                 |
+      | Service Level Objectives |
+      | Availability SLO Compliance |
+      | Error Budget Remaining |
 
-  @observability @correlation-id
+  @ready @correlation-id @impl_trace_log_correlation
+  @template
   Scenario: Request correlation across logs and traces
-    Given correlation ID is generated for each request
-    When I search for a specific request
-    Then I should find all logs with the correlation ID
-    And I should find the trace with the correlation ID
-    And logs and traces should be linked
+    When I inspect the observability artifact "apps/backend/src/services/logger.service.ts"
+    Then the observability artifact should contain:
+      | marker          |
+      | correlationId   |
+      | injectTraceContext |
+      | traceId         |
+      | spanId          |
+    And observability artifact "kubernetes/observability/grafana/grafana-config.yaml" should contain:
+      | marker          |
+      | tracesToLogsV2  |
+      | derivedFields   |
+      | datasourceUid: jaeger |

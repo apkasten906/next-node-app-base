@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Added independent `@template` / `@adopter` BDD responsibility governance, template-scoped default Cucumber profiles, and scope-aware dashboard filters with an adopter-backlog preset
 - Upgraded to Node.js 25 for native TypeScript support ([ADR-001](docs/adr/001-node-js-25-native-typescript.md))
 - Updated `.nvmrc` to Node.js 25
 - Updated Dev Container to use `node:25-bookworm`
 - Updated package.json engines to require Node.js >=25.0.0
+- Upgraded Turborepo to v2 and aligned pnpm 11 across local development, CI, and the Dev Container
+- Hardened repository boundaries, CI permissions, action pinning, dependency updates, and cross-platform workflow validation
 
 ### Added
 
@@ -29,6 +32,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Webhook delivery system
 - WebSocket system
 - Security governance documentation and baseline security middleware (Helmet.js, CORS)
+- Backend-only JWT authentication with secure cookie forwarding through the frontend gateway
+- Deterministic E2E persona seeding, including admin, user, guest, and moderator roles
+- BDD governance enforcement, implementation audits, and complete base-repository scenario coverage
+- Prometheus, Grafana, Jaeger, Loki, Promtail, and Alertmanager observability infrastructure
+- OpenTelemetry tracing, structured trace/log correlation, dashboards, alerts, and observability network policies
+- Manually triggered Changesets version pull requests for workspace package versioning and changelogs
+
+### Fixed
+
+- Stabilized frontend linting, backend E2E infrastructure, and generated Prisma behavior in CI
+- Corrected Docker, Prisma, application, and workflow configuration for reusable forks
 
 ## [1.0.0] - 2025-11-20
 
@@ -38,5 +52,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Production-ready base repository for rapid application development
 - Complete development, testing, and deployment infrastructure
 
-[unreleased]: https://github.com/your-org/next-node-app-base/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/your-org/next-node-app-base/releases/tag/v1.0.0
+[unreleased]: https://github.com/apkasten906/next-node-app-base/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/apkasten906/next-node-app-base/releases/tag/v1.0.0

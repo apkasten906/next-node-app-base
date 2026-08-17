@@ -11,6 +11,7 @@ This repo uses Cucumber feature files as the system of record for:
 - `@ready`: deterministic and enforced by the default CI gate
 - `@manual`: validated manually
 - `@skip`: temporarily disabled
+- `@adopter`: intentionally left as `@wip` in this base repo because it describes product-specific work for teams that fork the template
 
 ## Implementation identifiers (`@impl_*`)
 

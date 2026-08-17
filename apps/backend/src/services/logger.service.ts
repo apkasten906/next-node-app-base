@@ -1,5 +1,6 @@
 import { inspect } from 'node:util';
 
+import { trace, TraceFlags } from '@opentelemetry/api';
 import { singleton } from 'tsyringe';
 import winston from 'winston';
 
@@ -74,11 +75,30 @@ export class LoggerService {
       return info;
     });
 
+    // Inject the active OpenTelemetry trace and span IDs so that structured
+    // log lines written to Loki can be linked back to Jaeger traces via
+    // Grafana's derivedFields.  Only set when a sampled span is active;
+    // degrades to a no-op when tracing is disabled or not sampled.
+    const injectTraceContext = winston.format((info) => {
+      if (info['traceId'] == null) {
+        const span = trace.getActiveSpan();
+        if (span) {
+          const ctx = span.spanContext();
+          if (ctx.traceFlags & TraceFlags.SAMPLED) {
+            info['traceId'] = ctx.traceId;
+            info['spanId'] = ctx.spanId;
+          }
+        }
+      }
+      return info;
+    });
+
     const logFormat = winston.format.combine(
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
       winston.format.errors({ stack: true }),
       winston.format.splat(),
       injectCorrelationIdFromContext(),
+      injectTraceContext(),
       winston.format.json()
     );
 
@@ -86,6 +106,7 @@ export class LoggerService {
       winston.format.colorize(),
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
       injectCorrelationIdFromContext(),
+      injectTraceContext(),
       winston.format.printf((info) => {
         const record = info as Record<string, unknown>;
         const {

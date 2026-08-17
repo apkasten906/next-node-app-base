@@ -4,18 +4,10 @@
   "service": "app",
   "workspaceFolder": "/workspace",
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "25",
-      "nodeGypDependencies": true,
-      "installYarnUsingApt": false
-    },
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
-      "version": "latest",
-      "moby": true
-    },
-    "ghcr.io/devcontainers/features/git:1": {
-      "version": "latest"
-    },
+    // "ghcr.io/devcontainers/features/docker-in-docker:2": {
+    //   "version": "latest",
+    //   "moby": true
+    // },
     "ghcr.io/devcontainers/features/github-cli:1": {
       "version": "latest"
     }
@@ -23,23 +15,41 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        // Language & formatting
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "bradlc.vscode-tailwindcss",
-        "prisma.prisma",
-        "ms-azuretools.vscode-docker",
-        "eamodio.gitlens",
-        "github.vscode-pull-request-github",
+        "editorconfig.editorconfig",
+        "davidanson.vscode-markdownlint",
+        "streetsidesoftware.code-spell-checker",
+        // TypeScript / Node
         "ms-vscode.vscode-typescript-next",
-        "vitest.explorer",
-        "ms-playwright.playwright",
-        "usernamehw.errorlens",
         "christian-kohler.path-intellisense",
         "christian-kohler.npm-intellisense",
-        "streetsidesoftware.code-spell-checker",
-        "redhat.vscode-yaml",
+        // UI / styling
+        "bradlc.vscode-tailwindcss",
+        // Database / ORM
+        "prisma.prisma",
+        // Testing
+        "vitest.explorer",
+        "ms-playwright.playwright",
+        "alexkrechik.cucumberautocomplete",
+        // Containers & infrastructure
+        "ms-azuretools.vscode-docker",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
-        "redhat.vscode-xml"
+        // Data formats
+        "redhat.vscode-yaml",
+        "redhat.vscode-xml",
+        // Git & GitHub
+        "eamodio.gitlens",
+        "github.vscode-pull-request-github",
+        "github.vscode-github-actions",
+        // AI assistance
+        "openai.chatgpt",
+        // Diagrams
+        "mermaidchart.vscode-mermaid-chart",
+        // Developer experience
+        "usernamehw.errorlens",
+        "sonarsource.sonarlint-vscode"
       ],
       "settings": {
         "editor.formatOnSave": true,
@@ -57,8 +67,14 @@
       }
     }
   },
+  "mounts": [
+    // Windows: uses USERPROFILE (e.g. C:\Users\you\.ssh)
+    // Mac/Linux: change USERPROFILE → HOME
+    "source=${localEnv:USERPROFILE}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached,readonly"
+  ],
   "postCreateCommand": "bash .devcontainer/post-create.sh",
-  "forwardPorts": [3000, 3001, 5432, 6379],
+  "postStartCommand": "git config --global --replace-all safe.directory ${containerWorkspaceFolder}",
+  "forwardPorts": [3000, 3001, "db:5432", "redis:6379"],
   "portsAttributes": {
     "3000": {
       "label": "Frontend (Next.js)",
@@ -68,11 +84,11 @@
       "label": "Backend (Express)",
       "onAutoForward": "notify"
     },
-    "5432": {
+    "db:5432": {
       "label": "PostgreSQL",
       "onAutoForward": "silent"
     },
-    "6379": {
+    "redis:6379": {
       "label": "Redis",
       "onAutoForward": "silent"
     }

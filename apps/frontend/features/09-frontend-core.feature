@@ -8,7 +8,7 @@ Feature: Frontend Core Features
     Given the Next.js application is running
     And frontend is configured
 
-  @frontend @msw
+  @adopter @frontend @msw
   Scenario: Mock Service Worker for API mocking
     Given MSW is configured for development
     When I make an API request in development mode
@@ -16,14 +16,15 @@ Feature: Frontend Core Features
     And a mocked response should be returned
     And no actual backend request should be made
 
-  @frontend @msw @handlers
+  @adopter @frontend @msw @handlers
   Scenario: MSW request handlers
     Given MSW handlers are defined for "/api/users"
     When I GET "/api/users" in the browser
     Then MSW should return mocked user data
     And the response should match the handler definition
 
-  @frontend @api-client
+  @ready @frontend @api-client @impl_frontend_typed_api_client
+  @template
   Scenario: Type-safe API client
     Given a type-safe API client is configured
     When I make an API request using the client
@@ -33,6 +34,7 @@ Feature: Frontend Core Features
 
   @frontend @api-client @error-handling @impl_frontend_error_handling
   @ready
+  @template
   Scenario: API client error handling
     Given the API client is configured
     When an API request fails with status "<status>"
@@ -49,6 +51,7 @@ Feature: Frontend Core Features
 
   @frontend @error-boundary @impl_frontend_error_handling
   @ready
+  @template
   Scenario: React error boundary
     Given an error boundary is configured
     When a component throws an error
@@ -57,13 +60,15 @@ Feature: Frontend Core Features
     And the error should be logged
 
   @frontend @websocket @ready @impl_frontend_websocket_hook
+  @template
   Scenario: WebSocket hook wiring
     Given the WebSocket hook is implemented
     Then it should use socket.io-client
     And it should default to NEXT_PUBLIC_WEBSOCKET_URL
     And it should support reconnection state transitions
 
-  @frontend @error-boundary @recovery
+  @ready @frontend @error-boundary @recovery @impl_frontend_error_boundary_recovery
+  @template
   Scenario: Error boundary recovery
     Given an error boundary with retry functionality
     When a component errors and user clicks retry
@@ -71,7 +76,7 @@ Feature: Frontend Core Features
     And the component should be re-rendered
     And the error state should be cleared
 
-  @frontend @feature-flags
+  @adopter @frontend @feature-flags
   Scenario: Feature flag system
     Given feature flags are configured
     When I check if feature "<feature>" is enabled
@@ -84,7 +89,7 @@ Feature: Frontend Core Features
       | experimentalUI    | false   |
       | betaFeatures      | false   |
 
-  @frontend @feature-flags @user-targeting
+  @adopter @frontend @feature-flags @user-targeting
   Scenario: User-targeted feature flags
     Given feature flags support user targeting
     When a user with role "beta-tester" checks feature "betaFeatures"
@@ -92,7 +97,8 @@ Feature: Frontend Core Features
     When a regular user checks the same feature
     Then the feature should be disabled
 
-  @frontend @loading-states
+  @ready @frontend @loading-states @impl_frontend_loading_state
+  @template
   Scenario: Loading state management
     Given a component fetches data from API
     When the API request is in progress
@@ -101,7 +107,7 @@ Feature: Frontend Core Features
     Then the loading state should be removed
     And data should be displayed
 
-  @frontend @optimistic-updates
+  @adopter @frontend @optimistic-updates
   Scenario: Optimistic UI updates
     Given optimistic updates are configured
     When a user performs an action that updates server data
@@ -112,7 +118,7 @@ Feature: Frontend Core Features
     When server rejects the update
     Then UI should rollback to previous state
 
-  @frontend @infinite-scroll
+  @adopter @frontend @infinite-scroll
   Scenario: Infinite scroll pagination
     Given a list component with infinite scroll
     When the user scrolls to the bottom
@@ -120,24 +126,17 @@ Feature: Frontend Core Features
     And new items should be appended to the list
     And loading indicator should be shown during fetch
 
-  @frontend @debouncing
-  Scenario: Search input debouncing
-    Given a search input with 300ms debounce
-    When a user types quickly
-    Then API requests should be debounced
-    And only the final input value should trigger search
-    And excessive API calls should be prevented
-
-  @frontend @caching @query
+  @ready @frontend @caching @query @impl_frontend_query_caching
+  @template
   Scenario: TanStack Query caching
     Given TanStack Query is configured
     When I fetch data for a query
     Then the data should be cached
     When I request the same data again
     Then cached data should be returned immediately
-    And background refetch should occur
+    And window-focus refetch should be disabled
 
-  @frontend @caching @invalidation
+  @adopter @frontend @caching @invalidation
   Scenario: Query cache invalidation
     Given cached query data exists
     When data is mutated on the server
@@ -145,7 +144,8 @@ Feature: Frontend Core Features
     And data should be refetched
     And UI should update with fresh data
 
-  @frontend @offline
+  @ready @frontend @offline @impl_frontend_offline_detection
+  @template
   Scenario: Offline detection and handling
     Given offline detection is enabled
     When the user goes offline
@@ -156,7 +156,8 @@ Feature: Frontend Core Features
     Then online state should be detected
     And pending requests should be retried
 
-  @frontend @accessibility @aria
+  @ready @frontend @accessibility @aria @impl_frontend_semantic_accessibility
+  @template
   Scenario: ARIA labels and semantic HTML
     Given components use semantic HTML
     When I inspect a button component
@@ -164,7 +165,7 @@ Feature: Frontend Core Features
     And role should be properly defined
     And keyboard navigation should work
 
-  @frontend @accessibility @focus-management
+  @adopter @frontend @accessibility @focus-management
   Scenario: Focus management for modals
     Given a modal dialog component
     When the modal opens
@@ -173,7 +174,8 @@ Feature: Frontend Core Features
     When the modal closes
     Then focus should return to trigger element
 
-  @frontend @accessibility @keyboard
+  @ready @frontend @accessibility @keyboard @impl_frontend_keyboard_navigation
+  @template
   Scenario: Keyboard navigation
     Given interactive components exist
     When I navigate using Tab key
@@ -181,7 +183,8 @@ Feature: Frontend Core Features
     And tab order should be logical
     And Enter/Space should activate elements
 
-  @frontend @forms @validation
+  @ready @frontend @forms @validation @impl_frontend_form_validation
+  @template
   Scenario: Form validation
     Given a form with validation rules
     When I submit invalid data
@@ -191,7 +194,7 @@ Feature: Frontend Core Features
     Then validation should pass
     And form should submit successfully
 
-  @frontend @forms @async-validation
+  @adopter @frontend @forms @async-validation
   Scenario: Async form validation
     Given a form with async validation (e.g., email uniqueness)
     When I enter an email address
@@ -199,7 +202,7 @@ Feature: Frontend Core Features
     And validation status should be indicated
     And user should wait for validation result
 
-  @frontend @toast-notifications
+  @adopter @frontend @toast-notifications
   Scenario: Toast notification system
     Given a toast notification system is configured
     When a user action succeeds

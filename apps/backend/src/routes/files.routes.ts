@@ -4,6 +4,7 @@ import { container } from 'tsyringe';
 import { upload, uploadDocument, uploadImage } from '../config/multer';
 import { authenticate } from '../middleware/auth.middleware';
 import { StorageService } from '../services/storage/storage.service';
+import { getFirstString, getOptionalString } from '../utils/request-values';
 
 const router: import('express').Router = Router();
 
@@ -303,8 +304,8 @@ router.post(
  */
 router.get('/file/:filename', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
-    const filePath = req.params['filename'] || '';
-    const shouldDownload = req.query['download'] === 'true';
+    const filePath = getFirstString(req.params['filename']);
+    const shouldDownload = getFirstString(req.query['download']) === 'true';
 
     const storageService = container.resolve(StorageService);
 
@@ -361,7 +362,7 @@ router.delete(
   authenticate,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const filePath = req.params['filename'] || '';
+      const filePath = getFirstString(req.params['filename']);
       const storageService = container.resolve(StorageService);
 
       const success = await storageService.delete(filePath);
@@ -416,13 +417,12 @@ router.delete(
 router.get('/list', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const storageService = container.resolve(StorageService);
+    const maxResults = getOptionalString(req.query['maxResults']);
 
     const files = await storageService.list({
-      folder: req.query['folder'] as string,
-      prefix: req.query['prefix'] as string,
-      maxResults: req.query['maxResults']
-        ? parseInt(req.query['maxResults'] as string, 10)
-        : undefined,
+      folder: getOptionalString(req.query['folder']),
+      prefix: getOptionalString(req.query['prefix']),
+      maxResults: maxResults ? parseInt(maxResults, 10) : undefined,
     });
 
     res.json(files);

@@ -8,6 +8,7 @@ Feature: Advanced Testing Strategies
     Given advanced testing tools are configured
 
   @testing @bdd @cucumber
+  @adopter
   Scenario: Cucumber BDD testing
     Given Cucumber feature files are written
     When I run Cucumber tests
@@ -16,6 +17,7 @@ Feature: Advanced Testing Strategies
     And test results should be reported in Gherkin format
 
   @testing @bdd @living-documentation
+  @adopter
   Scenario: Living documentation from Cucumber
     Given Cucumber scenarios are defined
     When tests pass
@@ -23,7 +25,8 @@ Feature: Advanced Testing Strategies
     And business stakeholders can read scenarios
     And scenarios stay in sync with implementation
 
-  @testing @security @owasp-zap
+  @ready @testing @security @owasp-zap @impl_advanced_testing_scaffold
+  @template
   Scenario: OWASP ZAP security scanning
     Given OWASP ZAP is configured
     When I run a security scan against the application
@@ -36,6 +39,7 @@ Feature: Advanced Testing Strategies
     And scan report should be generated
 
   @testing @security @dependency-scan
+  @adopter
   Scenario: Dependency vulnerability scanning
     Given dependency scanning is configured
     When I scan project dependencies
@@ -43,7 +47,8 @@ Feature: Advanced Testing Strategies
     And severity levels should be assigned
     And remediation suggestions should be provided
 
-  @testing @load @k6
+  @ready @testing @load @k6 @impl_advanced_testing_scaffold
+  @template
   Scenario: Load testing with k6
     Given k6 load test scripts are defined
     When I run load tests with 100 virtual users
@@ -52,7 +57,8 @@ Feature: Advanced Testing Strategies
     And error rates should be tracked
     And throughput should be calculated
 
-  @testing @load @ramp-up
+  @ready @testing @load @ramp-up @impl_advanced_testing_scaffold
+  @template
   Scenario: Gradual load ramp-up
     Given a k6 script with ramping stages
     When I run the load test
@@ -64,7 +70,8 @@ Feature: Advanced Testing Strategies
       | 2m       | 0     |
     And system behavior should be observed at each stage
 
-  @testing @load @thresholds
+  @ready @testing @load @thresholds @impl_advanced_testing_scaffold
+  @template
   Scenario: k6 performance thresholds
     Given performance thresholds are defined
     When load tests run
@@ -73,7 +80,8 @@ Feature: Advanced Testing Strategies
     And error rate should be < 1%
     And successful requests should be > 95%
 
-  @testing @contract @pact
+  @ready @testing @contract @pact @impl_advanced_testing_scaffold
+  @template
   Scenario: Consumer-driven contract testing with Pact
     Given Pact contracts are defined
     When consumer tests run
@@ -82,7 +90,8 @@ Feature: Advanced Testing Strategies
     Then provider should verify contracts
     And compatibility should be ensured
 
-  @testing @contract @breaking-changes
+  @ready @testing @contract @breaking-changes @impl_advanced_testing_scaffold
+  @template
   Scenario: Contract breaking change detection
     Given a Pact contract exists between consumer and provider
     When provider changes API in incompatible way
@@ -91,6 +100,7 @@ Feature: Advanced Testing Strategies
     And deployment should be blocked
 
   @testing @visual-regression
+  @adopter
   Scenario: Visual regression testing
     Given baseline screenshots exist
     When I run visual regression tests
@@ -99,6 +109,7 @@ Feature: Advanced Testing Strategies
     And tests should fail if differences exceed threshold
 
   @testing @accessibility @axe
+  @adopter
   Scenario: Automated accessibility testing with axe-core
     Given axe-core is integrated in tests
     When I test a page for accessibility
@@ -107,6 +118,7 @@ Feature: Advanced Testing Strategies
     And remediation guidance should be provided
 
   @testing @mutation
+  @adopter
   Scenario: Mutation testing for test quality
     Given mutation testing is configured
     When I run mutation tests
@@ -115,6 +127,7 @@ Feature: Advanced Testing Strategies
     And mutation score should indicate test quality
 
   @testing @smoke
+  @adopter
   Scenario: Smoke test suite for quick validation
     Given smoke tests are defined
     When I run smoke tests
@@ -124,6 +137,7 @@ Feature: Advanced Testing Strategies
 
   @publishing @registry @impl_publish_flow
   @ready
+  @template
   Scenario: Registry-agnostic publish flow is wired
     Given a registry-agnostic publish script exists
     And an npmrc template exists for local publishing
@@ -133,6 +147,7 @@ Feature: Advanced Testing Strategies
 
   @database @prisma @migrations @impl_prisma7_migration_workaround
   @ready
+  @template
   Scenario: Prisma 7 CLI migration workaround is documented and wired
     Given Prisma CLI configuration is maintained at the monorepo root
     And the backend Prisma schema should not embed a datasource URL
@@ -142,6 +157,7 @@ Feature: Advanced Testing Strategies
     And ADR-010 should document the Prisma 7 migration workaround
 
   @testing @regression
+  @adopter
   Scenario: Regression test suite
     Given regression tests cover existing features
     When new code is deployed
@@ -150,6 +166,7 @@ Feature: Advanced Testing Strategies
     And no regressions should be introduced
 
   @testing @chaos
+  @adopter
   Scenario: Chaos engineering experiments
     Given chaos engineering tools are configured
     When I inject failures randomly
@@ -158,6 +175,7 @@ Feature: Advanced Testing Strategies
     And weak points should be identified
 
   @testing @monkey
+  @adopter
   Scenario: Monkey testing for unexpected inputs
     Given monkey testing is configured
     When random actions are performed on UI
@@ -166,6 +184,7 @@ Feature: Advanced Testing Strategies
     And unexpected behavior should be logged
 
   @testing @property-based
+  @adopter
   Scenario: Property-based testing
     Given property-based tests are defined
     When tests run with generated inputs
@@ -174,6 +193,7 @@ Feature: Advanced Testing Strategies
     And counterexamples should be minimized
 
   @testing @snapshot @approval
+  @adopter
   Scenario: Approval testing for complex outputs
     Given approval tests are configured
     When complex output is generated
@@ -182,6 +202,7 @@ Feature: Advanced Testing Strategies
     Then developers should review and approve changes
 
   @testing @test-data @factory
+  @adopter
   Scenario: Test data factories
     Given test data factories are defined
     When tests need sample data
@@ -190,6 +211,7 @@ Feature: Advanced Testing Strategies
     And related data should be consistent
 
   @testing @parallel @distributed
+  @adopter
   Scenario: Distributed parallel test execution
     Given tests can run in parallel
     When I run tests across multiple machines
@@ -198,6 +220,7 @@ Feature: Advanced Testing Strategies
     And total execution time should be reduced
 
   @testing @flaky-detection
+  @adopter
   Scenario: Flaky test detection and management
     Given flaky test detection is enabled
     When a test fails intermittently

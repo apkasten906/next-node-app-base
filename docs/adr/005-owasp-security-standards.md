@@ -360,7 +360,7 @@ OWASP compliance helps with:
 
 - [ADR-007: Passport.js Authentication Abstraction](007-passport-js-authentication.md)
 - [SECURITY.md](../../SECURITY.md)
-- [Security Architecture](../architecture/security-architecture.md) (planned)
+- [Security Governance](../security-governance.md)
 
 ## References
 

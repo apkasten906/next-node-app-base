@@ -116,6 +116,40 @@ Notes:
 - You may use a feature-level status tag (e.g. `@wip` above `Feature:`) as a default.
 - If a scenario has its own status tag, it overrides the feature-level status for governance reporting.
 
+## Implementer Coverage Reference
+
+Status and responsibility are independent dimensions. Every scenario has one effective status and exactly one effective responsibility: `@template` or `@adopter`. Feature tags provide defaults; scenario tags override them.
+
+The Gherkin files are the comprehensive, version-controlled list of behaviors available to teams adopting this template:
+
+- `apps/backend/features/*.feature`
+- `apps/frontend/features/*.feature`
+
+Use the scenario tags to distinguish responsibility:
+
+- `@ready` describes base-template behavior that is already implemented and enforced.
+- `@template` describes behavior maintained by the base repository.
+- `@adopter` describes product-, provider-, operations-, or UX-specific behavior that an adopting team may implement.
+- `@manual` describes behavior that requires documented manual verification.
+
+The BDD Governance dashboard presents the same source data as an implementer-friendly catalog. With the backend and frontend running, sign in as an administrator and open:
+
+- <http://localhost:3000/dashboard/bdd> for template-owned scenarios (the default)
+- <http://localhost:3000/dashboard/bdd?scopes=all> for every feature and scenario
+- <http://localhost:3000/dashboard/bdd?scopes=adopter&states=wip> for the adopter implementation backlog
+
+The dashboard shows each scenario's feature file, effective status, responsibility, `@impl_*` traceability tag, and other tags. Its responsibility filter defaults to `template`; the **Adopter backlog** preset selects `@adopter @wip` scenarios.
+
+For a non-UI view:
+
+```bash
+pnpm bdd:status
+node scripts/bdd-status.js --format json
+node scripts/bdd-impl-audit.js --format markdown
+```
+
+The dashboard and CLI reports are generated from the feature files. Do not maintain a separate copied scenario checklist, because it would drift from the executable specifications.
+
 ## Running Cucumber Tests
 
 ### Backend
