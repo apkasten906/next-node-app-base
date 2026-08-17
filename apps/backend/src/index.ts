@@ -35,6 +35,7 @@ import { createQueueMonitoringDashboard } from './services/queue/monitoring/bull
 import { initializeQueues } from './services/queue/queue-init';
 import { QueueService } from './services/queue/queue.service';
 import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
+import { FeatureFlagService } from './services/feature-flags/feature-flag.service';
 import { registerStorageProvider } from './services/storage/storage-provider.factory';
 import { StorageService } from './services/storage/storage.service';
 import { WebSocketService } from './services/websocket/websocket.service';
@@ -547,6 +548,7 @@ container.registerSingleton('EncryptionService', EncryptionService);
 container.registerSingleton('AuthorizationService', AuthorizationService);
 container.registerSingleton('AuditLogService', AuditLogService);
 container.registerSingleton('SecretsManager', EnvironmentSecretsManager);
+container.registerSingleton('IFeatureFlagService', FeatureFlagService);
 container.registerSingleton(QueueService);
 container.registerSingleton(WebSocketService);
 

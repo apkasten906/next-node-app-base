@@ -467,9 +467,9 @@ Consequence: lower migration risk and clearer package boundaries.
 - ✅ **Review-driven semantic versioning (Changesets)** — `@changesets/cli`, private-package versioning config, a manually triggered and immutable-action-pinned Version Packages PR workflow, current 2026 changelog entries, and publishing guidance are complete. Version preparation and publishing remain explicit operator actions.
 
 1. ✅ **BDD responsibility taxonomy** — `@template` / `@adopter` is now a responsibility dimension independent of `@ready` / `@wip` / `@manual` / `@skip`; governance, dashboard, profiles, all 387 scenarios, tests, and docs were migrated atomically.
-2. **Template-ready milestone release** — after the responsibility taxonomy merges, manually create the repository tag and GitHub release. Do not run package versioning or publishing: all workspace packages remain private and the current distribution goal is GitHub clone/template use.
+2. ✅ **Template-ready milestone release** — published the non-draft `v1.1.0` “Template-ready Release” on August 17, 2026. No package versioning or publishing was run; all workspace packages remain private and the current distribution goal is GitHub clone/template use.
 3. **Contract package extraction** (Migration Plan step 6) — first bootstrapped fork will be `fasciculum-instrumentorum`; promote stable DTOs from `lib/contracts/` into `@repo/types` or a successor `@repo/contracts` package once that fork proves reuse.
-4. **Phase 11 Feature Management System** — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks. No code exists yet; begin with ADR and interface contracts in `packages/types`.
+4. **Phase 11 Feature Management System** — ADR-022, the provider-neutral `IFeatureFlagService` contracts, the tested in-memory evaluation engine, and TSyringe registration are complete; implement the validated, authorized flag CRUD/evaluation API and React hooks next.
 
 ## N. BDD Scenario Scope: Base Repo vs Adopter
 

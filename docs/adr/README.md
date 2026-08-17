@@ -50,6 +50,7 @@ Each ADR follows this structure:
 | [019](./019-opentelemetry-jaeger-distributed-tracing.md)                                          | OpenTelemetry SDK + Jaeger for Distributed Tracing                                  | Accepted                         | 2026-04-24 |
 | [020](./020-loki-promtail-alertmanager-observability.md)                                          | Loki + Promtail for Centralized Log Aggregation and Alertmanager for Alert Routing  | Accepted                         | 2026-05-20 |
 | [021](./021-secrets-management-provider-agnostic-interface-with-environment-based-dev-adapter.md) | Secrets management — provider-agnostic interface with environment-based dev adapter | Accepted                         | 2026-05-22 |
+| [022](./022-provider-neutral-feature-flag-management.md)                                          | Provider-Neutral Feature Flag Management                                            | Accepted                         | 2026-08-17 |
 
 <!-- adr-index:end -->
 

@@ -4,6 +4,7 @@ export * from './interfaces/authentication';
 export * from './interfaces/cache';
 export * from './interfaces/encryption';
 export * from './interfaces/event-bus';
+export * from './interfaces/feature-flag';
 // Re-export most from interfaces/notification except NotificationResult
 export {
   BulkNotification,

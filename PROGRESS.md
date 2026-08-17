@@ -162,9 +162,9 @@ The backend core is implemented and running.
 
 - [x] Review-driven semantic versioning (Changesets) — added `@changesets/cli`, version-only package scripts/config, a manually triggered and immutable-action-pinned Version Packages PR workflow, publishing guidance, and current 2026 `CHANGELOG.md` entries
 - [x] BDD responsibility taxonomy — added mutually exclusive `@template` / `@adopter` scope tags alongside status, migrated all 387 scenarios, and added scope-aware governance, Cucumber profiles, and dashboard reporting
-- [ ] Template-ready milestone release — after the BDD taxonomy work merges, manually create the repository tag and GitHub release; no package publication or Changesets version PR is planned
+- [x] Template-ready milestone release — published the non-draft `v1.1.0` “Template-ready Release” on August 17, 2026; no package publication or Changesets version PR was run
 - [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `fasciculum-instrumentorum` fork proves reuse
-- [ ] Phase 11 Feature Management System — `IFeatureFlagService`, evaluation engine, flag CRUD API, React hooks; begin with ADR and interface contracts
+- [ ] Phase 11 Feature Management System — ADR-022, provider-neutral `IFeatureFlagService` contracts, the tested in-memory evaluation engine, and TSyringe registration are complete; flag CRUD/evaluation API and React hooks remain
 
 ## Technology Stack Implemented
 

@@ -14,6 +14,7 @@ import { JwtService } from './services/auth/jwt.service';
 import { PolicyEngine } from './services/auth/policy-engine.service';
 import { InMemoryPolicyStore } from './services/auth/policy-store.service';
 import { EnvironmentSecretsManager } from './services/secrets/secrets-manager.service';
+import { FeatureFlagService } from './services/feature-flags/feature-flag.service';
 import { UserService } from './services/user/user.service';
 
 // Register observability services
@@ -42,6 +43,9 @@ if (!container.isRegistered(AuditLogService)) {
 }
 if (!container.isRegistered(EnvironmentSecretsManager)) {
   container.registerSingleton(EnvironmentSecretsManager);
+}
+if (!container.isRegistered('IFeatureFlagService')) {
+  container.registerSingleton('IFeatureFlagService', FeatureFlagService);
 }
 
 // Register observability services
