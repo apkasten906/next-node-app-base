@@ -164,7 +164,7 @@ The backend core is implemented and running.
 - [x] BDD responsibility taxonomy — added mutually exclusive `@template` / `@adopter` scope tags alongside status, migrated all 387 scenarios, and added scope-aware governance, Cucumber profiles, and dashboard reporting
 - [x] Template-ready milestone release — published the non-draft `v1.1.0` “Template-ready Release” on August 17, 2026; no package publication or Changesets version PR was run
 - [ ] Contract package extraction — promote stable DTOs into `@repo/contracts` once `fasciculum-instrumentorum` fork proves reuse
-- [ ] Phase 11 Feature Management System — ADR-022, provider-neutral `IFeatureFlagService` contracts, the tested in-memory evaluation engine, and TSyringe registration are complete; flag CRUD/evaluation API and React hooks remain
+- [ ] Phase 11 Feature Management System — ADR-022, shared contracts, tested in-memory evaluation, TSyringe registration, strict payload validation, caller-bound evaluation, and admin/moderator CRUD API are complete; React hooks remain
 
 ## Technology Stack Implemented
 

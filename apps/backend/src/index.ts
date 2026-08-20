@@ -20,6 +20,7 @@ import { metricsMiddleware } from './middleware/metrics.middleware';
 import authRouter from './routes/auth.routes';
 import bddAdminRouter from './routes/bdd-admin.routes';
 import e2eRouter from './routes/e2e.routes';
+import featureFlagsRouter from './routes/feature-flags.routes';
 import filesRouter from './routes/files.routes';
 import metricsRouter from './routes/metrics.routes';
 import { usersRouter } from './routes/users-v2.routes';
@@ -327,6 +328,7 @@ export class App {
     this.app.use('/api/auth', authRouter);
     this.app.use('/api/admin/bdd', bddAdminRouter);
     this.app.use('/api/e2e', e2eRouter);
+    this.app.use('/api/feature-flags', featureFlagsRouter);
     this.app.use('/api/users', usersRouter);
     this.app.use('/api/files', filesRouter);
   }
